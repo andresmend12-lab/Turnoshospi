@@ -27,17 +27,16 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.menuAnchor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -79,7 +78,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
@@ -481,7 +479,6 @@ private fun LoginCard(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RegistrationScreen(
     modifier: Modifier = Modifier,
@@ -597,16 +594,13 @@ private fun RegistrationScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = it }
-            ) {
+            Box {
                 OutlinedTextField(
                     value = role,
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Puesto") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                    trailingIcon = { DropdownTrailingIcon(expanded) },
                     colors = TextFieldDefaults.colors(
                         focusedIndicatorColor = Color(0x99FFFFFF),
                         unfocusedIndicatorColor = Color(0x66FFFFFF),
@@ -619,8 +613,8 @@ private fun RegistrationScreen(
                         unfocusedTextColor = Color.White
                     ),
                     modifier = Modifier
-                        .menuAnchor()
                         .fillMaxWidth()
+                        .clickable { expanded = !expanded }
                 )
 
                 DropdownMenu(
@@ -675,6 +669,22 @@ private fun RegistrationScreen(
             }
         }
     }
+}
+
+@Composable
+private fun DropdownTrailingIcon(expanded: Boolean) {
+    val rotation by animateFloatAsState(
+        targetValue = if (expanded) 180f else 0f,
+        animationSpec = tween(durationMillis = 200),
+        label = "dropdownRotation"
+    )
+
+    Icon(
+        imageVector = Icons.Filled.ArrowDropDown,
+        contentDescription = null,
+        tint = Color.White,
+        modifier = Modifier.graphicsLayer { rotationZ = rotation }
+    )
 }
 
 @Composable
