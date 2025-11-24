@@ -594,6 +594,10 @@ private fun RegistrationScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
+            val roleSupervisor = stringResource(id = R.string.role_supervisor)
+            val roleNurse = stringResource(id = R.string.role_nurse)
+            val roleAux = stringResource(id = R.string.role_aux)
+
             Box {
                 OutlinedTextField(
                     value = role,
@@ -621,16 +625,16 @@ private fun RegistrationScreen(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
-                    DropdownItem(title = stringResource(id = R.string.role_supervisor)) {
-                        role = stringResource(id = R.string.role_supervisor)
+                    DropdownItem(title = roleSupervisor) {
+                        role = roleSupervisor
                         expanded = false
                     }
-                    DropdownItem(title = stringResource(id = R.string.role_nurse)) {
-                        role = stringResource(id = R.string.role_nurse)
+                    DropdownItem(title = roleNurse) {
+                        role = roleNurse
                         expanded = false
                     }
-                    DropdownItem(title = stringResource(id = R.string.role_aux)) {
-                        role = stringResource(id = R.string.role_aux)
+                    DropdownItem(title = roleAux) {
+                        role = roleAux
                         expanded = false
                     }
                 }
