@@ -34,8 +34,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -100,7 +101,8 @@ class MainActivity : ComponentActivity() {
                     },
                     onForgotPassword = { email, onResult -> sendPasswordReset(email, onResult) },
                     onLoadProfile = { loadUserProfile(it) },
-                    onSaveProfile = { profile, callback -> saveUserProfile(profile, callback) }
+                    onSaveProfile = { profile, callback -> saveUserProfile(profile, callback) },
+                    onSignOut = { signOut() }
                 )
             }
         }
@@ -195,6 +197,11 @@ class MainActivity : ComponentActivity() {
                 onResult(false)
             }
     }
+
+    private fun signOut() {
+        auth.signOut()
+        currentUserState.value = null
+    }
 }
 
 data class UserProfile(
@@ -229,7 +236,8 @@ fun TurnoshospiApp(
     onCreateAccount: (UserProfile, String, (Boolean) -> Unit) -> Unit,
     onForgotPassword: (String, (Boolean) -> Unit) -> Unit,
     onLoadProfile: (onResult: (UserProfile?) -> Unit) -> Unit,
-    onSaveProfile: (UserProfile, (Boolean) -> Unit) -> Unit
+    onSaveProfile: (UserProfile, (Boolean) -> Unit) -> Unit,
+    onSignOut: () -> Unit
 ) {
     var showLogin by remember { mutableStateOf(true) }
     var showRegistration by remember { mutableStateOf(false) }
@@ -238,6 +246,7 @@ fun TurnoshospiApp(
     var existingProfile by remember { mutableStateOf<UserProfile?>(null) }
     var saveCompleted by remember { mutableStateOf(false) }
     var emailForReset by remember { mutableStateOf("") }
+    var showProfileEditor by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
@@ -312,21 +321,21 @@ fun TurnoshospiApp(
                 .blur(65.dp)
         )
 
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = if (showLogin) Arrangement.Top else Arrangement.Center
-        ) {
-            Spacer(modifier = Modifier.height(if (showLogin) 32.dp else 0.dp))
+        if (user == null) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = if (showLogin) Arrangement.Top else Arrangement.Center
+            ) {
+                Spacer(modifier = Modifier.height(if (showLogin) 32.dp else 0.dp))
 
-            Image(
-                painter = painterResource(id = R.mipmap.ic_logo_hospi_foreground),
-                contentDescription = "Logo Turnoshospi",
-                modifier = Modifier.size(logoSize)
-            )
+                Image(
+                    painter = painterResource(id = R.mipmap.ic_logo_hospi_foreground),
+                    contentDescription = "Logo Turnoshospi",
+                    modifier = Modifier.size(logoSize)
+                )
 
-            AnimatedVisibility(visible = showLogin) {
-                if (user == null) {
+                AnimatedVisibility(visible = showLogin) {
                     if (showRegistration) {
                         CreateAccountScreen(
                             modifier = Modifier
@@ -366,28 +375,17 @@ fun TurnoshospiApp(
                             }
                         )
                     }
-                } else {
-                    RegistrationScreen(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 32.dp)
-                            .padding(horizontal = 8.dp)
-                            .graphicsLayer(alpha = loginAlpha),
-                        user = user,
-                        existingProfile = existingProfile,
-                        isLoading = isLoadingProfile,
-                        onSave = { profile, onComplete ->
-                            saveCompleted = false
-                            coroutineScope.launch {
-                                onSaveProfile(profile) { success ->
-                                    saveCompleted = success
-                                    onComplete(success)
-                                }
-                            }
-                        }
-                    )
                 }
             }
+        } else {
+            MainMenuScreen(
+                modifier = Modifier.fillMaxSize(),
+                user = user,
+                profile = existingProfile,
+                isLoadingProfile = isLoadingProfile,
+                onEditProfile = { showProfileEditor = true },
+                onSignOut = onSignOut
+            )
         }
     }
 
@@ -415,6 +413,179 @@ fun TurnoshospiApp(
             title = { Text(text = "Perfil guardado") },
             text = { Text(text = "Los datos de tu cuenta se han actualizado correctamente.") }
         )
+    }
+
+    if (showProfileEditor && user != null) {
+        ProfileEditorOverlay(
+            user = user,
+            existingProfile = existingProfile,
+            isLoading = isLoadingProfile,
+            onDismiss = { showProfileEditor = false },
+            onSave = { profile, onComplete ->
+                saveCompleted = false
+                coroutineScope.launch {
+                    onSaveProfile(profile) { success ->
+                        saveCompleted = success
+                        showProfileEditor = !success
+                        onComplete(success)
+                    }
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun MainMenuScreen(
+    modifier: Modifier = Modifier,
+    user: FirebaseUser,
+    profile: UserProfile?,
+    isLoadingProfile: Boolean,
+    onEditProfile: () -> Unit,
+    onSignOut: () -> Unit
+) {
+    val displayName = remember(profile, user.email) {
+        val fullName = listOfNotNull(profile?.firstName?.takeIf { it.isNotBlank() }, profile?.lastName?.takeIf { it.isNotBlank() })
+            .joinToString(" ")
+        if (fullName.isNotBlank()) fullName else user.email.orEmpty()
+    }
+
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = stringResource(id = R.string.main_menu_welcome, displayName),
+                style = MaterialTheme.typography.headlineMedium,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = if (isLoadingProfile) stringResource(id = R.string.loading_profile) else stringResource(id = R.string.main_menu_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xCCFFFFFF)
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Card(
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0x1AFFFFFF)),
+                border = BorderStroke(1.dp, Color(0x33FFFFFF))
+            ) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(text = stringResource(id = R.string.profile_summary_title), color = Color.White, fontWeight = FontWeight.SemiBold)
+                    Text(text = stringResource(id = R.string.profile_email_label, user.email.orEmpty()), color = Color(0xCCFFFFFF))
+                    Text(text = stringResource(id = R.string.profile_name_label, displayName), color = Color(0xCCFFFFFF))
+                    val roleLabel = profile?.role?.ifBlank { stringResource(id = R.string.role_aux) } ?: stringResource(id = R.string.role_aux)
+                    Text(text = stringResource(id = R.string.profile_role_label, roleLabel), color = Color(0xCCFFFFFF))
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Button(
+                            onClick = onEditProfile,
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7C3AED))
+                        ) { Text(text = stringResource(id = R.string.edit_profile)) }
+                        TextButton(onClick = onSignOut, colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFFFFB4AB))) {
+                            Text(text = stringResource(id = R.string.sign_out))
+                        }
+                    }
+                }
+            }
+        }
+
+        Card(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(260.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0x22FFFFFF)),
+            border = BorderStroke(1.dp, Color(0x33FFFFFF))
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(text = stringResource(id = R.string.side_menu_title), color = Color.White, fontWeight = FontWeight.Bold)
+
+                MenuOption(title = stringResource(id = R.string.menu_create_plant), subtitle = stringResource(id = R.string.menu_create_plant_desc))
+                MenuOption(title = stringResource(id = R.string.menu_my_plants), subtitle = stringResource(id = R.string.menu_my_plants_desc))
+                MenuOption(title = stringResource(id = R.string.menu_settings), subtitle = stringResource(id = R.string.menu_settings_desc))
+                MenuOption(title = stringResource(id = R.string.menu_info), subtitle = stringResource(id = R.string.menu_info_desc))
+            }
+        }
+    }
+}
+
+@Composable
+private fun MenuOption(title: String, subtitle: String) {
+    Card(
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0x33000000)),
+        border = BorderStroke(1.dp, Color(0x22FFFFFF)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(text = title, color = Color.White, fontWeight = FontWeight.SemiBold)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(text = subtitle, color = Color(0xCCFFFFFF), style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+
+@Composable
+private fun ProfileEditorOverlay(
+    user: FirebaseUser,
+    existingProfile: UserProfile?,
+    isLoading: Boolean,
+    onDismiss: () -> Unit,
+    onSave: (UserProfile, (Boolean) -> Unit) -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xB3000000)),
+        contentAlignment = Alignment.Center
+    ) {
+        Card(
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF0F172A)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = stringResource(id = R.string.edit_profile), color = Color.White, style = MaterialTheme.typography.titleLarge)
+                    TextButton(onClick = onDismiss, colors = ButtonDefaults.textButtonColors(contentColor = Color(0xCCFFFFFF))) {
+                        Text(text = stringResource(id = R.string.close_label))
+                    }
+                }
+
+                RegistrationScreen(
+                    modifier = Modifier.fillMaxWidth(),
+                    user = user,
+                    existingProfile = existingProfile,
+                    isLoading = isLoading,
+                    onSave = onSave
+                )
+            }
+        }
     }
 }
 
@@ -750,18 +921,27 @@ private fun CreateAccountScreen(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
-                    DropdownItem(title = roleSupervisor) {
-                        role = roleSupervisor
-                        expanded = false
-                    }
-                    DropdownItem(title = roleNurse) {
-                        role = roleNurse
-                        expanded = false
-                    }
-                    DropdownItem(title = roleAux) {
-                        role = roleAux
-                        expanded = false
-                    }
+                    DropdownMenuItem(
+                        text = { Text(text = roleSupervisor) },
+                        onClick = {
+                            role = roleSupervisor
+                            expanded = false
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(text = roleNurse) },
+                        onClick = {
+                            role = roleNurse
+                            expanded = false
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(text = roleAux) },
+                        onClick = {
+                            role = roleAux
+                            expanded = false
+                        }
+                    )
                 }
             }
 
@@ -974,18 +1154,27 @@ private fun RegistrationScreen(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
-                    DropdownItem(title = roleSupervisor) {
-                        role = roleSupervisor
-                        expanded = false
-                    }
-                    DropdownItem(title = roleNurse) {
-                        role = roleNurse
-                        expanded = false
-                    }
-                    DropdownItem(title = roleAux) {
-                        role = roleAux
-                        expanded = false
-                    }
+                    DropdownMenuItem(
+                        text = { Text(text = roleSupervisor) },
+                        onClick = {
+                            role = roleSupervisor
+                            expanded = false
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(text = roleNurse) },
+                        onClick = {
+                            role = roleNurse
+                            expanded = false
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(text = roleAux) },
+                        onClick = {
+                            role = roleAux
+                            expanded = false
+                        }
+                    )
                 }
             }
 
@@ -1040,18 +1229,6 @@ private fun DropdownTrailingIcon(expanded: Boolean) {
     )
 }
 
-@Composable
-private fun DropdownItem(title: String, onClick: () -> Unit) {
-    Text(
-        text = title,
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        color = Color.White
-    )
-}
-
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun SplashLoginPreview() {
@@ -1064,7 +1241,8 @@ fun SplashLoginPreview() {
             onCreateAccount = { _, _, _ -> },
             onForgotPassword = { _, _ -> },
             onLoadProfile = {},
-            onSaveProfile = { _, _ -> }
+            onSaveProfile = { _, _ -> },
+            onSignOut = {}
         )
     }
 }
