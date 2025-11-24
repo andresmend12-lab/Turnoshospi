@@ -29,17 +29,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExposedDropdownMenu
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -739,7 +737,6 @@ private fun LoginCard(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CreateAccountScreen(
     modifier: Modifier = Modifier,
@@ -899,16 +896,18 @@ private fun CreateAccountScreen(
             val roleNurse = stringResource(id = R.string.role_nurse)
             val roleAux = stringResource(id = R.string.role_aux)
 
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = it }
-            ) {
+            Box(modifier = Modifier.fillMaxWidth()) {
                 OutlinedTextField(
                     value = role,
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Puesto") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowDropDown,
+                            contentDescription = "Abrir opciones"
+                        )
+                    },
                     colors = TextFieldDefaults.colors(
                         focusedIndicatorColor = Color(0x99FFFFFF),
                         unfocusedIndicatorColor = Color(0x66FFFFFF),
@@ -922,12 +921,13 @@ private fun CreateAccountScreen(
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .menuAnchor()
+                        .clickable { expanded = !expanded }
                 )
 
-                ExposedDropdownMenu(
+                DropdownMenu(
                     expanded = expanded,
-                    onDismissRequest = { expanded = false }
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     DropdownMenuItem(
                         text = { Text(text = roleSupervisor) },
@@ -1016,7 +1016,6 @@ private fun CreateAccountScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RegistrationScreen(
     modifier: Modifier = Modifier,
@@ -1136,16 +1135,18 @@ private fun RegistrationScreen(
             val roleNurse = stringResource(id = R.string.role_nurse)
             val roleAux = stringResource(id = R.string.role_aux)
 
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = it }
-            ) {
+            Box(modifier = Modifier.fillMaxWidth()) {
                 OutlinedTextField(
                     value = role,
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Puesto") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowDropDown,
+                            contentDescription = "Abrir opciones"
+                        )
+                    },
                     colors = TextFieldDefaults.colors(
                         focusedIndicatorColor = Color(0x99FFFFFF),
                         unfocusedIndicatorColor = Color(0x66FFFFFF),
@@ -1159,12 +1160,13 @@ private fun RegistrationScreen(
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .menuAnchor()
+                        .clickable { expanded = !expanded }
                 )
 
-                ExposedDropdownMenu(
+                DropdownMenu(
                     expanded = expanded,
-                    onDismissRequest = { expanded = false }
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     DropdownMenuItem(
                         text = { Text(text = roleSupervisor) },
