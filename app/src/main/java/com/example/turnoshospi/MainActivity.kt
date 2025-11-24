@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -63,16 +62,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.common.api.CommonStatusCodes
-import com.google.android.gms.tasks.Task
 import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -84,27 +77,6 @@ class MainActivity : ComponentActivity() {
     private lateinit var firestore: FirebaseFirestore
     private val currentUserState = mutableStateOf<FirebaseUser?>(null)
     private val authErrorMessage = mutableStateOf<String?>(null)
-
-    private val googleSignInLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            val task: Task<com.google.android.gms.auth.api.signin.GoogleSignInAccount> =
-                GoogleSignIn.getSignedInAccountFromIntent(result.data)
-            try {
-                val account = task.getResult(ApiException::class.java)
-                val idToken = account.idToken
-                if (!idToken.isNullOrEmpty()) {
-                    firebaseAuthWithGoogle(idToken)
-                } else {
-                    authErrorMessage.value = "No se pudo obtener el token de Google"
-                }
-            } catch (e: ApiException) {
-                authErrorMessage.value = when (e.statusCode) {
-                    CommonStatusCodes.NETWORK_ERROR -> "Comprueba tu conexión e inténtalo de nuevo"
-                    CommonStatusCodes.CANCELED -> "Inicio de sesión cancelado"
-                    else -> "Error al iniciar sesión: ${e.statusCode}"
-                }
-            }
-        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -120,7 +92,13 @@ class MainActivity : ComponentActivity() {
                     user = currentUserState.value,
                     errorMessage = authErrorMessage.value,
                     onErrorDismiss = { authErrorMessage.value = null },
-                    onGoogleSignIn = { launchGoogleSignIn() },
+                    onLogin = { email, password, onResult ->
+                        signInWithEmail(email, password, onResult)
+                    },
+                    onCreateAccount = { profile, password, onResult ->
+                        createAccountWithEmail(profile, password, onResult)
+                    },
+                    onForgotPassword = { email, onResult -> sendPasswordReset(email, onResult) },
                     onLoadProfile = { loadUserProfile(it) },
                     onSaveProfile = { profile, callback -> saveUserProfile(profile, callback) }
                 )
@@ -128,25 +106,51 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun launchGoogleSignIn() {
+    private fun signInWithEmail(email: String, password: String, onResult: (Boolean) -> Unit) {
         authErrorMessage.value = null
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(getString(R.string.default_web_client_id))
-            .requestEmail()
-            .build()
-        val client = GoogleSignIn.getClient(this, gso)
-        googleSignInLauncher.launch(client.signInIntent)
+        auth.signInWithEmailAndPassword(email.trim(), password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    currentUserState.value = auth.currentUser
+                    onResult(true)
+                } else {
+                    authErrorMessage.value = "No se pudo iniciar sesión con ese correo"
+                    onResult(false)
+                }
+            }
     }
 
-    private fun firebaseAuthWithGoogle(idToken: String) {
-        val credential = GoogleAuthProvider.getCredential(idToken, null)
-        auth.signInWithCredential(credential).addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                currentUserState.value = auth.currentUser
-            } else {
-                authErrorMessage.value = "No se pudo completar el inicio de sesión"
+    private fun createAccountWithEmail(
+        profile: UserProfile,
+        password: String,
+        onResult: (Boolean) -> Unit
+    ) {
+        authErrorMessage.value = null
+        auth.createUserWithEmailAndPassword(profile.email.trim(), password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    currentUserState.value = auth.currentUser
+                    saveUserProfile(profile) { success ->
+                        onResult(success)
+                    }
+                } else {
+                    authErrorMessage.value = "No se pudo crear la cuenta"
+                    onResult(false)
+                }
             }
-        }
+    }
+
+    private fun sendPasswordReset(email: String, onResult: (Boolean) -> Unit) {
+        authErrorMessage.value = null
+        auth.sendPasswordResetEmail(email.trim())
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    onResult(true)
+                } else {
+                    authErrorMessage.value = "No se pudo enviar el correo de recuperación"
+                    onResult(false)
+                }
+            }
     }
 
     private fun loadUserProfile(onResult: (UserProfile?) -> Unit) {
@@ -168,7 +172,7 @@ class MainActivity : ComponentActivity() {
 
     private fun saveUserProfile(profile: UserProfile, onResult: (Boolean) -> Unit) {
         val user = auth.currentUser ?: run {
-            authErrorMessage.value = "Debes iniciar sesión con Google para continuar"
+            authErrorMessage.value = "Debes iniciar sesión para continuar"
             onResult(false)
             return
         }
@@ -221,15 +225,19 @@ fun TurnoshospiApp(
     user: FirebaseUser?,
     errorMessage: String?,
     onErrorDismiss: () -> Unit,
-    onGoogleSignIn: () -> Unit,
+    onLogin: (String, String, (Boolean) -> Unit) -> Unit,
+    onCreateAccount: (UserProfile, String, (Boolean) -> Unit) -> Unit,
+    onForgotPassword: (String, (Boolean) -> Unit) -> Unit,
     onLoadProfile: (onResult: (UserProfile?) -> Unit) -> Unit,
     onSaveProfile: (UserProfile, (Boolean) -> Unit) -> Unit
 ) {
     var showLogin by remember { mutableStateOf(true) }
+    var showRegistration by remember { mutableStateOf(false) }
     var compactLogo by remember { mutableStateOf(false) }
     var isLoadingProfile by remember { mutableStateOf(false) }
     var existingProfile by remember { mutableStateOf<UserProfile?>(null) }
     var saveCompleted by remember { mutableStateOf(false) }
+    var emailForReset by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
@@ -248,6 +256,7 @@ fun TurnoshospiApp(
             }
         } else {
             existingProfile = null
+            showRegistration = false
         }
     }
 
@@ -318,14 +327,45 @@ fun TurnoshospiApp(
 
             AnimatedVisibility(visible = showLogin) {
                 if (user == null) {
-                    LoginCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 32.dp)
-                            .padding(horizontal = 8.dp)
-                            .graphicsLayer(alpha = loginAlpha),
-                        onGoogleSignIn = onGoogleSignIn
-                    )
+                    if (showRegistration) {
+                        CreateAccountScreen(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 32.dp)
+                                .padding(horizontal = 8.dp)
+                                .graphicsLayer(alpha = loginAlpha),
+                            onBack = { showRegistration = false },
+                            onCreate = { profile, password, onComplete ->
+                                coroutineScope.launch {
+                                    onCreateAccount(profile, password) { success ->
+                                        saveCompleted = success
+                                        onComplete(success)
+                                    }
+                                }
+                            }
+                        )
+                    } else {
+                        LoginCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 32.dp)
+                                .padding(horizontal = 8.dp)
+                                .graphicsLayer(alpha = loginAlpha),
+                            email = emailForReset,
+                            onEmailChange = { emailForReset = it },
+                            onLogin = { email, password, onComplete ->
+                                coroutineScope.launch {
+                                    onLogin(email, password) { onComplete(it) }
+                                }
+                            },
+                            onCreateAccount = { showRegistration = true },
+                            onForgotPassword = { email, onComplete ->
+                                coroutineScope.launch {
+                                    onForgotPassword(email) { onComplete(it) }
+                                }
+                            }
+                        )
+                    }
                 } else {
                     RegistrationScreen(
                         modifier = Modifier
@@ -381,10 +421,15 @@ fun TurnoshospiApp(
 @Composable
 private fun LoginCard(
     modifier: Modifier = Modifier,
-    onGoogleSignIn: () -> Unit
+    email: String,
+    onEmailChange: (String) -> Unit,
+    onLogin: (String, String, (Boolean) -> Unit) -> Unit,
+    onCreateAccount: () -> Unit,
+    onForgotPassword: (String, (Boolean) -> Unit) -> Unit
 ) {
-    var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+    var resetSent by remember { mutableStateOf(false) }
 
     Card(
         modifier = modifier,
@@ -417,9 +462,12 @@ private fun LoginCard(
             )
 
             OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
-                label = { Text("Usuario") },
+                value = email,
+                onValueChange = {
+                    onEmailChange(it)
+                    resetSent = false
+                },
+                label = { Text("Correo electrónico") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 colors = TextFieldDefaults.colors(
@@ -458,7 +506,16 @@ private fun LoginCard(
             )
 
             Button(
-                onClick = onGoogleSignIn,
+                onClick = {
+                    isLoading = true
+                    onLogin(email, password) { success ->
+                        isLoading = false
+                        if (!success) {
+                            password = ""
+                        }
+                    }
+                },
+                enabled = email.isNotBlank() && password.isNotBlank() && !isLoading,
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF7C3AED),
@@ -466,14 +523,306 @@ private fun LoginCard(
                 ),
                 shape = RoundedCornerShape(16.dp)
             ) {
-                Text(text = stringResource(id = R.string.google_sign_in))
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(20.dp)
+                            .padding(end = 8.dp),
+                        strokeWidth = 2.dp,
+                        color = Color.White
+                    )
+                }
+                Text(text = stringResource(id = R.string.login_button))
             }
 
             TextButton(
-                onClick = onGoogleSignIn,
+                onClick = onCreateAccount,
                 colors = ButtonDefaults.textButtonColors(contentColor = Color(0xCCFFFFFF))
             ) {
                 Text(text = stringResource(id = R.string.create_account_title))
+            }
+
+            TextButton(
+                onClick = {
+                    resetSent = false
+                    onForgotPassword(email) { success -> resetSent = success }
+                },
+                enabled = email.isNotBlank(),
+                colors = ButtonDefaults.textButtonColors(contentColor = Color(0xCCFFFFFF))
+            ) {
+                Text(text = stringResource(id = R.string.forgot_password))
+            }
+
+            if (resetSent) {
+                Text(
+                    text = stringResource(id = R.string.reset_email_sent),
+                    color = Color(0xCCFFFFFF),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CreateAccountScreen(
+    modifier: Modifier = Modifier,
+    onBack: () -> Unit,
+    onCreate: (UserProfile, String, (Boolean) -> Unit) -> Unit
+) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var firstName by remember { mutableStateOf("") }
+    var lastName by remember { mutableStateOf("") }
+    var role by remember { mutableStateOf("") }
+    var expanded by remember { mutableStateOf(false) }
+    var isSaving by remember { mutableStateOf(false) }
+    var passwordMismatch by remember { mutableStateOf(false) }
+
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(28.dp),
+        border = BorderStroke(
+            1.dp,
+            Brush.linearGradient(
+                listOf(
+                    Color(0x66FFFFFF),
+                    Color(0x33FFFFFF)
+                )
+            )
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.28f)
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 22.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = stringResource(id = R.string.create_account_title),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Correo electrónico") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                colors = TextFieldDefaults.colors(
+                    focusedIndicatorColor = Color(0x99FFFFFF),
+                    unfocusedIndicatorColor = Color(0x66FFFFFF),
+                    focusedContainerColor = Color(0x22FFFFFF),
+                    unfocusedContainerColor = Color(0x18FFFFFF),
+                    focusedLabelColor = Color.White,
+                    unfocusedLabelColor = Color(0xCCFFFFFF),
+                    cursorColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = password,
+                onValueChange = {
+                    password = it
+                    passwordMismatch = false
+                },
+                label = { Text("Contraseña") },
+                visualTransformation = PasswordVisualTransformation(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                colors = TextFieldDefaults.colors(
+                    focusedIndicatorColor = Color(0x99FFFFFF),
+                    unfocusedIndicatorColor = Color(0x66FFFFFF),
+                    focusedContainerColor = Color(0x22FFFFFF),
+                    unfocusedContainerColor = Color(0x18FFFFFF),
+                    focusedLabelColor = Color.White,
+                    unfocusedLabelColor = Color(0xCCFFFFFF),
+                    cursorColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = confirmPassword,
+                onValueChange = {
+                    confirmPassword = it
+                    passwordMismatch = false
+                },
+                label = { Text(stringResource(id = R.string.confirm_password)) },
+                visualTransformation = PasswordVisualTransformation(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                colors = TextFieldDefaults.colors(
+                    focusedIndicatorColor = Color(0x99FFFFFF),
+                    unfocusedIndicatorColor = Color(0x66FFFFFF),
+                    focusedContainerColor = Color(0x22FFFFFF),
+                    unfocusedContainerColor = Color(0x18FFFFFF),
+                    focusedLabelColor = Color.White,
+                    unfocusedLabelColor = Color(0xCCFFFFFF),
+                    cursorColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = firstName,
+                onValueChange = { firstName = it },
+                label = { Text("Nombre") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                colors = TextFieldDefaults.colors(
+                    focusedIndicatorColor = Color(0x99FFFFFF),
+                    unfocusedIndicatorColor = Color(0x66FFFFFF),
+                    focusedContainerColor = Color(0x22FFFFFF),
+                    unfocusedContainerColor = Color(0x18FFFFFF),
+                    focusedLabelColor = Color.White,
+                    unfocusedLabelColor = Color(0xCCFFFFFF),
+                    cursorColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = lastName,
+                onValueChange = { lastName = it },
+                label = { Text("Apellidos") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                colors = TextFieldDefaults.colors(
+                    focusedIndicatorColor = Color(0x99FFFFFF),
+                    unfocusedIndicatorColor = Color(0x66FFFFFF),
+                    focusedContainerColor = Color(0x22FFFFFF),
+                    unfocusedContainerColor = Color(0x18FFFFFF),
+                    focusedLabelColor = Color.White,
+                    unfocusedLabelColor = Color(0xCCFFFFFF),
+                    cursorColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            val roleSupervisor = stringResource(id = R.string.role_supervisor)
+            val roleNurse = stringResource(id = R.string.role_nurse)
+            val roleAux = stringResource(id = R.string.role_aux)
+
+            Box {
+                OutlinedTextField(
+                    value = role,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Puesto") },
+                    trailingIcon = { DropdownTrailingIcon(expanded) },
+                    colors = TextFieldDefaults.colors(
+                        focusedIndicatorColor = Color(0x99FFFFFF),
+                        unfocusedIndicatorColor = Color(0x66FFFFFF),
+                        focusedContainerColor = Color(0x22FFFFFF),
+                        unfocusedContainerColor = Color(0x18FFFFFF),
+                        focusedLabelColor = Color.White,
+                        unfocusedLabelColor = Color(0xCCFFFFFF),
+                        cursorColor = Color.White,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { expanded = !expanded }
+                )
+
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    DropdownItem(title = roleSupervisor) {
+                        role = roleSupervisor
+                        expanded = false
+                    }
+                    DropdownItem(title = roleNurse) {
+                        role = roleNurse
+                        expanded = false
+                    }
+                    DropdownItem(title = roleAux) {
+                        role = roleAux
+                        expanded = false
+                    }
+                }
+            }
+
+            if (passwordMismatch) {
+                Text(
+                    text = "Las contraseñas no coinciden",
+                    color = Color(0xFFFFD166),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            Button(
+                onClick = {
+                    if (password != confirmPassword) {
+                        passwordMismatch = true
+                        return@Button
+                    }
+                    isSaving = true
+                    onCreate(
+                        UserProfile(
+                            firstName = firstName.trim(),
+                            lastName = lastName.trim(),
+                            role = role,
+                            email = email.trim()
+                        ),
+                        password
+                    ) { success ->
+                        isSaving = false
+                        if (!success) {
+                            password = ""
+                            confirmPassword = ""
+                        }
+                    }
+                },
+                enabled = email.isNotBlank() && password.isNotBlank() &&
+                    confirmPassword.isNotBlank() && firstName.isNotBlank() &&
+                    lastName.isNotBlank() && role.isNotBlank() && !isSaving,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF7C3AED),
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                if (isSaving) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(20.dp)
+                            .padding(end = 8.dp),
+                        strokeWidth = 2.dp,
+                        color = Color.White
+                    )
+                }
+                Text(text = stringResource(id = R.string.create_account_action))
+            }
+
+            TextButton(
+                onClick = onBack,
+                colors = ButtonDefaults.textButtonColors(contentColor = Color(0xCCFFFFFF))
+            ) {
+                Text(text = "Volver al inicio de sesión")
             }
         }
     }
@@ -544,7 +893,7 @@ private fun RegistrationScreen(
                 value = user.email.orEmpty(),
                 onValueChange = {},
                 enabled = false,
-                label = { Text("Correo (Gmail)") },
+                label = { Text("Correo electrónico") },
                 colors = TextFieldDefaults.colors(
                     disabledContainerColor = Color(0x11FFFFFF),
                     disabledIndicatorColor = Color(0x66FFFFFF),
@@ -711,7 +1060,9 @@ fun SplashLoginPreview() {
             user = null,
             errorMessage = null,
             onErrorDismiss = {},
-            onGoogleSignIn = {},
+            onLogin = { _, _, _ -> },
+            onCreateAccount = { _, _, _ -> },
+            onForgotPassword = { _, _ -> },
             onLoadProfile = {},
             onSaveProfile = { _, _ -> }
         )
