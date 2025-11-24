@@ -4,29 +4,47 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardOptions
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.turnoshospi.R
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
+import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,153 +52,138 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             TurnoshospiTheme {
-                SetupScreen()
+                SplashLoginScreen()
             }
         }
     }
 }
 
-data class SetupItem(val title: String, val description: String)
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SetupScreen(modifier: Modifier = Modifier) {
-    val prerequisites = listOf(
-        SetupItem(
-            title = "Android Studio y SDKs",
-            description = "Instala Android Studio Iguana o superior con el SDK de Android 24+ y el emulador actualizado."
-        ),
-        SetupItem(
-            title = "Java y Kotlin",
-            description = "Configura JDK 11 para las builds y habilita Kotlin en el asistente de proyecto si creas un módulo nuevo."
-        ),
-        SetupItem(
-            title = "Emulador o dispositivo",
-            description = "Prepara un dispositivo físico con opciones de desarrollador o crea un AVD con Google APIs para pruebas."
-        )
+fun SplashLoginScreen(modifier: Modifier = Modifier) {
+    var showLogin by remember { mutableStateOf(false) }
+    var compactLogo by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        delay(2000)
+        compactLogo = true
+        delay(300)
+        showLogin = true
+    }
+
+    val logoSize by animateDpAsState(
+        targetValue = if (compactLogo) 120.dp else 240.dp,
+        animationSpec = tween(durationMillis = 500),
+        label = "logoSize"
     )
 
-    val projectSteps = listOf(
-        SetupItem(
-            title = "Sincronizar Gradle",
-            description = "Abre el proyecto en Android Studio y ejecuta 'Sync Project with Gradle Files' para descargar dependencias."
-        ),
-        SetupItem(
-            title = "Configurar ejecución",
-            description = "Selecciona el módulo 'app', elige el dispositivo de destino y usa el botón 'Run' para lanzar la app."
-        ),
-        SetupItem(
-            title = "Verificación rápida",
-            description = "Si la app inicia, deberías ver este resumen; desde ahí añade pantallas y navegación según tus requerimientos."
-        )
+    val loginAlpha by animateFloatAsState(
+        targetValue = if (showLogin) 1f else 0f,
+        animationSpec = tween(durationMillis = 350, delayMillis = 100),
+        label = "loginAlpha"
     )
 
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        topBar = {
-            TopAppBar(title = { Text(text = "Guía de arranque", style = MaterialTheme.typography.titleLarge) })
-        }
-    ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(vertical = 16.dp)
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(24.dp)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = if (showLogin) Arrangement.Top else Arrangement.Center
         ) {
-            item {
-                IntroCard()
-            }
-            item {
-                SectionTitle(text = "Requisitos previos")
-            }
-            items(prerequisites) { item ->
-                SetupCard(item)
-            }
-            item {
-                SectionTitle(text = "Pasos en Android Studio")
-            }
-            items(projectSteps) { item ->
-                SetupCard(item)
-            }
-            item {
-                FooterNote()
+            Spacer(modifier = Modifier.height(if (showLogin) 32.dp else 0.dp))
+
+            Image(
+                painter = painterResource(id = R.mipmap.ic_logo_hospi),
+                contentDescription = "Logo Turnoshospi",
+                modifier = Modifier.size(logoSize)
+            )
+
+            AnimatedVisibility(visible = showLogin) {
+                LoginCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 32.dp)
+                        .padding(horizontal = 8.dp)
+                        .graphicsLayer(alpha = loginAlpha)
+                )
             }
         }
     }
 }
 
 @Composable
-private fun IntroCard() {
+private fun LoginCard(modifier: Modifier = Modifier) {
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        modifier = modifier,
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             Text(
-                text = "Turnoshospi",
+                text = "Iniciar sesión",
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                fontWeight = FontWeight.Bold
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Usa esta guía rápida para validar que tu entorno Compose está listo antes de agregar funcionalidades específicas.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+
+            OutlinedTextField(
+                value = username,
+                onValueChange = { username = it },
+                label = { Text("Usuario") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                ),
+                modifier = Modifier.fillMaxWidth()
             )
+
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Contraseña") },
+                visualTransformation = PasswordVisualTransformation(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Button(
+                onClick = { /* TODO: manejar inicio de sesión */ },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Iniciar sesión")
+            }
+
+            TextButton(onClick = { /* TODO: ir a recuperación */ }) {
+                Text(text = "¿Olvidó su contraseña?")
+            }
+
+            TextButton(onClick = { /* TODO: ir a registro */ }) {
+                Text(text = "Crear cuenta")
+            }
         }
     }
 }
 
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
-private fun SectionTitle(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.SemiBold,
-        modifier = Modifier.padding(top = 8.dp)
-    )
-}
-
-@Composable
-private fun SetupCard(item: SetupItem) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = item.title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Medium
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = item.description,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-@Composable
-private fun FooterNote() {
-    Text(
-        text = "Con el entorno listo, puedes conectar tu backend de turnos, definir navegación y agregar pruebas instrumentadas.",
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(vertical = 4.dp)
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SetupScreenPreview() {
+fun SplashLoginPreview() {
     TurnoshospiTheme {
-        SetupScreen()
+        SplashLoginScreen()
     }
 }
