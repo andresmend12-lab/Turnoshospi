@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Turnoshospi</string>
+    <string name="default_web_client_id">REEMPLAZA_CON_EL_CLIENT_ID_WEB_DE_FIREBASE</string>
 </resources>
