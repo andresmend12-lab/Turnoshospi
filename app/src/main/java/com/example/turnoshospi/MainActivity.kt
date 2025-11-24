@@ -9,6 +9,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,7 +19,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.BorderStroke
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -34,12 +39,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.turnoshospi.R
@@ -85,8 +92,43 @@ fun SplashLoginScreen(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFF0B1021),
+                        Color(0xFF0F172A),
+                        Color(0xFF0E1A2F)
+                    )
+                )
+            )
             .padding(24.dp)
     ) {
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .size(180.dp)
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(Color(0x6654C7EC), Color.Transparent)
+                    ),
+                    shape = RoundedCornerShape(90.dp)
+                )
+                .blur(50.dp)
+        )
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .size(220.dp)
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(Color(0x66A855F7), Color.Transparent)
+                    ),
+                    shape = RoundedCornerShape(110.dp)
+                )
+                .blur(65.dp)
+        )
+
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -120,19 +162,32 @@ private fun LoginCard(modifier: Modifier = Modifier) {
 
     Card(
         modifier = modifier,
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        shape = RoundedCornerShape(28.dp),
+        border = BorderStroke(
+            1.dp,
+            Brush.linearGradient(
+                listOf(
+                    Color(0x66FFFFFF),
+                    Color(0x33FFFFFF)
+                )
+            )
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.28f)
+        )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp),
+                .padding(horizontal = 22.dp, vertical = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
                 text = "Iniciar sesión",
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = Color.White
             )
 
             OutlinedTextField(
@@ -142,8 +197,15 @@ private fun LoginCard(modifier: Modifier = Modifier) {
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                    unfocusedIndicatorColor = MaterialTheme.colorScheme.outline
+                    focusedIndicatorColor = Color(0x99FFFFFF),
+                    unfocusedIndicatorColor = Color(0x66FFFFFF),
+                    focusedContainerColor = Color(0x22FFFFFF),
+                    unfocusedContainerColor = Color(0x18FFFFFF),
+                    focusedLabelColor = Color.White,
+                    unfocusedLabelColor = Color(0xCCFFFFFF),
+                    cursorColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -156,24 +218,42 @@ private fun LoginCard(modifier: Modifier = Modifier) {
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                    unfocusedIndicatorColor = MaterialTheme.colorScheme.outline
+                    focusedIndicatorColor = Color(0x99FFFFFF),
+                    unfocusedIndicatorColor = Color(0x66FFFFFF),
+                    focusedContainerColor = Color(0x22FFFFFF),
+                    unfocusedContainerColor = Color(0x18FFFFFF),
+                    focusedLabelColor = Color.White,
+                    unfocusedLabelColor = Color(0xCCFFFFFF),
+                    cursorColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
 
             Button(
                 onClick = { /* TODO: manejar inicio de sesión */ },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF7C3AED),
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(16.dp)
             ) {
                 Text(text = "Iniciar sesión")
             }
 
-            TextButton(onClick = { /* TODO: ir a recuperación */ }) {
+            TextButton(
+                onClick = { /* TODO: ir a recuperación */ },
+                colors = ButtonDefaults.textButtonColors(contentColor = Color(0xCCFFFFFF))
+            ) {
                 Text(text = "¿Olvidó su contraseña?")
             }
 
-            TextButton(onClick = { /* TODO: ir a registro */ }) {
+            TextButton(
+                onClick = { /* TODO: ir a registro */ },
+                colors = ButtonDefaults.textButtonColors(contentColor = Color(0xCCFFFFFF))
+            ) {
                 Text(text = "Crear cuenta")
             }
         }
