@@ -55,16 +55,17 @@ fun MainMenuScreen(
     val scope = rememberCoroutineScope()
 
     val displayName = remember(profile, userEmail) {
-        val fullName = listOfNotNull(
-            profile?.firstName?.takeIf { it.isNotBlank() },
-            profile?.lastName?.takeIf { it.isNotBlank() }
-        ).joinToString(" ")
-        if (fullName.isNotBlank()) fullName else userEmail
+        val firstName = profile?.firstName?.takeIf { it.isNotBlank() }
+        firstName ?: userEmail
     }
 
     val welcomeStringId = remember(profile?.gender) {
         if (profile?.gender == "female") R.string.main_menu_welcome_female else R.string.main_menu_welcome_male
     }
+
+    val supervisorMale = stringResource(id = R.string.role_supervisor_male)
+    val supervisorFemale = stringResource(id = R.string.role_supervisor_female)
+    val showCreatePlant = profile?.role == supervisorMale || profile?.role == supervisorFemale
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -74,11 +75,13 @@ fun MainMenuScreen(
                 drawerContentColor = Color.White
             ) {
                 DrawerHeader(displayName = displayName, welcomeStringId = welcomeStringId)
-                DrawerMenuItem(
-                    label = stringResource(id = R.string.menu_create_plant),
-                    description = stringResource(id = R.string.menu_create_plant_desc),
-                    onClick = { scope.launch { drawerState.close() } }
-                )
+                if (showCreatePlant) {
+                    DrawerMenuItem(
+                        label = stringResource(id = R.string.menu_create_plant),
+                        description = stringResource(id = R.string.menu_create_plant_desc),
+                        onClick = { scope.launch { drawerState.close() } }
+                    )
+                }
                 DrawerMenuItem(
                     label = stringResource(id = R.string.menu_my_plants),
                     description = stringResource(id = R.string.menu_my_plants_desc),
