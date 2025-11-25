@@ -1,6 +1,7 @@
 package com.example.turnoshospi
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,11 +25,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenu
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -68,7 +67,6 @@ private enum class StaffScope {
     NursesAndAux
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlantCreationScreen(
     onBack: () -> Unit,
@@ -76,6 +74,7 @@ fun PlantCreationScreen(
 ) {
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
     val database = remember {
         FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
     }
@@ -187,17 +186,14 @@ fun PlantCreationScreen(
                         style = MaterialTheme.typography.labelMedium,
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
-                    ExposedDropdownMenuBox(
-                        expanded = expanded,
-                        onExpandedChange = { expanded = !expanded }
-                    ) {
+                    Box {
                         OutlinedTextField(
                             value = selectedDuration,
                             onValueChange = {},
                             readOnly = true,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .menuAnchor(),
+                                .clickable { expanded = true },
                             label = { Text(text = stringResource(id = R.string.shift_duration_placeholder)) },
                             trailingIcon = {
                                 Icon(
@@ -218,7 +214,7 @@ fun PlantCreationScreen(
                                 unfocusedContainerColor = Color(0x11FFFFFF)
                             )
                         )
-                        ExposedDropdownMenu(
+                        DropdownMenu(
                             expanded = expanded,
                             onDismissRequest = { expanded = false }
                         ) {
@@ -228,8 +224,7 @@ fun PlantCreationScreen(
                                     onClick = {
                                         selectedDuration = option
                                         expanded = false
-                                    },
-                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                                    }
                                 )
                             }
                         }
@@ -327,7 +322,7 @@ fun PlantCreationScreen(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
                         if (plantName.isBlank() || unitType.isBlank() || hospitalName.isBlank()) {
-                            errorMessage = stringResource(id = R.string.plant_required_fields_error)
+                            errorMessage = context.getString(R.string.plant_required_fields_error)
                             return@Button
                         }
 
@@ -370,7 +365,7 @@ fun PlantCreationScreen(
                                 .addOnFailureListener { exception ->
                                     isSaving = false
                                     errorMessage = exception.message
-                                        ?: stringResource(id = R.string.plant_save_error)
+                                        ?: context.getString(R.string.plant_save_error)
                                 }
                         }
                     },
