@@ -55,6 +55,8 @@ fun CreateAccountScreen(
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var role by remember { mutableStateOf("") }
+    var gender by remember { mutableStateOf("") }
+    var genderExpanded by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
     var isSaving by remember { mutableStateOf(false) }
     var passwordMismatch by remember { mutableStateOf(false) }
@@ -198,9 +200,40 @@ fun CreateAccountScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            val roleSupervisor = stringResource(id = R.string.role_supervisor)
-            val roleNurse = stringResource(id = R.string.role_nurse)
-            val roleAux = stringResource(id = R.string.role_aux)
+            val roleSupervisorMale = stringResource(id = R.string.role_supervisor_male)
+            val roleSupervisorFemale = stringResource(id = R.string.role_supervisor_female)
+            val roleNurseMale = stringResource(id = R.string.role_nurse_male)
+            val roleNurseFemale = stringResource(id = R.string.role_nurse_female)
+            val roleAuxMale = stringResource(id = R.string.role_aux_male)
+            val roleAuxFemale = stringResource(id = R.string.role_aux_female)
+
+            val genderLabelMale = stringResource(id = R.string.gender_male)
+            val genderLabelFemale = stringResource(id = R.string.gender_female)
+
+            GenderDropdown(
+                gender = gender,
+                labelMale = genderLabelMale,
+                labelFemale = genderLabelFemale,
+                expanded = genderExpanded,
+                onGenderSelected = { selectedGender ->
+                    gender = selectedGender
+                    role = convertRoleForGender(
+                        role = role,
+                        gender = selectedGender,
+                        maleLabels = listOf(
+                            roleSupervisorMale,
+                            roleNurseMale,
+                            roleAuxMale
+                        ),
+                        femaleLabels = listOf(
+                            roleSupervisorFemale,
+                            roleNurseFemale,
+                            roleAuxFemale
+                        )
+                    )
+                },
+                onExpandedChange = { genderExpanded = it }
+            )
 
             ExposedDropdownMenuBox(
                 expanded = expanded,
@@ -233,23 +266,35 @@ fun CreateAccountScreen(
                     onDismissRequest = { expanded = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text(text = roleSupervisor) },
+                        text = {
+                            Text(
+                                text = if (gender == "female") roleSupervisorFemale else roleSupervisorMale
+                            )
+                        },
                         onClick = {
-                            role = roleSupervisor
+                            role = if (gender == "female") roleSupervisorFemale else roleSupervisorMale
                             expanded = false
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text(text = roleNurse) },
+                        text = {
+                            Text(
+                                text = if (gender == "female") roleNurseFemale else roleNurseMale
+                            )
+                        },
                         onClick = {
-                            role = roleNurse
+                            role = if (gender == "female") roleNurseFemale else roleNurseMale
                             expanded = false
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text(text = roleAux) },
+                        text = {
+                            Text(
+                                text = if (gender == "female") roleAuxFemale else roleAuxMale
+                            )
+                        },
                         onClick = {
-                            role = roleAux
+                            role = if (gender == "female") roleAuxFemale else roleAuxMale
                             expanded = false
                         }
                     )
@@ -276,6 +321,7 @@ fun CreateAccountScreen(
                             firstName = firstName.trim(),
                             lastName = lastName.trim(),
                             role = role,
+                            gender = gender,
                             email = email.trim()
                         ),
                         password
@@ -289,7 +335,7 @@ fun CreateAccountScreen(
                 },
                 enabled = email.isNotBlank() && password.isNotBlank() &&
                     confirmPassword.isNotBlank() && firstName.isNotBlank() &&
-                    lastName.isNotBlank() && role.isNotBlank() && !isSaving,
+                    lastName.isNotBlank() && role.isNotBlank() && gender.isNotBlank() && !isSaving,
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF7C3AED),
@@ -329,4 +375,79 @@ fun CreateAccountScreenPreview() {
             onCreate = { _, _, _ -> }
         )
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun GenderDropdown(
+    gender: String,
+    labelMale: String,
+    labelFemale: String,
+    expanded: Boolean,
+    onGenderSelected: (String) -> Unit,
+    onExpandedChange: (Boolean) -> Unit
+) {
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = onExpandedChange
+    ) {
+        OutlinedTextField(
+            value = when (gender) {
+                "male" -> labelMale
+                "female" -> labelFemale
+                else -> ""
+            },
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Género") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            colors = TextFieldDefaults.colors(
+                focusedIndicatorColor = Color(0x99FFFFFF),
+                unfocusedIndicatorColor = Color(0x66FFFFFF),
+                focusedContainerColor = Color(0x22FFFFFF),
+                unfocusedContainerColor = Color(0x18FFFFFF),
+                focusedLabelColor = Color.White,
+                unfocusedLabelColor = Color(0xCCFFFFFF),
+                cursorColor = Color.White,
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor()
+        )
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { onExpandedChange(false) }
+        ) {
+            DropdownMenuItem(
+                text = { Text(text = labelFemale) },
+                onClick = {
+                    onGenderSelected("female")
+                    onExpandedChange(false)
+                }
+            )
+            DropdownMenuItem(
+                text = { Text(text = labelMale) },
+                onClick = {
+                    onGenderSelected("male")
+                    onExpandedChange(false)
+                }
+            )
+        }
+    }
+}
+
+fun convertRoleForGender(
+    role: String,
+    gender: String,
+    maleLabels: List<String>,
+    femaleLabels: List<String>
+): String {
+    if (maleLabels.size != femaleLabels.size) return role
+    val pairs = maleLabels.zip(femaleLabels)
+    val index = pairs.indexOfFirst { (male, female) -> role == male || role == female }
+    if (index == -1) return role
+    return if (gender == "female") pairs[index].second else pairs[index].first
 }

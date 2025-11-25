@@ -62,6 +62,10 @@ fun MainMenuScreen(
         if (fullName.isNotBlank()) fullName else userEmail
     }
 
+    val welcomeStringId = remember(profile?.gender) {
+        if (profile?.gender == "female") R.string.main_menu_welcome_female else R.string.main_menu_welcome_male
+    }
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -69,7 +73,7 @@ fun MainMenuScreen(
                 drawerContainerColor = Color(0xFF0F172A),
                 drawerContentColor = Color.White
             ) {
-                DrawerHeader(displayName = displayName)
+                DrawerHeader(displayName = displayName, welcomeStringId = welcomeStringId)
                 DrawerMenuItem(
                     label = stringResource(id = R.string.menu_create_plant),
                     description = stringResource(id = R.string.menu_create_plant_desc),
@@ -139,7 +143,7 @@ fun MainMenuScreen(
                 }
 
                 Text(
-                    text = stringResource(id = R.string.main_menu_welcome, displayName),
+                    text = stringResource(id = welcomeStringId, displayName),
                     modifier = Modifier.padding(horizontal = 56.dp),
                     style = MaterialTheme.typography.titleLarge,
                     color = Color.White,
@@ -176,7 +180,7 @@ fun MainMenuScreen(
 }
 
 @Composable
-fun DrawerHeader(displayName: String) {
+fun DrawerHeader(displayName: String, welcomeStringId: Int) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -190,7 +194,7 @@ fun DrawerHeader(displayName: String) {
             color = Color.White
         )
         Text(
-            text = stringResource(id = R.string.main_menu_welcome, displayName),
+            text = stringResource(id = welcomeStringId, displayName),
             style = MaterialTheme.typography.bodySmall,
             color = Color(0xCCFFFFFF)
         )

@@ -142,6 +142,7 @@ class MainActivity : ComponentActivity() {
             "firstName" to profile.firstName,
             "lastName" to profile.lastName,
             "role" to profile.role,
+            "gender" to profile.gender,
             "email" to resolvedEmail,
             "createdAt" to FieldValue.serverTimestamp(),
             "updatedAt" to FieldValue.serverTimestamp()
@@ -171,6 +172,7 @@ class MainActivity : ComponentActivity() {
             put("firstName", profile.firstName)
             put("lastName", profile.lastName)
             put("role", profile.role)
+            put("gender", profile.gender)
             put("email", profile.email)
             put("createdAt", profile.createdAt?.toDate()?.time ?: currentTime)
             put("updatedAt", currentTime)
@@ -216,6 +218,7 @@ data class UserProfile(
     val firstName: String = "",
     val lastName: String = "",
     val role: String = "",
+    val gender: String = "",
     val email: String = "",
     val createdAt: Timestamp? = null,
     val updatedAt: Timestamp? = null
@@ -229,6 +232,7 @@ fun com.google.firebase.firestore.DocumentSnapshot.toUserProfile(
         firstName = getString("firstName") ?: "",
         lastName = getString("lastName") ?: "",
         role = getString("role") ?: "",
+        gender = getString("gender") ?: "",
         email = getString("email") ?: fallbackEmail,
         createdAt = getTimestamp("createdAt"),
         updatedAt = getTimestamp("updatedAt")

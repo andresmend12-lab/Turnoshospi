@@ -111,13 +111,16 @@ fun RegistrationScreen(
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var role by remember { mutableStateOf("") }
+    var gender by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
+    var genderExpanded by remember { mutableStateOf(false) }
     var isSaving by remember { mutableStateOf(false) }
 
-    LaunchedEffect(existingProfile?.firstName, existingProfile?.lastName, existingProfile?.role) {
+    LaunchedEffect(existingProfile?.firstName, existingProfile?.lastName, existingProfile?.role, existingProfile?.gender) {
         firstName = existingProfile?.firstName.orEmpty()
         lastName = existingProfile?.lastName.orEmpty()
         role = existingProfile?.role.orEmpty()
+        gender = existingProfile?.gender.orEmpty()
     }
 
     Card(
@@ -215,9 +218,39 @@ fun RegistrationScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            val roleSupervisor = stringResource(id = R.string.role_supervisor)
-            val roleNurse = stringResource(id = R.string.role_nurse)
-            val roleAux = stringResource(id = R.string.role_aux)
+            val roleSupervisorMale = stringResource(id = R.string.role_supervisor_male)
+            val roleSupervisorFemale = stringResource(id = R.string.role_supervisor_female)
+            val roleNurseMale = stringResource(id = R.string.role_nurse_male)
+            val roleNurseFemale = stringResource(id = R.string.role_nurse_female)
+            val roleAuxMale = stringResource(id = R.string.role_aux_male)
+            val roleAuxFemale = stringResource(id = R.string.role_aux_female)
+            val genderLabelMale = stringResource(id = R.string.gender_male)
+            val genderLabelFemale = stringResource(id = R.string.gender_female)
+
+            GenderDropdown(
+                gender = gender,
+                labelMale = genderLabelMale,
+                labelFemale = genderLabelFemale,
+                expanded = genderExpanded,
+                onGenderSelected = { selectedGender ->
+                    gender = selectedGender
+                    role = convertRoleForGender(
+                        role = role,
+                        gender = selectedGender,
+                        maleLabels = listOf(
+                            roleSupervisorMale,
+                            roleNurseMale,
+                            roleAuxMale
+                        ),
+                        femaleLabels = listOf(
+                            roleSupervisorFemale,
+                            roleNurseFemale,
+                            roleAuxFemale
+                        )
+                    )
+                },
+                onExpandedChange = { genderExpanded = it }
+            )
 
             ExposedDropdownMenuBox(
                 expanded = expanded,
@@ -250,23 +283,35 @@ fun RegistrationScreen(
                     onDismissRequest = { expanded = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text(text = roleSupervisor) },
+                        text = {
+                            Text(
+                                text = if (gender == "female") roleSupervisorFemale else roleSupervisorMale
+                            )
+                        },
                         onClick = {
-                            role = roleSupervisor
+                            role = if (gender == "female") roleSupervisorFemale else roleSupervisorMale
                             expanded = false
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text(text = roleNurse) },
+                        text = {
+                            Text(
+                                text = if (gender == "female") roleNurseFemale else roleNurseMale
+                            )
+                        },
                         onClick = {
-                            role = roleNurse
+                            role = if (gender == "female") roleNurseFemale else roleNurseMale
                             expanded = false
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text(text = roleAux) },
+                        text = {
+                            Text(
+                                text = if (gender == "female") roleAuxFemale else roleAuxMale
+                            )
+                        },
                         onClick = {
-                            role = roleAux
+                            role = if (gender == "female") roleAuxFemale else roleAuxMale
                             expanded = false
                         }
                     )
@@ -281,11 +326,12 @@ fun RegistrationScreen(
                             firstName = firstName.trim(),
                             lastName = lastName.trim(),
                             role = role,
+                            gender = gender,
                             email = userEmail
                         )
                     ) { isSaving = false }
                 },
-                enabled = firstName.isNotBlank() && lastName.isNotBlank() && role.isNotBlank(),
+                enabled = firstName.isNotBlank() && lastName.isNotBlank() && role.isNotBlank() && gender.isNotBlank(),
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF7C3AED),
@@ -318,6 +364,7 @@ fun ProfileEditorOverlayPreview() {
                 firstName = "Carlos",
                 lastName = "López",
                 role = "Enfermero",
+                gender = "male",
                 email = "preview@example.com"
             ),
             isLoading = false,
