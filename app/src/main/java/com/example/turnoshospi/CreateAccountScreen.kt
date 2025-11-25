@@ -39,6 +39,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.turnoshospi.R
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.turnoshospi.ui.theme.TurnoshospiTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -314,5 +316,17 @@ fun CreateAccountScreen(
                 Text(text = "Volver al inicio de sesión")
             }
         }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0F172A)
+@Composable
+fun CreateAccountScreenPreview() {
+    TurnoshospiTheme {
+        CreateAccountScreen(
+            modifier = Modifier.fillMaxWidth(),
+            onBack = {},
+            onCreate = { _, _, _ -> }
+        )
     }
 }

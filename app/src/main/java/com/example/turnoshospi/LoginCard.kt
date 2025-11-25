@@ -32,6 +32,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.turnoshospi.R
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.turnoshospi.ui.theme.TurnoshospiTheme
 
 @Composable
 fun LoginCard(
@@ -176,5 +178,20 @@ fun LoginCard(
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0F172A)
+@Composable
+fun LoginCardPreview() {
+    TurnoshospiTheme {
+        LoginCard(
+            modifier = Modifier.fillMaxWidth(),
+            email = "demo@example.com",
+            onEmailChange = {},
+            onLogin = { _, _, _ -> },
+            onCreateAccount = {},
+            onForgotPassword = { _, _ -> }
+        )
     }
 }

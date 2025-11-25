@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.background
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -29,24 +30,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.Preview
 import com.example.turnoshospi.R
-import com.google.firebase.auth.FirebaseUser
+import com.example.turnoshospi.ui.theme.TurnoshospiTheme
 
 @Composable
 fun MainMenuScreen(
     modifier: Modifier = Modifier,
-    user: FirebaseUser,
+    userEmail: String,
     profile: UserProfile?,
     isLoadingProfile: Boolean,
     onEditProfile: () -> Unit,
     onSignOut: () -> Unit
 ) {
-    val displayName = remember(profile, user.email) {
+    val displayName = remember(profile, userEmail) {
         val fullName = listOfNotNull(
             profile?.firstName?.takeIf { it.isNotBlank() },
             profile?.lastName?.takeIf { it.isNotBlank() }
         ).joinToString(" ")
-        if (fullName.isNotBlank()) fullName else user.email.orEmpty()
+        if (fullName.isNotBlank()) fullName else userEmail
     }
 
     Row(
@@ -96,7 +98,7 @@ fun MainMenuScreen(
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = stringResource(id = R.string.profile_email_label, user.email.orEmpty()),
+                        text = stringResource(id = R.string.profile_email_label, userEmail),
                         color = Color(0xCCFFFFFF)
                     )
                     Text(
@@ -188,5 +190,27 @@ fun MenuOption(title: String, subtitle: String) {
                 style = MaterialTheme.typography.bodySmall
             )
         }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0F172A)
+@Composable
+fun MainMenuScreenPreview() {
+    TurnoshospiTheme {
+        MainMenuScreen(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFF0F172A)),
+            userEmail = "demo@example.com",
+            profile = UserProfile(
+                firstName = "Ana",
+                lastName = "Martínez",
+                role = "Supervisora",
+                email = "demo@example.com"
+            ),
+            isLoadingProfile = false,
+            onEditProfile = {},
+            onSignOut = {}
+        )
     }
 }

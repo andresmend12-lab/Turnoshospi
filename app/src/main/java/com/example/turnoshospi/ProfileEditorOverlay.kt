@@ -44,11 +44,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.example.turnoshospi.R
-import com.google.firebase.auth.FirebaseUser
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.turnoshospi.ui.theme.TurnoshospiTheme
 
 @Composable
 fun ProfileEditorOverlay(
-    user: FirebaseUser,
+    userEmail: String,
     existingProfile: UserProfile?,
     isLoading: Boolean,
     onDismiss: () -> Unit,
@@ -88,7 +89,7 @@ fun ProfileEditorOverlay(
 
                 RegistrationScreen(
                     modifier = Modifier.fillMaxWidth(),
-                    user = user,
+                    userEmail = userEmail,
                     existingProfile = existingProfile,
                     isLoading = isLoading,
                     onSave = onSave
@@ -102,7 +103,7 @@ fun ProfileEditorOverlay(
 @Composable
 fun RegistrationScreen(
     modifier: Modifier = Modifier,
-    user: FirebaseUser,
+    userEmail: String,
     existingProfile: UserProfile?,
     isLoading: Boolean,
     onSave: (UserProfile, (Boolean) -> Unit) -> Unit
@@ -161,7 +162,7 @@ fun RegistrationScreen(
             }
 
             OutlinedTextField(
-                value = user.email.orEmpty(),
+                value = userEmail,
                 onValueChange = {},
                 enabled = false,
                 label = { Text("Correo electrónico") },
@@ -280,7 +281,7 @@ fun RegistrationScreen(
                             firstName = firstName.trim(),
                             lastName = lastName.trim(),
                             role = role,
-                            email = user.email.orEmpty()
+                            email = userEmail
                         )
                     ) { isSaving = false }
                 },
@@ -304,5 +305,24 @@ fun RegistrationScreen(
                 Text(text = stringResource(id = R.string.register_button))
             }
         }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xB3000000)
+@Composable
+fun ProfileEditorOverlayPreview() {
+    TurnoshospiTheme {
+        ProfileEditorOverlay(
+            userEmail = "preview@example.com",
+            existingProfile = UserProfile(
+                firstName = "Carlos",
+                lastName = "López",
+                role = "Enfermero",
+                email = "preview@example.com"
+            ),
+            isLoading = false,
+            onDismiss = {},
+            onSave = { _, _ -> }
+        )
     }
 }

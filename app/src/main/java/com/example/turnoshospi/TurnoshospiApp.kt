@@ -194,7 +194,7 @@ fun TurnoshospiApp(
         } else {
             MainMenuScreen(
                 modifier = Modifier.fillMaxSize(),
-                user = user,
+                userEmail = user.email.orEmpty(),
                 profile = existingProfile,
                 isLoadingProfile = isLoadingProfile,
                 onEditProfile = { showProfileEditor = true },
@@ -231,7 +231,7 @@ fun TurnoshospiApp(
 
     if (showProfileEditor && user != null) {
         ProfileEditorOverlay(
-            user = user,
+            userEmail = user.email.orEmpty(),
             existingProfile = existingProfile,
             isLoading = isLoadingProfile,
             onDismiss = { showProfileEditor = false },
