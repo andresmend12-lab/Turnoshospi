@@ -250,9 +250,7 @@ private fun CalendarSection(state: DatePickerState) {
                 dayContentColor = Color.White,
                 disabledDayContentColor = Color(0x80FFFFFF),
                 dayInSelectionRangeContentColor = Color.White,
-                disabledDayInSelectionRangeContentColor = Color(0x80FFFFFF),
                 dayInSelectionRangeContainerColor = Color(0x331E293B),
-                disabledDayInSelectionRangeContainerColor = Color(0x221E293B),
                 todayContentColor = Color.White,
                 todayDateBorderColor = Color(0x66FFFFFF)
             )
