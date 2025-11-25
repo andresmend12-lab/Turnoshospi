@@ -156,14 +156,12 @@ class MainActivity : ComponentActivity() {
             .document(user.uid)
             .set(payload, SetOptions.merge())
             .addOnSuccessListener {
-                // Actualizamos Firestore y devolvemos éxito inmediatamente para refrescar la UI,
-                // mientras sincronizamos en Realtime Database sin bloquear al usuario.
                 saveRealtimeUser(user.uid, profile.copy(email = resolvedEmail)) { success ->
                     if (!success && authErrorMessage.value == null) {
                         authErrorMessage.value = "No se pudo guardar el perfil en tiempo real"
                     }
+                    onResult(success)
                 }
-                onResult(true)
             }
             .addOnFailureListener {
                 authErrorMessage.value = "No se pudo guardar el perfil"

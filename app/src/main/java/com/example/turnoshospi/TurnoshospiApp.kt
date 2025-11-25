@@ -240,14 +240,18 @@ fun TurnoshospiApp(
                     onSaveProfile(profile) { success ->
                         if (success) {
                             existingProfile = profile
+                            showProfileEditor = false
+                            saveCompleted = true
                             isLoadingProfile = true
                             onLoadProfile { refreshedProfile ->
                                 existingProfile = refreshedProfile ?: profile
                                 isLoadingProfile = false
+                                saveCompleted = true
                             }
+                        } else {
+                            saveCompleted = false
+                            showProfileEditor = true
                         }
-                        saveCompleted = success
-                        showProfileEditor = !success
                         onComplete(success)
                     }
                 }
