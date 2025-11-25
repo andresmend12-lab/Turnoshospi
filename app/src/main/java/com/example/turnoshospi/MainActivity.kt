@@ -58,6 +58,9 @@ class MainActivity : ComponentActivity() {
                     onJoinPlant = { plantId, code, profile, onResult ->
                         joinPlantWithCode(plantId, code, profile, onResult)
                     },
+                    onRegisterPlantStaff = { plantId, staffMember, onResult ->
+                        registerPlantStaff(plantId, staffMember, onResult)
+                    },
                     onSignOut = { signOut() }
                 )
             }
@@ -272,13 +275,35 @@ class MainActivity : ComponentActivity() {
                     "users/${registeredUser.id}/plantId" to cleanPlantId
                 )
 
-                realtimeDatabase.reference
-                    .updateChildren(updates)
-                    .addOnSuccessListener { onResult(true, null) }
-                    .addOnFailureListener {
-                        onResult(false, getString(R.string.join_plant_error))
-                    }
+        realtimeDatabase.reference
+            .updateChildren(updates)
+            .addOnSuccessListener { onResult(true, null) }
+            .addOnFailureListener {
+                onResult(false, getString(R.string.join_plant_error))
             }
+    }
+
+    private fun registerPlantStaff(
+        plantId: String,
+        staffMember: RegisteredUser,
+        onResult: (Boolean) -> Unit
+    ) {
+        val cleanPlantId = plantId.trim()
+
+        if (cleanPlantId.isEmpty()) {
+            onResult(false)
+            return
+        }
+
+        realtimeDatabase.reference
+            .child("plants")
+            .child(cleanPlantId)
+            .child("registeredUsers")
+            .child(staffMember.id)
+            .setValue(staffMember)
+            .addOnSuccessListener { onResult(true) }
+            .addOnFailureListener { onResult(false) }
+    }
             .addOnFailureListener {
                 onResult(false, getString(R.string.join_plant_error))
             }
@@ -409,6 +434,7 @@ fun MainActivityPreview() {
             onSaveProfile = { _, _ -> },
             onLoadPlant = { onResult -> onResult(null, null) },
             onJoinPlant = { _, _, _, _ -> },
+            onRegisterPlantStaff = { _, _, _ -> },
             onSignOut = {}
         )
     }

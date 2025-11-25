@@ -98,6 +98,15 @@
     <string name="plant_half_day_prompt">¿Hay alguna media jornada en este turno?</string>
     <string name="save_assignments_action">Guardar organización</string>
     <string name="plant_add_staff_option">Añadir personal de la planta</string>
+    <string name="plant_self_assign_action">Seleccionarme</string>
+    <string name="staff_dialog_title">Añadir personal</string>
+    <string name="staff_dialog_name_label">Nombre completo</string>
+    <string name="staff_dialog_email_label">Correo electrónico</string>
+    <string name="staff_dialog_role_label">Rol</string>
+    <string name="staff_dialog_error">Completa nombre y correo para continuar.</string>
+    <string name="staff_dialog_save_error">No se pudo guardar el personal. Intenta de nuevo.</string>
+    <string name="staff_dialog_save_action">Guardar personal</string>
+    <string name="cancel_label">Cancelar</string>
     <string name="my_plant_empty_title">Todavía no estás en una planta</string>
     <string name="my_plant_empty_message">Ingresa el ID de la planta y el código de invitación que compartió tu supervisor para unirte.</string>
     <string name="invitation_code_label">Código de invitación</string>

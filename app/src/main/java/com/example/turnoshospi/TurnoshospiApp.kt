@@ -73,6 +73,7 @@ fun TurnoshospiApp(
     onSaveProfile: (UserProfile, (Boolean) -> Unit) -> Unit,
     onLoadPlant: (onResult: (Plant?, String?) -> Unit) -> Unit,
     onJoinPlant: (String, String, UserProfile?, (Boolean, String?) -> Unit) -> Unit,
+    onRegisterPlantStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
     onSignOut: () -> Unit
 ) {
     var showLogin by remember { mutableStateOf(true) }
@@ -300,8 +301,19 @@ fun TurnoshospiApp(
                 AppScreen.PlantDetail -> PlantDetailScreen(
                     plant = selectedPlantForDetail,
                     datePickerState = sharedDatePickerState,
+                    currentUserProfile = existingProfile,
                     onBack = { currentScreen = AppScreen.MyPlant },
-                    onAddStaff = { /* TODO: implement staff creation flow */ }
+                    onAddStaff = { plantId, staffMember, onResult ->
+                        onRegisterPlantStaff(plantId, staffMember) { success ->
+                            if (success) {
+                                selectedPlantForDetail = selectedPlantForDetail?.copy(
+                                    registeredUsers = selectedPlantForDetail?.registeredUsers.orEmpty() +
+                                        (staffMember.id to staffMember)
+                                )
+                            }
+                            onResult(success)
+                        }
+                    }
                 )
             }
         }
@@ -411,6 +423,7 @@ fun SplashLoginPreview() {
             onSaveProfile = { _, _ -> },
             onLoadPlant = { onResult -> onResult(null, null) },
             onJoinPlant = { _, _, _, _ -> },
+            onRegisterPlantStaff = { _, _, _ -> },
             onSignOut = {}
         )
     }

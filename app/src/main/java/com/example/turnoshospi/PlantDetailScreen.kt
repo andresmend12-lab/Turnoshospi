@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
@@ -39,19 +40,24 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -59,6 +65,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
+import java.util.UUID
 
 private data class ShiftAssignmentState(
     val nurseNames: MutableList<String>,
@@ -71,17 +78,38 @@ private data class ShiftAssignmentState(
 fun PlantDetailScreen(
     plant: Plant?,
     datePickerState: DatePickerState,
+    currentUserProfile: UserProfile?,
     onBack: () -> Unit,
-    onAddStaff: () -> Unit
+    onAddStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     val selectedDate = datePickerState.selectedDateMillis?.let { millis ->
         Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
     }
 
+    val supervisorRoles = listOf(
+        stringResource(id = R.string.role_supervisor_male),
+        stringResource(id = R.string.role_supervisor_female)
+    )
+    val isSupervisor = currentUserProfile?.role in supervisorRoles
+    val currentUserDisplayName = remember(currentUserProfile) {
+        currentUserProfile?.let {
+            listOf(it.firstName, it.lastName).filter { part -> part.isNotBlank() }.joinToString(" ")
+                .ifBlank { it.email }
+        }
+    }
+
     val assignments = remember(plant?.id) { mutableStateMapOf<String, ShiftAssignmentState>() }
+
+    var showAddStaffDialog by remember { mutableStateOf(false) }
+    var isSavingStaff by remember { mutableStateOf(false) }
+    var staffName by remember { mutableStateOf("") }
+    var staffEmail by remember { mutableStateOf("") }
+    var staffRole by remember { mutableStateOf(stringResource(id = R.string.role_nurse_female)) }
+    var addStaffError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(plant?.shiftTimes) {
         plant?.shiftTimes?.keys?.forEach { shift ->
@@ -107,19 +135,21 @@ fun PlantDetailScreen(
                     displayName = plant?.name ?: "",
                     welcomeStringId = R.string.side_menu_title
                 )
-                NavigationDrawerItem(
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                    label = { Text(text = stringResource(id = R.string.plant_add_staff_option), color = Color.White) },
-                    selected = false,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        onAddStaff()
-                    },
-                    colors = NavigationDrawerItemDefaults.colors(
-                        unselectedContainerColor = Color.Transparent,
-                        unselectedTextColor = Color.White
+                if (isSupervisor) {
+                    NavigationDrawerItem(
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                        label = { Text(text = stringResource(id = R.string.plant_add_staff_option), color = Color.White) },
+                        selected = false,
+                        onClick = {
+                            scope.launch { drawerState.close() }
+                            showAddStaffDialog = true
+                        },
+                        colors = NavigationDrawerItemDefaults.colors(
+                            unselectedContainerColor = Color.Transparent,
+                            unselectedTextColor = Color.White
+                        )
                     )
-                )
+                }
                 NavigationDrawerItem(
                     modifier = Modifier.padding(horizontal = 12.dp),
                     label = { Text(text = stringResource(id = R.string.back_to_menu), color = Color.White) },
@@ -167,12 +197,14 @@ fun PlantDetailScreen(
                         }
                     },
                     actions = {
-                        IconButton(onClick = onAddStaff) {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = stringResource(id = R.string.plant_add_staff_option),
-                                tint = Color.White
-                            )
+                        if (isSupervisor) {
+                            IconButton(onClick = { showAddStaffDialog = true }) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = stringResource(id = R.string.plant_add_staff_option),
+                                    tint = Color.White
+                                )
+                            }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -261,7 +293,12 @@ fun PlantDetailScreen(
                         ShiftAssignmentsSection(
                             plant = plant,
                             assignments = assignments,
-                            selectedDateLabel = formatDate(selectedDate)
+                            selectedDateLabel = formatDate(selectedDate),
+                            isSupervisor = isSupervisor,
+                            currentUserName = currentUserDisplayName,
+                            onSelfAssign = { _, state ->
+                                assignSelfToShift(state.nurseNames, currentUserDisplayName)
+                            }
                         )
                     } else {
                         InfoMessage(message = stringResource(id = R.string.plant_detail_missing_data))
@@ -269,6 +306,54 @@ fun PlantDetailScreen(
                 }
             }
         }
+    }
+
+    if (showAddStaffDialog && plant != null) {
+        AddStaffDialog(
+            staffName = staffName,
+            onStaffNameChange = { staffName = it },
+            staffEmail = staffEmail,
+            onStaffEmailChange = { staffEmail = it },
+            staffRole = staffRole,
+            onStaffRoleChange = { staffRole = it },
+            isSaving = isSavingStaff,
+            errorMessage = addStaffError,
+            onDismiss = {
+                showAddStaffDialog = false
+                addStaffError = null
+                staffName = ""
+                staffEmail = ""
+                staffRole = stringResource(id = R.string.role_nurse_female)
+            },
+            onConfirm = {
+                if (staffName.isBlank() || staffEmail.isBlank()) {
+                    addStaffError = context.getString(R.string.staff_dialog_error)
+                    return@AddStaffDialog
+                }
+
+                isSavingStaff = true
+                addStaffError = null
+
+                val newStaff = RegisteredUser(
+                    id = UUID.randomUUID().toString(),
+                    name = staffName,
+                    role = staffRole,
+                    email = staffEmail
+                )
+
+                onAddStaff(plant.id, newStaff) { success ->
+                    isSavingStaff = false
+                    if (success) {
+                        showAddStaffDialog = false
+                        staffName = ""
+                        staffEmail = ""
+                        staffRole = stringResource(id = R.string.role_nurse_female)
+                    } else {
+                        addStaffError = context.getString(R.string.staff_dialog_save_error)
+                    }
+                }
+            }
+        )
     }
 }
 
@@ -298,7 +383,10 @@ private fun InfoMessage(message: String) {
 private fun ShiftAssignmentsSection(
     plant: Plant,
     assignments: MutableMap<String, ShiftAssignmentState>,
-    selectedDateLabel: String
+    selectedDateLabel: String,
+    isSupervisor: Boolean,
+    currentUserName: String?,
+    onSelfAssign: (String, ShiftAssignmentState) -> Unit
 ) {
     val allowAux = plant.staffScope == stringResource(id = R.string.staff_scope_with_aux)
 
@@ -364,9 +452,11 @@ private fun ShiftAssignmentsSection(
                         state.nurseNames.forEachIndexed { index, name ->
                             OutlinedTextField(
                                 value = name,
-                                onValueChange = { newName -> state.nurseNames[index] = newName },
+                                onValueChange = { newName -> if (isSupervisor) state.nurseNames[index] = newName },
                                 modifier = Modifier.fillMaxWidth(),
                                 label = { Text(text = stringResource(id = R.string.nurse_label, index + 1)) },
+                                enabled = isSupervisor,
+                                readOnly = !isSupervisor,
                                 colors = androidx.compose.material3.TextFieldDefaults.colors(
                                     focusedTextColor = Color.White,
                                     unfocusedTextColor = Color.White,
@@ -386,9 +476,11 @@ private fun ShiftAssignmentsSection(
                             state.auxNames.forEachIndexed { index, name ->
                                 OutlinedTextField(
                                     value = name,
-                                    onValueChange = { newName -> state.auxNames[index] = newName },
+                                    onValueChange = { newName -> if (isSupervisor) state.auxNames[index] = newName },
                                     modifier = Modifier.fillMaxWidth(),
                                     label = { Text(text = stringResource(id = R.string.aux_label, index + 1)) },
+                                    enabled = isSupervisor,
+                                    readOnly = !isSupervisor,
                                     colors = androidx.compose.material3.TextFieldDefaults.colors(
                                         focusedTextColor = Color.White,
                                         unfocusedTextColor = Color.White,
@@ -417,7 +509,8 @@ private fun ShiftAssignmentsSection(
                         )
                         Switch(
                             checked = state.halfDay,
-                            onCheckedChange = { state.halfDay = it },
+                            onCheckedChange = { if (isSupervisor) state.halfDay = it },
+                            enabled = isSupervisor,
                             thumbContent = {
                                 Box(
                                     modifier = Modifier
@@ -432,9 +525,23 @@ private fun ShiftAssignmentsSection(
                         )
                     }
 
+                    if (!isSupervisor && currentUserName != null) {
+                        Button(
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = { onSelfAssign(shiftName, state) },
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF54C7EC),
+                                contentColor = Color.Black
+                            )
+                        ) {
+                            Text(text = stringResource(id = R.string.plant_self_assign_action))
+                        }
+                    }
+
                     Button(
                         modifier = Modifier.fillMaxWidth(),
                         onClick = {},
+                        enabled = isSupervisor,
                         colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF54C7EC),
                             contentColor = Color.Black
@@ -455,4 +562,89 @@ private fun ensureSize(list: MutableList<String>, expected: Int) {
     if (list.size > expected) {
         repeat(list.size - expected) { list.removeLastOrNull() }
     }
+}
+
+private fun assignSelfToShift(slots: MutableList<String>, displayName: String?) {
+    if (displayName.isNullOrBlank()) return
+
+    if (slots.contains(displayName)) return
+
+    val firstEmptyIndex = slots.indexOfFirst { it.isBlank() }
+    if (firstEmptyIndex >= 0) {
+        slots[firstEmptyIndex] = displayName
+    }
+}
+
+@Composable
+private fun AddStaffDialog(
+    staffName: String,
+    onStaffNameChange: (String) -> Unit,
+    staffEmail: String,
+    onStaffEmailChange: (String) -> Unit,
+    staffRole: String,
+    onStaffRoleChange: (String) -> Unit,
+    isSaving: Boolean,
+    errorMessage: String?,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    val roleOptions = listOf(
+        stringResource(id = R.string.role_supervisor_male),
+        stringResource(id = R.string.role_supervisor_female),
+        stringResource(id = R.string.role_nurse_female),
+        stringResource(id = R.string.role_nurse_male)
+    )
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Button(onClick = onConfirm, enabled = !isSaving) {
+                Text(text = stringResource(id = R.string.staff_dialog_save_action))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !isSaving) {
+                Text(text = stringResource(id = R.string.cancel_label))
+            }
+        },
+        title = { Text(text = stringResource(id = R.string.staff_dialog_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedTextField(
+                    value = staffName,
+                    onValueChange = onStaffNameChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(id = R.string.staff_dialog_name_label)) }
+                )
+                OutlinedTextField(
+                    value = staffEmail,
+                    onValueChange = onStaffEmailChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(id = R.string.staff_dialog_email_label)) }
+                )
+
+                Text(
+                    text = stringResource(id = R.string.staff_dialog_role_label),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                roleOptions.forEach { option ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        RadioButton(
+                            selected = staffRole == option,
+                            onClick = { onStaffRoleChange(option) }
+                        )
+                        Text(text = option, color = MaterialTheme.colorScheme.onSurface)
+                    }
+                }
+
+                if (errorMessage != null) {
+                    Text(text = errorMessage, color = Color(0xFFFFB4AB))
+                }
+            }
+        }
+    )
 }
