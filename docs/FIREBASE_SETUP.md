@@ -34,8 +34,8 @@ Sigue estos pasos en la consola de Firebase antes de probar el registro o el ini
 ## 5. Realtime Database
 1. Abre **Realtime Database ▸ Reglas**.
 2. Asegúrate de tener la URL `https://turnoshospi-f4870-default-rtdb.firebaseio.com/`.
-3. Para pruebas, permite lectura/escritura sólo a usuarios autenticados en `/users/{uid}`:
-   ```
+3. Las reglas deben ir dentro de un objeto raíz `{"rules": { ... }}`. Por ejemplo, para permitir lectura/escritura sólo al dueño de cada nodo en `/users/{uid}`:
+   ```json
    {
      "rules": {
        "users": {
@@ -47,6 +47,7 @@ Sigue estos pasos en la consola de Firebase antes de probar el registro o el ini
      }
    }
    ```
+   Si necesitas una prueba rápida con reglas totalmente abiertas, la consola acepta el formato compacto `{"rules": {".read": true, ".write": true}}`, pero recuerda revertirlo para no exponer datos.
 4. Publica las reglas. Revisa el panel de *Usage* si aparecen errores de límite.
 
 ## 6. Conectividad y dispositivo
