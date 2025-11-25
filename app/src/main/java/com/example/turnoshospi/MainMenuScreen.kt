@@ -130,8 +130,8 @@ fun MainMenuScreen(
 
         Card(
             modifier = Modifier
-                .fillMaxHeight()
-                .width(260.dp),
+                .weight(1f)
+                .fillMaxHeight(),
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = Color(0x22FFFFFF)),
             border = BorderStroke(1.dp, Color(0x33FFFFFF))
