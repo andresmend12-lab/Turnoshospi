@@ -369,16 +369,18 @@ fun PlantCreationScreen(
                         val creatorRegisteredUser = if (
                             currentUserId != null && currentUserProfile?.role in supervisorRoles
                         ) {
-                            val fullName = listOf(
-                                currentUserProfile.firstName,
-                                currentUserProfile.lastName
-                            ).filter { it.isNotBlank() }.joinToString(" ")
-                            RegisteredUser(
-                                id = currentUserId,
-                                name = fullName.ifBlank { currentUserProfile.email },
-                                role = currentUserProfile.role,
-                                email = currentUserProfile.email
-                            )
+                            currentUserProfile?.let { profile ->
+                                val fullName = listOf(
+                                    profile.firstName,
+                                    profile.lastName
+                                ).filter { it.isNotBlank() }.joinToString(" ")
+                                RegisteredUser(
+                                    id = currentUserId,
+                                    name = fullName.ifBlank { profile.email },
+                                    role = profile.role,
+                                    email = profile.email
+                                )
+                            }
                         } else {
                             null
                         }
