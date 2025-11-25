@@ -164,6 +164,8 @@ class MainActivity : ComponentActivity() {
         userRef.get()
             .addOnSuccessListener { snapshot ->
                 val persistedCreatedAt = snapshot.child("createdAt").getValue(Long::class.java)
+                val persistedPlantId = snapshot.child("plantId").getValue(String::class.java)
+                val resolvedPlantId = profile.plantId ?: persistedPlantId
                 val realtimePayload = mutableMapOf<String, Any?>().apply {
                     put("firstName", profile.firstName)
                     put("lastName", profile.lastName)
@@ -172,6 +174,7 @@ class MainActivity : ComponentActivity() {
                     put("email", profile.email)
                     put("createdAt", persistedCreatedAt ?: profile.createdAt?.toDate()?.time ?: currentTime)
                     put("updatedAt", currentTime)
+                    resolvedPlantId?.let { put("plantId", it) }
                 }
 
                 userRef.setValue(realtimePayload)
@@ -265,7 +268,8 @@ class MainActivity : ComponentActivity() {
                 val registeredUser = toRegisteredUser(user.uid, profile, user.email.orEmpty())
                 val updates = mapOf(
                     "plants/$cleanPlantId/registeredUsers/${registeredUser.id}" to registeredUser,
-                    "userPlants/${registeredUser.id}" to cleanPlantId
+                    "userPlants/${registeredUser.id}" to cleanPlantId,
+                    "users/${registeredUser.id}/plantId" to cleanPlantId
                 )
 
                 realtimeDatabase.reference
@@ -307,6 +311,7 @@ data class UserProfile(
     val role: String = "",
     val gender: String = "",
     val email: String = "",
+    val plantId: String? = null,
     val createdAt: Timestamp? = null,
     val updatedAt: Timestamp? = null
 )
@@ -322,6 +327,7 @@ fun DataSnapshot.toUserProfile(fallbackEmail: String): UserProfile? {
         role = child("role").getValue(String::class.java) ?: "",
         gender = child("gender").getValue(String::class.java) ?: "",
         email = child("email").getValue(String::class.java) ?: fallbackEmail,
+        plantId = child("plantId").getValue(String::class.java),
         createdAt = createdAtMillis?.let { Timestamp(Date(it)) },
         updatedAt = updatedAtMillis?.let { Timestamp(Date(it)) }
     )

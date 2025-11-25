@@ -175,49 +175,8 @@ private fun PlantInfoCard(plant: Plant) {
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = stringResource(id = R.string.plant_location_label, plant.unitType, plant.hospitalName),
+                text = stringResource(id = R.string.plant_hospital_only_label, plant.hospitalName),
                 color = Color(0xCCFFFFFF)
-            )
-            Text(
-                text = stringResource(id = R.string.plant_shift_summary, plant.shiftDuration),
-                color = Color(0xCCFFFFFF)
-            )
-            Text(
-                text = if (plant.allowHalfDay) {
-                    stringResource(id = R.string.plant_half_day_allowed)
-                } else {
-                    stringResource(id = R.string.plant_half_day_not_allowed)
-                },
-                color = Color(0x99FFFFFF)
-            )
-
-            if (plant.shiftTimes.isNotEmpty()) {
-                DividerLabel(text = stringResource(id = R.string.plant_shift_times_title))
-                plant.shiftTimes.forEach { (label, time) ->
-                    Text(
-                        text = stringResource(id = R.string.plant_shift_item, label, time.start, time.end),
-                        color = Color.White,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
-
-            if (plant.staffRequirements.isNotEmpty()) {
-                DividerLabel(text = stringResource(id = R.string.plant_staff_requirements_title))
-                plant.staffRequirements.forEach { (label, value) ->
-                    Text(
-                        text = stringResource(id = R.string.plant_staff_requirement_item, label, value),
-                        color = Color.White,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
-
-            Text(
-                text = stringResource(id = R.string.plant_registered_users_label, plant.registeredUsers.size),
-                color = Color.White,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold
             )
         }
     }
@@ -313,16 +272,6 @@ private fun EmptyPlantCard(
             }
         }
     }
-}
-
-@Composable
-private fun DividerLabel(text: String) {
-    Text(
-        text = text,
-        color = Color(0xFF54C7EC),
-        style = MaterialTheme.typography.labelMedium,
-        fontWeight = FontWeight.SemiBold
-    )
 }
 
 @Composable

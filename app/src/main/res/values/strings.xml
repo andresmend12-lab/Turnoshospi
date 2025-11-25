@@ -73,6 +73,7 @@
     <string name="back_to_menu">Volver al menú principal</string>
     <string name="refresh_plant_action">Actualizar datos</string>
     <string name="plant_location_label">%1$s • %2$s</string>
+    <string name="plant_hospital_only_label">Hospital: %1$s</string>
     <string name="plant_shift_summary">Turnos de %1$s</string>
     <string name="plant_half_day_allowed">Permite turnos de media jornada</string>
     <string name="plant_half_day_not_allowed">No permite turnos de media jornada</string>

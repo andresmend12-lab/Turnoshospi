@@ -327,7 +327,8 @@ fun RegistrationScreen(
                             lastName = lastName.trim(),
                             role = role,
                             gender = gender,
-                            email = userEmail
+                            email = userEmail,
+                            plantId = existingProfile?.plantId
                         )
                     ) { isSaving = false }
                 },

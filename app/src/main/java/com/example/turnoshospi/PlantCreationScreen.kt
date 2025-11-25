@@ -410,6 +410,7 @@ fun PlantCreationScreen(
 
                             if (creatorRegisteredUser != null) {
                                 updates["userPlants/${creatorRegisteredUser.id}"] = plantId
+                                updates["users/${creatorRegisteredUser.id}/plantId"] = plantId
                             }
 
                             database.reference
