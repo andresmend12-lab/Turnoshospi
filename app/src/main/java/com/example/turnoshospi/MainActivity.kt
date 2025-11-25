@@ -374,17 +374,18 @@ fun DataSnapshot.toPlant(): Plant? {
         label to value
     }.toMap()
 
-    val registeredUsers = child("registeredUsers").children.mapNotNull { userSnapshot ->
-        val userId = userSnapshot.key ?: return@mapNotNull null
-        val registeredUser = userSnapshot.getValue(RegisteredUser::class.java)
-            ?: RegisteredUser(
-                id = userId,
-                name = userSnapshot.child("name").getValue(String::class.java).orEmpty(),
-                role = userSnapshot.child("role").getValue(String::class.java).orEmpty(),
-                email = userSnapshot.child("email").getValue(String::class.java).orEmpty()
-            )
-        userId to registeredUser
-    }.toMap()
+        val registeredUsers = child("registeredUsers").children.mapNotNull { userSnapshot ->
+            val userId = userSnapshot.key ?: return@mapNotNull null
+            val registeredUser = userSnapshot.getValue(RegisteredUser::class.java)
+                ?: RegisteredUser(
+                    id = userId,
+                    name = userSnapshot.child("name").getValue(String::class.java).orEmpty(),
+                    role = userSnapshot.child("role").getValue(String::class.java).orEmpty(),
+                    email = userSnapshot.child("email").getValue(String::class.java).orEmpty(),
+                    profileType = userSnapshot.child("profileType").getValue(String::class.java).orEmpty()
+                )
+            userId to registeredUser
+        }.toMap()
 
     return Plant(
         id = child("id").getValue(String::class.java) ?: key.orEmpty(),

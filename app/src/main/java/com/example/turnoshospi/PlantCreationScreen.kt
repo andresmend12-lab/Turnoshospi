@@ -65,7 +65,8 @@ data class RegisteredUser(
     val id: String = "",
     val name: String = "",
     val role: String = "",
-    val email: String = ""
+    val email: String = "",
+    val profileType: String = ""
 )
 
 data class Plant(

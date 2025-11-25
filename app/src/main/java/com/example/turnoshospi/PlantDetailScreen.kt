@@ -106,24 +106,27 @@ fun PlantDetailScreen(
     val assignments = remember(plant?.id) { mutableStateMapOf<String, ShiftAssignmentState>() }
     val allowAuxStaffScope = plant?.staffScope == stringResource(id = R.string.staff_scope_with_aux)
 
-    val plantStaff = plant?.registeredUsers?.values.orEmpty()
+    val plantStaff = plant?.registeredUsers?.values
+        ?.filter { member ->
+            member.profileType == "plant_staff" || (member.profileType.isBlank() && member.email.isBlank())
+        }
+        .orEmpty()
     var selectedStaffId by remember(plant?.id) { mutableStateOf<String?>(null) }
     val selectedStaffMember = remember(plantStaff, selectedStaffId) {
         plantStaff.firstOrNull { it.id == selectedStaffId }
     }
 
     val (nurseOptions, auxOptions) = remember(
-        plant?.registeredUsers,
+        plantStaff,
         nurseRole,
         auxRole
     ) {
-        val users = plant?.registeredUsers?.values.orEmpty()
-        val nurses = users
+        val nurses = plantStaff
             .filter { it.role == nurseRole }
             .map { it.name }
             .filter { it.isNotBlank() }
             .sorted()
-        val aux = users
+        val aux = plantStaff
             .filter { it.role == auxRole }
             .map { it.name }
             .filter { it.isNotBlank() }
@@ -386,7 +389,8 @@ fun PlantDetailScreen(
                     id = UUID.randomUUID().toString(),
                     name = staffName,
                     role = staffRole,
-                    email = ""
+                    email = "",
+                    profileType = "plant_staff"
                 )
 
                 onAddStaff(plant.id, newStaff) { success ->
@@ -406,7 +410,7 @@ fun PlantDetailScreen(
     if (showStaffListDialog && plant != null) {
         StaffListDialog(
             plantName = plant.name,
-            staff = plant.registeredUsers.values.toList(),
+            staff = plantStaff.toList(),
             onDismiss = { showStaffListDialog = false }
         )
     }
