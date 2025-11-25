@@ -1,3 +1,32 @@
 <resources>
     <string name="app_name">Turnoshospi</string>
+    <string name="create_account_title">Crear cuenta</string>
+    <string name="register_button">Guardar perfil</string>
+    <string name="role_supervisor">Supervisor</string>
+    <string name="role_nurse">Enfermero</string>
+    <string name="role_aux">Auxiliar</string>
+    <string name="login_button">Iniciar sesión</string>
+    <string name="forgot_password">¿Olvidaste tu contraseña?</string>
+    <string name="reset_email_sent">Hemos enviado un enlace de recuperación</string>
+    <string name="create_account_action">Crear cuenta</string>
+    <string name="confirm_password">Confirmar contraseña</string>
+    <string name="main_menu_welcome">Bienvenido, %1$s</string>
+    <string name="main_menu_subtitle">Selecciona una opción para empezar a organizar tus plantas.</string>
+    <string name="side_menu_title">Menú</string>
+    <string name="menu_create_plant">Crear nueva planta</string>
+    <string name="menu_create_plant_desc">Configura una planta desde cero.</string>
+    <string name="menu_my_plants">Mis plantas</string>
+    <string name="menu_my_plants_desc">Consulta y edita tus plantas existentes.</string>
+    <string name="menu_settings">Configuración</string>
+    <string name="menu_settings_desc">Ajustes de cuenta y preferencias.</string>
+    <string name="menu_info">Información</string>
+    <string name="menu_info_desc">Ayuda, soporte y detalles de la app.</string>
+    <string name="loading_profile">Cargando datos de tu perfil…</string>
+    <string name="profile_summary_title">Tu perfil</string>
+    <string name="profile_email_label">Correo: %1$s</string>
+    <string name="profile_name_label">Nombre: %1$s</string>
+    <string name="profile_role_label">Puesto: %1$s</string>
+    <string name="edit_profile">Editar perfil</string>
+    <string name="sign_out">Cerrar sesión</string>
+    <string name="close_label">Cerrar</string>
 </resources>
