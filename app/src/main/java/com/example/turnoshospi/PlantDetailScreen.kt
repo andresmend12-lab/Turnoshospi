@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.matchParentSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -68,7 +67,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
@@ -105,6 +104,7 @@ fun PlantDetailScreen(
     val auxRole = stringResource(id = R.string.role_aux_generic)
     val isSupervisor = currentUserProfile?.role in supervisorRoles
     val assignments = remember(plant?.id) { mutableStateMapOf<String, ShiftAssignmentState>() }
+    val allowAuxStaffScope = plant?.staffScope == stringResource(id = R.string.staff_scope_with_aux)
 
     val plantStaff = plant?.registeredUsers?.values.orEmpty()
     var selectedStaffId by remember(plant?.id) { mutableStateOf<String?>(null) }
@@ -343,8 +343,7 @@ fun PlantDetailScreen(
                             auxOptions = auxOptions,
                             onSelfAssign = { _, state ->
                                 val targetList = when {
-                                    selectedStaffMember?.role == auxRole &&
-                                        plant.staffScope == stringResource(id = R.string.staff_scope_with_aux) ->
+                                    selectedStaffMember?.role == auxRole && allowAuxStaffScope ->
                                         state.auxNames
 
                                     else -> state.nurseNames
@@ -801,7 +800,7 @@ private fun StaffDropdownField(
     val unassignedLabel = stringResource(id = R.string.staff_unassigned_option)
     val displayValue = selectedValue.takeIf { it.isNotBlank() } ?: unassignedLabel
     val menuOptions = remember(options, unassignedLabel) { listOf(unassignedLabel) + options }
-    val trailingIcon = if (expanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown
+    val trailingIcon = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.ArrowDropDown
 
     Box(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
@@ -854,7 +853,7 @@ private fun StaffDropdownField(
 
         Box(
             modifier = Modifier
-                .matchParentSize()
+                .fillMaxSize()
                 .background(Color.Transparent)
                 .padding(horizontal = 4.dp)
                 .let { base ->
