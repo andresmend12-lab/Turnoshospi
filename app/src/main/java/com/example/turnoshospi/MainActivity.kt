@@ -217,14 +217,14 @@ class MainActivity : ComponentActivity() {
         onResult: (Boolean) -> Unit
     ) {
         val currentTime = System.currentTimeMillis()
-        val realtimePayload = mapOf(
-            "firstName" to profile.firstName,
-            "lastName" to profile.lastName,
-            "role" to profile.role,
-            "email" to profile.email,
-            "createdAt" to profile.createdAt?.toDate()?.time ?: currentTime,
-            "updatedAt" to currentTime
-        )
+        val realtimePayload = mutableMapOf<String, Any?>().apply {
+            put("firstName", profile.firstName)
+            put("lastName", profile.lastName)
+            put("role", profile.role)
+            put("email", profile.email)
+            put("createdAt", profile.createdAt?.toDate()?.time ?: currentTime)
+            put("updatedAt", currentTime)
+        }
 
         realtimeDatabase.getReference("users")
             .child(userId)
