@@ -52,6 +52,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import java.util.UUID
 import kotlinx.coroutines.launch
@@ -77,6 +78,7 @@ fun PlantCreationScreen(
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+    val auth = remember { FirebaseAuth.getInstance() }
     val database = remember {
         FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
     }
@@ -322,6 +324,12 @@ fun PlantCreationScreen(
                 Button(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
+                        val currentUser = auth.currentUser
+                        if (currentUser == null) {
+                            errorMessage = context.getString(R.string.plant_auth_error)
+                            return@Button
+                        }
+
                         if (plantName.isBlank() || unitType.isBlank() || hospitalName.isBlank()) {
                             errorMessage = context.getString(R.string.plant_required_fields_error)
                             return@Button
@@ -330,7 +338,7 @@ fun PlantCreationScreen(
                         isSaving = true
                         errorMessage = null
 
-                        val plantId = database.reference.child("plants").push().key
+                        val plantId = database.reference.child("plants").child(currentUser.uid).push().key
                             ?: UUID.randomUUID().toString()
                         val accessPassword = UUID.randomUUID().toString().take(8)
                         val staffScopeValue = when (staffScope) {
@@ -339,6 +347,8 @@ fun PlantCreationScreen(
                         }
                         val plantPayload = mapOf(
                             "id" to plantId,
+                            "ownerUid" to currentUser.uid,
+                            "ownerEmail" to currentUser.email,
                             "name" to plantName,
                             "unitType" to unitType,
                             "hospitalName" to hospitalName,
@@ -357,6 +367,7 @@ fun PlantCreationScreen(
 
                         coroutineScope.launch {
                             database.getReference("plants")
+                                .child(currentUser.uid)
                                 .child(plantId)
                                 .setValue(plantPayload)
                                 .addOnSuccessListener {
