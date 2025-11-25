@@ -43,10 +43,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
@@ -760,7 +760,7 @@ private fun StaffDropdownField(
             )
         )
 
-        ExposedDropdownMenu(
+        DropdownMenu(
             expanded = expanded && enabled,
             onDismissRequest = { expanded = false }
         ) {

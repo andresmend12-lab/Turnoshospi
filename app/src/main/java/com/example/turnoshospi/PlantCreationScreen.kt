@@ -243,7 +243,7 @@ fun PlantCreationScreen(
                                 unfocusedContainerColor = Color(0x11FFFFFF)
                             )
                         )
-                        ExposedDropdownMenu(
+                        DropdownMenu(
                             expanded = expanded,
                             onDismissRequest = { expanded = false }
                         ) {
