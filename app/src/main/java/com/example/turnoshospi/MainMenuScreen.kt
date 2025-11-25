@@ -40,7 +40,6 @@ fun MainMenuScreen(
     modifier: Modifier = Modifier,
     userEmail: String,
     profile: UserProfile?,
-    isLoadingProfile: Boolean,
     onEditProfile: () -> Unit,
     onSignOut: () -> Unit
 ) {
@@ -52,99 +51,90 @@ fun MainMenuScreen(
         if (fullName.isNotBlank()) fullName else userEmail
     }
 
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(24.dp)
+    Column(
+        modifier = modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
+        Text(
             modifier = Modifier
-                .fillMaxHeight()
-                .width(220.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.Top
-        ) {
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0x22FFFFFF)),
-                border = BorderStroke(1.dp, Color(0x33FFFFFF))
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.side_menu_title),
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
+                .fillMaxWidth()
+                .padding(vertical = 20.dp),
+            text = stringResource(id = R.string.main_menu_welcome, displayName),
+            style = MaterialTheme.typography.headlineMedium,
+            color = Color.White,
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.Bold
+        )
 
-                    MenuOption(
-                        title = stringResource(id = R.string.menu_create_plant),
-                        subtitle = stringResource(id = R.string.menu_create_plant_desc)
-                    )
-                    MenuOption(
-                        title = stringResource(id = R.string.menu_my_plants),
-                        subtitle = stringResource(id = R.string.menu_my_plants_desc)
-                    )
-                    MenuOption(
-                        title = stringResource(id = R.string.edit_profile),
-                        subtitle = stringResource(id = R.string.menu_settings_desc),
-                        onClick = onEditProfile
-                    )
-                    TextButton(
-                        onClick = onSignOut,
-                        colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFFFFB4AB))
-                    ) {
-                        Text(text = stringResource(id = R.string.sign_out))
-                    }
-                }
-            }
-        }
-
-        Card(
+        Row(
             modifier = Modifier
-                .fillMaxHeight()
+                .fillMaxWidth()
                 .weight(1f),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0x11FFFFFF)),
-            border = BorderStroke(1.dp, Color(0x22FFFFFF))
+            horizontalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .fillMaxHeight()
+                    .width(200.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.Top
             ) {
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = stringResource(id = R.string.main_menu_welcome, displayName),
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = Color.White,
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold
-                )
+                Card(
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0x22FFFFFF)),
+                    border = BorderStroke(1.dp, Color(0x33FFFFFF))
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.side_menu_title),
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
 
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = if (isLoadingProfile) {
-                        stringResource(id = R.string.loading_profile)
-                    } else {
-                        stringResource(id = R.string.main_menu_subtitle)
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xCCFFFFFF),
-                    textAlign = TextAlign.Center
-                )
+                        MenuOption(
+                            title = stringResource(id = R.string.menu_create_plant),
+                            subtitle = stringResource(id = R.string.menu_create_plant_desc)
+                        )
+                        MenuOption(
+                            title = stringResource(id = R.string.menu_my_plants),
+                            subtitle = stringResource(id = R.string.menu_my_plants_desc)
+                        )
+                        MenuOption(
+                            title = stringResource(id = R.string.edit_profile),
+                            subtitle = stringResource(id = R.string.menu_settings_desc),
+                            onClick = onEditProfile
+                        )
+                        MenuOption(
+                            title = stringResource(id = R.string.menu_settings),
+                            subtitle = stringResource(id = R.string.menu_settings_desc)
+                        )
+                        TextButton(
+                            onClick = onSignOut,
+                            colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFFFFB4AB))
+                        ) {
+                            Text(text = stringResource(id = R.string.sign_out))
+                        }
+                    }
+                }
+            }
 
-                Spacer(modifier = Modifier.height(8.dp))
-
+            Card(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(1f),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0x11FFFFFF)),
+                border = BorderStroke(1.dp, Color(0x22FFFFFF))
+            ) {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
+                        .fillMaxSize()
+                        .padding(20.dp)
                         .background(Color(0x22000000), RoundedCornerShape(18.dp)),
                     contentAlignment = Alignment.Center
                 ) {
@@ -207,7 +197,6 @@ fun MainMenuScreenPreview() {
                 role = "Supervisora",
                 email = "demo@example.com"
             ),
-            isLoadingProfile = false,
             onEditProfile = {},
             onSignOut = {}
         )
