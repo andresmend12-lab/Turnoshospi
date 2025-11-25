@@ -108,7 +108,7 @@ fun PlantDetailScreen(
     var isSavingStaff by remember { mutableStateOf(false) }
     var staffName by remember { mutableStateOf("") }
     var staffEmail by remember { mutableStateOf("") }
-    var staffRole by remember { mutableStateOf(stringResource(id = R.string.role_nurse_female)) }
+    var staffRole by remember { mutableStateOf(context.getString(R.string.role_nurse_female)) }
     var addStaffError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(plant?.shiftTimes) {
@@ -323,7 +323,7 @@ fun PlantDetailScreen(
                 addStaffError = null
                 staffName = ""
                 staffEmail = ""
-                staffRole = stringResource(id = R.string.role_nurse_female)
+                staffRole = context.getString(R.string.role_nurse_female)
             },
             onConfirm = {
                 if (staffName.isBlank() || staffEmail.isBlank()) {
@@ -347,7 +347,7 @@ fun PlantDetailScreen(
                         showAddStaffDialog = false
                         staffName = ""
                         staffEmail = ""
-                        staffRole = stringResource(id = R.string.role_nurse_female)
+                        staffRole = context.getString(R.string.role_nurse_female)
                     } else {
                         addStaffError = context.getString(R.string.staff_dialog_save_error)
                     }

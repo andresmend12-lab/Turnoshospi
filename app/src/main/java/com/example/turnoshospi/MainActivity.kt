@@ -275,9 +275,13 @@ class MainActivity : ComponentActivity() {
                     "users/${registeredUser.id}/plantId" to cleanPlantId
                 )
 
-        realtimeDatabase.reference
-            .updateChildren(updates)
-            .addOnSuccessListener { onResult(true, null) }
+                realtimeDatabase.reference
+                    .updateChildren(updates)
+                    .addOnSuccessListener { onResult(true, null) }
+                    .addOnFailureListener {
+                        onResult(false, getString(R.string.join_plant_error))
+                    }
+            }
             .addOnFailureListener {
                 onResult(false, getString(R.string.join_plant_error))
             }
@@ -303,10 +307,6 @@ class MainActivity : ComponentActivity() {
             .setValue(staffMember)
             .addOnSuccessListener { onResult(true) }
             .addOnFailureListener { onResult(false) }
-    }
-            .addOnFailureListener {
-                onResult(false, getString(R.string.join_plant_error))
-            }
     }
 
     private fun signOut() {
