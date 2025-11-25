@@ -140,7 +140,8 @@ fun MainMenuScreen(
 
                 Text(
                     text = stringResource(id = R.string.main_menu_welcome, displayName),
-                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.padding(horizontal = 56.dp),
+                    style = MaterialTheme.typography.titleLarge,
                     color = Color.White,
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold
