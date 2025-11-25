@@ -60,7 +60,14 @@
     <string name="staff_requirements_title">Requerimiento mínimo de personal</string>
     <string name="staff_minimum_label">Número mínimo de personal por turno</string>
     <string name="create_plant_action">Crear planta</string>
+    <string name="saving_label">Guardando…</string>
+    <string name="plant_required_fields_error">Completa los datos generales de la planta.</string>
+    <string name="plant_save_error">No se pudo guardar la planta. Revisa tu conexión e inténtalo de nuevo.</string>
     <string name="plant_created_title">Planta creada</string>
     <string name="plant_created_message">Tu planta se ha configurado con la estructura básica y está lista para completar los siguientes pasos.</string>
+    <string name="plant_credentials_title">Accesos de la planta</string>
+    <string name="plant_id_label">ID de la planta</string>
+    <string name="plant_access_password_label">Contraseña de acceso</string>
+    <string name="plant_share_hint">Comparte estos datos con tu equipo para que puedan acceder y gestionar la planta.</string>
     <string name="back_to_menu">Volver al menú principal</string>
 </resources>

@@ -75,6 +75,7 @@ fun TurnoshospiApp(
     var emailForReset by remember { mutableStateOf("") }
     var showProfileEditor by remember { mutableStateOf(false) }
     var currentScreen by remember { mutableStateOf(AppScreen.MainMenu) }
+    var lastCreatedPlantCredentials by remember { mutableStateOf<PlantCredentials?>(null) }
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
@@ -225,10 +226,14 @@ fun TurnoshospiApp(
 
                 AppScreen.CreatePlant -> PlantCreationScreen(
                     onBack = { currentScreen = AppScreen.MainMenu },
-                    onPlantCreated = { currentScreen = AppScreen.PlantCreated }
+                    onPlantCreated = { credentials ->
+                        lastCreatedPlantCredentials = credentials
+                        currentScreen = AppScreen.PlantCreated
+                    }
                 )
 
                 AppScreen.PlantCreated -> PlantCreatedScreen(
+                    credentials = lastCreatedPlantCredentials,
                     onBackToMenu = { currentScreen = AppScreen.MainMenu }
                 )
             }

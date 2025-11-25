@@ -24,6 +24,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -36,11 +37,11 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +52,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.google.firebase.database.FirebaseDatabase
+import java.util.UUID
+import kotlinx.coroutines.launch
+
+data class PlantCredentials(
+    val plantId: String,
+    val accessPassword: String
+)
 
 private data class ShiftTime(var start: String = "", var end: String = "")
 
@@ -63,9 +72,17 @@ private enum class StaffScope {
 @Composable
 fun PlantCreationScreen(
     onBack: () -> Unit,
-    onPlantCreated: () -> Unit
+    onPlantCreated: (PlantCredentials) -> Unit
 ) {
     val scrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
+    val database = remember {
+        FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
+    }
+
+    var isSaving by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
 
     var plantName by remember { mutableStateOf("") }
     var unitType by remember { mutableStateOf("") }
@@ -297,15 +314,78 @@ fun PlantCreationScreen(
                     }
                 }
 
+                if (errorMessage != null) {
+                    Text(
+                        text = errorMessage.orEmpty(),
+                        color = Color(0xFFFFB4AB),
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
+                }
+
                 Button(
                     modifier = Modifier.fillMaxWidth(),
-                    onClick = onPlantCreated,
+                    onClick = {
+                        if (plantName.isBlank() || unitType.isBlank() || hospitalName.isBlank()) {
+                            errorMessage = stringResource(id = R.string.plant_required_fields_error)
+                            return@Button
+                        }
+
+                        isSaving = true
+                        errorMessage = null
+
+                        val plantId = database.reference.child("plants").push().key
+                            ?: UUID.randomUUID().toString()
+                        val accessPassword = UUID.randomUUID().toString().take(8)
+                        val staffScopeValue = when (staffScope) {
+                            StaffScope.NursesOnly -> "nurses_only"
+                            StaffScope.NursesAndAux -> "nurses_and_aux"
+                        }
+                        val plantPayload = mapOf(
+                            "id" to plantId,
+                            "name" to plantName,
+                            "unitType" to unitType,
+                            "hospitalName" to hospitalName,
+                            "shiftDuration" to selectedDuration,
+                            "allowHalfDay" to allowHalfDay,
+                            "staffScope" to staffScopeValue,
+                            "shiftTimes" to shiftTimes.mapValues { (label, time) ->
+                                mapOf("start" to time.start, "end" to time.end)
+                            },
+                            "staffRequirements" to staffRequirements.mapValues { (_, value) ->
+                                value.toIntOrNull() ?: 0
+                            },
+                            "createdAt" to System.currentTimeMillis(),
+                            "accessPassword" to accessPassword
+                        )
+
+                        coroutineScope.launch {
+                            database.getReference("plants")
+                                .child(plantId)
+                                .setValue(plantPayload)
+                                .addOnSuccessListener {
+                                    isSaving = false
+                                    onPlantCreated(PlantCredentials(plantId, accessPassword))
+                                }
+                                .addOnFailureListener { exception ->
+                                    isSaving = false
+                                    errorMessage = exception.message
+                                        ?: stringResource(id = R.string.plant_save_error)
+                                }
+                        }
+                    },
+                    enabled = !isSaving,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF54C7EC),
                         contentColor = Color.Black
                     )
                 ) {
-                    Text(text = stringResource(id = R.string.create_plant_action), fontWeight = FontWeight.Bold)
+                    Text(
+                        text = if (isSaving) stringResource(id = R.string.saving_label) else stringResource(
+                            id = R.string.create_plant_action
+                        ),
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
@@ -313,7 +393,7 @@ fun PlantCreationScreen(
 }
 
 @Composable
-fun PlantCreatedScreen(onBackToMenu: () -> Unit) {
+fun PlantCreatedScreen(credentials: PlantCredentials?, onBackToMenu: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -351,6 +431,29 @@ fun PlantCreatedScreen(onBackToMenu: () -> Unit) {
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center
                 )
+                credentials?.let { plantCredentials ->
+                    CardSection(title = stringResource(id = R.string.plant_credentials_title)) {
+                        PlantTextField(
+                            value = plantCredentials.plantId,
+                            onValueChange = {},
+                            label = stringResource(id = R.string.plant_id_label),
+                            modifier = Modifier.fillMaxWidth(),
+                            readOnly = true
+                        )
+                        PlantTextField(
+                            value = plantCredentials.accessPassword,
+                            onValueChange = {},
+                            label = stringResource(id = R.string.plant_access_password_label),
+                            modifier = Modifier.fillMaxWidth(),
+                            readOnly = true
+                        )
+                        Text(
+                            text = stringResource(id = R.string.plant_share_hint),
+                            color = Color(0xCCFFFFFF),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
                     onClick = onBackToMenu,
@@ -392,12 +495,14 @@ private fun PlantTextField(
     onValueChange: (String) -> Unit,
     label: String,
     keyboardType: KeyboardType = KeyboardType.Text,
-    modifier: Modifier = Modifier.fillMaxWidth()
+    modifier: Modifier = Modifier.fillMaxWidth(),
+    readOnly: Boolean = false
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier,
+        readOnly = readOnly,
         label = { Text(text = label) },
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         colors = TextFieldDefaults.colors(
