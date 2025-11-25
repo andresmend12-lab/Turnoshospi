@@ -8,6 +8,8 @@
     <string name="role_nurse_female">Enfermera</string>
     <string name="role_aux_male">Auxiliar</string>
     <string name="role_aux_female">Auxiliar</string>
+    <string name="role_nurse_generic">Enfermera/o</string>
+    <string name="role_aux_generic">Auxiliar</string>
     <string name="gender_male">Hombre</string>
     <string name="gender_female">Mujer</string>
     <string name="login_button">Iniciar sesión</string>

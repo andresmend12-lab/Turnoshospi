@@ -42,6 +42,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -106,7 +107,7 @@ fun PlantDetailScreen(
     var showAddStaffDialog by remember { mutableStateOf(false) }
     var isSavingStaff by remember { mutableStateOf(false) }
     var staffName by remember { mutableStateOf("") }
-    var staffRole by remember { mutableStateOf(context.getString(R.string.role_nurse_female)) }
+    var staffRole by remember { mutableStateOf(context.getString(R.string.role_nurse_generic)) }
     var addStaffError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(plant?.shiftTimes) {
@@ -307,7 +308,7 @@ fun PlantDetailScreen(
                 showAddStaffDialog = false
                 addStaffError = null
                 staffName = ""
-                staffRole = context.getString(R.string.role_nurse_female)
+                staffRole = context.getString(R.string.role_nurse_generic)
             },
             onConfirm = {
                 if (staffName.isBlank()) {
@@ -330,7 +331,7 @@ fun PlantDetailScreen(
                     if (success) {
                         showAddStaffDialog = false
                         staffName = ""
-                        staffRole = context.getString(R.string.role_nurse_female)
+                        staffRole = context.getString(R.string.role_nurse_generic)
                     } else {
                         addStaffError = context.getString(R.string.staff_dialog_save_error)
                     }
@@ -570,10 +571,8 @@ private fun AddStaffDialog(
     onConfirm: () -> Unit
 ) {
     val roleOptions = listOf(
-        stringResource(id = R.string.role_nurse_female),
-        stringResource(id = R.string.role_nurse_male),
-        stringResource(id = R.string.role_aux_female),
-        stringResource(id = R.string.role_aux_male)
+        stringResource(id = R.string.role_nurse_generic),
+        stringResource(id = R.string.role_aux_generic)
     )
 
     AlertDialog(
@@ -617,9 +616,13 @@ private fun AddStaffDialog(
                 }
 
                 if (errorMessage != null) {
-                    Text(text = errorMessage, color = Color(0xFFFFB4AB))
+                    Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
                 }
             }
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
+        tonalElevation = 6.dp,
+        textContentColor = MaterialTheme.colorScheme.onSurface,
+        titleContentColor = MaterialTheme.colorScheme.onSurface
     )
 }
