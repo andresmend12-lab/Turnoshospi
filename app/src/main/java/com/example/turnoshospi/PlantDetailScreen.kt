@@ -626,7 +626,26 @@ private fun ShiftAssignmentsSection(
             fontWeight = FontWeight.Bold
         )
 
-        plant.shiftTimes.forEach { (shiftName, timing) ->
+        val morningShift = stringResource(id = R.string.shift_morning)
+        val afternoonShift = stringResource(id = R.string.shift_afternoon)
+        val nightShift = stringResource(id = R.string.shift_night)
+        val dayShift = stringResource(id = R.string.shift_day)
+        val orderedShiftEntries = remember(plant.shiftTimes, plant.shiftDuration) {
+            val preferredOrder = if (plant.shiftDuration == stringResource(id = R.string.shift_duration_8h)) {
+                listOf(morningShift, afternoonShift, nightShift)
+            } else {
+                listOf(dayShift, nightShift)
+            }
+
+            val ordered = preferredOrder.mapNotNull { key ->
+                plant.shiftTimes[key]?.let { key to it }
+            }
+
+            val remaining = plant.shiftTimes.filterKeys { it !in preferredOrder }.toList()
+            (ordered + remaining).ifEmpty { plant.shiftTimes.toList() }
+        }
+
+        orderedShiftEntries.forEach { (shiftName, timing) ->
             val requirement = plant.staffRequirements[shiftName] ?: 0
             val state = assignments.getOrPut(shiftName) {
                 ShiftAssignmentState(
