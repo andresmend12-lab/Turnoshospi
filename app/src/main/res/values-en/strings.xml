@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Turnoshospi</string>
+    <string name="create_account_title">Create account</string>
+    <string name="register_button">Save profile</string>
+    <string name="role_supervisor">Supervisor</string>
+    <string name="role_nurse">Nurse</string>
+    <string name="role_aux">Auxiliary</string>
+    <string name="login_button">Sign in</string>
+    <string name="forgot_password">Forgot password?</string>
+    <string name="create_account_action">Create account</string>
+    <string name="main_menu_welcome">Welcome, %1$s</string>
+</resources>

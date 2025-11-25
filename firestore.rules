@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /plants/{plantId}/staffSlots/{slotId} {
+      allow read: if isPlantMember(plantId);
+      allow write: if isSupervisor(plantId);
+    }
+
+    match /plants/{plantId}/shifts/{shiftId} {
+      allow read: if isPlantMember(plantId);
+      allow write: if false; // authoritative changes only via Cloud Functions
+    }
+
+    match /plants/{plantId}/preferences/{prefId} {
+      allow read, write: if isPlantMember(plantId);
+    }
+
+    match /plants/{plantId}/swapRequests/{swapId} {
+      allow read: if isPlantMember(plantId);
+      allow write: if isPlantMember(plantId);
+    }
+
+    match /plants/{plantId}/chatMessages/{messageId} {
+      allow read, write: if isPlantMember(plantId);
+    }
+
+    match /feedback/{feedbackId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+
+    function isPlantMember(plantId) {
+      return request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.currentPlantId == plantId;
+    }
+
+    function isSupervisor(plantId) {
+      return isPlantMember(plantId) &&
+        get(/databases/$(database)/documents/plants/$(plantId)/staffSlots/$(request.auth.uid)).data.isSupervisor == true;
+    }
+  }
+}
