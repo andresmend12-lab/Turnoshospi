@@ -156,7 +156,7 @@ fun MainMenuScreen(
             modifier = modifier
                 .fillMaxSize()
                 .background(Color.Transparent)
-                .padding(horizontal = 20.dp)
+                .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
             Box(
                 modifier = Modifier
@@ -214,8 +214,8 @@ private fun CalendarSection(state: DatePickerState) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(20.dp)
-            .background(Color(0x22000000), RoundedCornerShape(18.dp)),
+            .padding(horizontal = 16.dp, vertical = 14.dp)
+            .background(Color(0x22000000), RoundedCornerShape(22.dp)),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -235,7 +235,26 @@ private fun CalendarSection(state: DatePickerState) {
             colors = DatePickerDefaults.colors(
                 containerColor = Color.Transparent,
                 titleContentColor = Color.White,
-                headlineContentColor = Color.White
+                headlineContentColor = Color.White,
+                weekdayContentColor = Color.White,
+                subheadContentColor = Color.White,
+                yearContentColor = Color.White,
+                currentYearContentColor = Color.White,
+                selectedYearContentColor = Color.White,
+                selectedYearContainerColor = Color(0xFF1E293B),
+                disabledSelectedYearContainerColor = Color(0x661E293B),
+                selectedDayContentColor = Color.White,
+                disabledSelectedDayContentColor = Color(0x80FFFFFF),
+                selectedDayContainerColor = Color(0xFF1E293B),
+                disabledSelectedDayContainerColor = Color(0x661E293B),
+                dayContentColor = Color.White,
+                disabledDayContentColor = Color(0x80FFFFFF),
+                dayInSelectionRangeContentColor = Color.White,
+                disabledDayInSelectionRangeContentColor = Color(0x80FFFFFF),
+                dayInSelectionRangeContainerColor = Color(0x331E293B),
+                disabledDayInSelectionRangeContainerColor = Color(0x221E293B),
+                todayContentColor = Color.White,
+                todayDateBorderColor = Color(0x66FFFFFF)
             )
         )
 
