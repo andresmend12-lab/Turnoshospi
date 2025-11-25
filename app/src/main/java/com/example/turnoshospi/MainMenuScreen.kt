@@ -48,15 +48,20 @@ fun MainMenuScreen(
     modifier: Modifier = Modifier,
     userEmail: String,
     profile: UserProfile?,
+    isLoadingProfile: Boolean,
     onEditProfile: () -> Unit,
     onSignOut: () -> Unit
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    val displayName = remember(profile, userEmail) {
-        val firstName = profile?.firstName?.takeIf { it.isNotBlank() }
-        firstName ?: userEmail
+    val loadingName = stringResource(id = R.string.loading_profile)
+
+    val displayName = when {
+        !profile?.firstName.isNullOrBlank() -> profile?.firstName.orEmpty()
+        isLoadingProfile -> loadingName
+        !profile?.email.isNullOrBlank() -> profile?.email.orEmpty()
+        else -> userEmail
     }
 
     val welcomeStringId = remember(profile?.gender) {
@@ -243,6 +248,7 @@ fun MainMenuScreenPreview() {
                 role = "Supervisora",
                 email = "demo@example.com"
             ),
+            isLoadingProfile = false,
             onEditProfile = {},
             onSignOut = {}
         )

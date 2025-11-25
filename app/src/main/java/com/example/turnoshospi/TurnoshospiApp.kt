@@ -196,6 +196,7 @@ fun TurnoshospiApp(
                 modifier = Modifier.fillMaxSize(),
                 userEmail = user.email.orEmpty(),
                 profile = existingProfile,
+                isLoadingProfile = isLoadingProfile,
                 onEditProfile = { showProfileEditor = true },
                 onSignOut = onSignOut
             )
