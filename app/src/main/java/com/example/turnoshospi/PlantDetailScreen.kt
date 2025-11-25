@@ -805,7 +805,9 @@ private fun StaffDropdownField(
 
     Box(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(enabled = enabled) { expanded = true },
             value = displayValue,
             onValueChange = {},
             readOnly = true,
@@ -838,7 +840,8 @@ private fun StaffDropdownField(
 
         DropdownMenu(
             expanded = expanded && enabled,
-            onDismissRequest = { expanded = false }
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.fillMaxWidth()
         ) {
             menuOptions.forEach { option ->
                 DropdownMenuItem(
@@ -851,15 +854,5 @@ private fun StaffDropdownField(
                 )
             }
         }
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Transparent)
-                .padding(horizontal = 4.dp)
-                .let { base ->
-                    if (enabled) base.clickable { expanded = true } else base
-                }
-        )
     }
 }
