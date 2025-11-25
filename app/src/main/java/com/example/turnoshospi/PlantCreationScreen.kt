@@ -1,7 +1,6 @@
 package com.example.turnoshospi
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,7 +16,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -28,6 +26,8 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -188,21 +188,20 @@ fun PlantCreationScreen(
                         style = MaterialTheme.typography.labelMedium,
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
-                    Box {
+                    ExposedDropdownMenuBox(
+                        expanded = expanded,
+                        onExpandedChange = { expanded = !expanded }
+                    ) {
                         OutlinedTextField(
                             value = selectedDuration,
                             onValueChange = {},
                             readOnly = true,
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { expanded = true },
+                                .menuAnchor()
+                                .fillMaxWidth(),
                             label = { Text(text = stringResource(id = R.string.shift_duration_placeholder)) },
                             trailingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.ArrowDropDown,
-                                    contentDescription = null,
-                                    tint = Color.White
-                                )
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                             },
                             colors = TextFieldDefaults.colors(
                                 focusedTextColor = Color.White,
@@ -216,7 +215,7 @@ fun PlantCreationScreen(
                                 unfocusedContainerColor = Color(0x11FFFFFF)
                             )
                         )
-                        DropdownMenu(
+                        ExposedDropdownMenu(
                             expanded = expanded,
                             onDismissRequest = { expanded = false }
                         ) {
