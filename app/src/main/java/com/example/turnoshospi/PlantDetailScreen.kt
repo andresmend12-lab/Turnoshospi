@@ -132,6 +132,7 @@ fun PlantDetailScreen(
 
     var showAddStaffDialog by remember { mutableStateOf(false) }
     var isSavingStaff by remember { mutableStateOf(false) }
+    var showStaffListDialog by remember { mutableStateOf(false) }
     var staffName by remember { mutableStateOf("") }
     var staffRole by remember { mutableStateOf(nurseRole) }
     var addStaffError by remember { mutableStateOf<String?>(null) }
@@ -168,6 +169,19 @@ fun PlantDetailScreen(
                         onClick = {
                             scope.launch { drawerState.close() }
                             showAddStaffDialog = true
+                        },
+                        colors = NavigationDrawerItemDefaults.colors(
+                            unselectedContainerColor = Color.Transparent,
+                            unselectedTextColor = Color.White
+                        )
+                    )
+                    NavigationDrawerItem(
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                        label = { Text(text = stringResource(id = R.string.plant_staff_list_option), color = Color.White) },
+                        selected = false,
+                        onClick = {
+                            scope.launch { drawerState.close() }
+                            showStaffListDialog = true
                         },
                         colors = NavigationDrawerItemDefaults.colors(
                             unselectedContainerColor = Color.Transparent,
@@ -367,6 +381,14 @@ fun PlantDetailScreen(
             }
         )
     }
+
+    if (showStaffListDialog && plant != null) {
+        StaffListDialog(
+            plantName = plant.name,
+            staff = plant.registeredUsers.values.toList(),
+            onDismiss = { showStaffListDialog = false }
+        )
+    }
 }
 
 @Composable
@@ -389,6 +411,56 @@ private fun InfoMessage(message: String) {
             )
         }
     }
+}
+
+@Composable
+private fun StaffListDialog(
+    plantName: String,
+    staff: List<RegisteredUser>,
+    onDismiss: () -> Unit
+) {
+    val sortedStaff = remember(staff) {
+        staff.sortedBy { it.name.lowercase() }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = stringResource(id = R.string.close_label))
+            }
+        },
+        title = {
+            Text(text = stringResource(id = R.string.staff_list_dialog_title, plantName))
+        },
+        text = {
+            if (sortedStaff.isEmpty()) {
+                Text(text = stringResource(id = R.string.staff_list_dialog_empty))
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    sortedStaff.forEach { member ->
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(
+                                text = member.name,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = member.role,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            )
+                        }
+                        Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+                    }
+                }
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
+        tonalElevation = 6.dp,
+        textContentColor = MaterialTheme.colorScheme.onSurface,
+        titleContentColor = MaterialTheme.colorScheme.onSurface
+    )
 }
 
 @Composable
