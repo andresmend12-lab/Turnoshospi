@@ -52,6 +52,7 @@ fun MyPlantScreen(
     errorMessage: String?,
     onBack: () -> Unit,
     onRefresh: () -> Unit,
+    onOpenPlantDetail: (Plant) -> Unit,
     onJoinPlant: (String, String, (Boolean, String?) -> Unit) -> Unit
 ) {
     var plantIdInput by remember { mutableStateOf("") }

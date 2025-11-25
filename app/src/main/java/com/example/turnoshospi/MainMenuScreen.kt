@@ -36,6 +36,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -318,6 +319,7 @@ fun DrawerMenuItem(label: String, description: String, onClick: () -> Unit) {
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF0F172A)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainMenuScreenPreview() {
     TurnoshospiTheme {
