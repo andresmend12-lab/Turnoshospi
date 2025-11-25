@@ -630,8 +630,9 @@ private fun ShiftAssignmentsSection(
         val afternoonShift = stringResource(id = R.string.shift_afternoon)
         val nightShift = stringResource(id = R.string.shift_night)
         val dayShift = stringResource(id = R.string.shift_day)
+        val shiftDurationEightHours = stringResource(id = R.string.shift_duration_8h)
         val orderedShiftEntries = remember(plant.shiftTimes, plant.shiftDuration) {
-            val preferredOrder = if (plant.shiftDuration == stringResource(id = R.string.shift_duration_8h)) {
+            val preferredOrder = if (plant.shiftDuration == shiftDurationEightHours) {
                 listOf(morningShift, afternoonShift, nightShift)
             } else {
                 listOf(dayShift, nightShift)
