@@ -40,8 +40,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
@@ -94,6 +99,8 @@ fun PlantDetailScreen(
         stringResource(id = R.string.role_supervisor_male),
         stringResource(id = R.string.role_supervisor_female)
     )
+    val nurseRole = stringResource(id = R.string.role_nurse_generic)
+    val auxRole = stringResource(id = R.string.role_aux_generic)
     val isSupervisor = currentUserProfile?.role in supervisorRoles
     val currentUserDisplayName = remember(currentUserProfile) {
         currentUserProfile?.let {
@@ -104,10 +111,29 @@ fun PlantDetailScreen(
 
     val assignments = remember(plant?.id) { mutableStateMapOf<String, ShiftAssignmentState>() }
 
+    val (nurseOptions, auxOptions) = remember(
+        plant?.registeredUsers,
+        nurseRole,
+        auxRole
+    ) {
+        val users = plant?.registeredUsers?.values.orEmpty()
+        val nurses = users
+            .filter { it.role == nurseRole }
+            .map { it.name }
+            .filter { it.isNotBlank() }
+            .sorted()
+        val aux = users
+            .filter { it.role == auxRole }
+            .map { it.name }
+            .filter { it.isNotBlank() }
+            .sorted()
+        nurses to aux
+    }
+
     var showAddStaffDialog by remember { mutableStateOf(false) }
     var isSavingStaff by remember { mutableStateOf(false) }
     var staffName by remember { mutableStateOf("") }
-    var staffRole by remember { mutableStateOf(context.getString(R.string.role_nurse_generic)) }
+    var staffRole by remember { mutableStateOf(nurseRole) }
     var addStaffError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(plant?.shiftTimes) {
@@ -284,6 +310,8 @@ fun PlantDetailScreen(
                             selectedDateLabel = formatDate(selectedDate),
                             isSupervisor = isSupervisor,
                             currentUserName = currentUserDisplayName,
+                            nurseOptions = nurseOptions,
+                            auxOptions = auxOptions,
                             onSelfAssign = { _, state ->
                                 assignSelfToShift(state.nurseNames, currentUserDisplayName)
                             }
@@ -308,7 +336,7 @@ fun PlantDetailScreen(
                 showAddStaffDialog = false
                 addStaffError = null
                 staffName = ""
-                staffRole = context.getString(R.string.role_nurse_generic)
+                staffRole = nurseRole
             },
             onConfirm = {
                 if (staffName.isBlank()) {
@@ -331,7 +359,7 @@ fun PlantDetailScreen(
                     if (success) {
                         showAddStaffDialog = false
                         staffName = ""
-                        staffRole = context.getString(R.string.role_nurse_generic)
+                        staffRole = nurseRole
                     } else {
                         addStaffError = context.getString(R.string.staff_dialog_save_error)
                     }
@@ -370,6 +398,8 @@ private fun ShiftAssignmentsSection(
     selectedDateLabel: String,
     isSupervisor: Boolean,
     currentUserName: String?,
+    nurseOptions: List<String>,
+    auxOptions: List<String>,
     onSelfAssign: (String, ShiftAssignmentState) -> Unit
 ) {
     val allowAux = plant.staffScope == stringResource(id = R.string.staff_scope_with_aux)
@@ -434,48 +464,28 @@ private fun ShiftAssignmentsSection(
 
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         state.nurseNames.forEachIndexed { index, name ->
-                            OutlinedTextField(
-                                value = name,
-                                onValueChange = { newName -> if (isSupervisor) state.nurseNames[index] = newName },
-                                modifier = Modifier.fillMaxWidth(),
-                                label = { Text(text = stringResource(id = R.string.nurse_label, index + 1)) },
+                            StaffDropdownField(
+                                label = stringResource(id = R.string.nurse_label, index + 1),
+                                selectedValue = name,
+                                options = nurseOptions,
                                 enabled = isSupervisor,
-                                readOnly = !isSupervisor,
-                                colors = androidx.compose.material3.TextFieldDefaults.colors(
-                                    focusedTextColor = Color.White,
-                                    unfocusedTextColor = Color.White,
-                                    focusedIndicatorColor = Color(0xFF54C7EC),
-                                    unfocusedIndicatorColor = Color(0x66FFFFFF),
-                                    cursorColor = Color.White,
-                                    focusedLabelColor = Color.White,
-                                    unfocusedLabelColor = Color(0xCCFFFFFF),
-                                    focusedContainerColor = Color(0x22FFFFFF),
-                                    unfocusedContainerColor = Color(0x11FFFFFF)
-                                )
+                                onOptionSelected = { selection ->
+                                    state.nurseNames[index] = selection
+                                }
                             )
                         }
 
                         if (allowAux) {
                             Divider(color = Color(0x22FFFFFF))
                             state.auxNames.forEachIndexed { index, name ->
-                                OutlinedTextField(
-                                    value = name,
-                                    onValueChange = { newName -> if (isSupervisor) state.auxNames[index] = newName },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    label = { Text(text = stringResource(id = R.string.aux_label, index + 1)) },
+                                StaffDropdownField(
+                                    label = stringResource(id = R.string.aux_label, index + 1),
+                                    selectedValue = name,
+                                    options = auxOptions,
                                     enabled = isSupervisor,
-                                    readOnly = !isSupervisor,
-                                    colors = androidx.compose.material3.TextFieldDefaults.colors(
-                                        focusedTextColor = Color.White,
-                                        unfocusedTextColor = Color.White,
-                                        focusedIndicatorColor = Color(0xFF54C7EC),
-                                        unfocusedIndicatorColor = Color(0x66FFFFFF),
-                                        cursorColor = Color.White,
-                                        focusedLabelColor = Color.White,
-                                        unfocusedLabelColor = Color(0xCCFFFFFF),
-                                        focusedContainerColor = Color(0x22FFFFFF),
-                                        unfocusedContainerColor = Color(0x11FFFFFF)
-                                    )
+                                    onOptionSelected = { selection ->
+                                        state.auxNames[index] = selection
+                                    }
                                 )
                             }
                         }
@@ -625,4 +635,74 @@ private fun AddStaffDialog(
         textContentColor = MaterialTheme.colorScheme.onSurface,
         titleContentColor = MaterialTheme.colorScheme.onSurface
     )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun StaffDropdownField(
+    label: String,
+    selectedValue: String,
+    options: List<String>,
+    enabled: Boolean,
+    onOptionSelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val unassignedLabel = stringResource(id = R.string.staff_unassigned_option)
+    val displayValue = selectedValue.takeIf { it.isNotBlank() } ?: unassignedLabel
+    val menuOptions = remember(options, unassignedLabel) {
+        listOf(unassignedLabel) + options
+    }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded && enabled,
+        onExpandedChange = { shouldExpand ->
+            if (enabled) {
+                expanded = shouldExpand
+            }
+        }
+    ) {
+        TextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(),
+            value = displayValue,
+            onValueChange = {},
+            readOnly = true,
+            enabled = enabled,
+            label = { Text(text = label) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            colors = ExposedDropdownMenuDefaults.textFieldColors(
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                disabledTextColor = Color(0xCCFFFFFF),
+                focusedIndicatorColor = Color(0xFF54C7EC),
+                unfocusedIndicatorColor = Color(0x66FFFFFF),
+                disabledIndicatorColor = Color(0x33FFFFFF),
+                cursorColor = Color.White,
+                focusedLabelColor = Color.White,
+                unfocusedLabelColor = Color(0xCCFFFFFF),
+                disabledLabelColor = Color(0x80FFFFFF),
+                focusedContainerColor = Color(0x22FFFFFF),
+                unfocusedContainerColor = Color(0x11FFFFFF),
+                disabledContainerColor = Color(0x11FFFFFF)
+            )
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded && enabled,
+            onDismissRequest = { expanded = false }
+        ) {
+            menuOptions.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(text = option) },
+                    onClick = {
+                        val resolvedSelection = if (option == unassignedLabel) "" else option
+                        onOptionSelected(resolvedSelection)
+                        expanded = false
+                    },
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                )
+            }
+        }
+    }
 }

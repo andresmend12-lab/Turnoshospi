@@ -97,6 +97,7 @@
     <string name="plant_shifts_for_date">Turnos para %1$s</string>
     <string name="nurse_label">Enfermero/a %1$d</string>
     <string name="aux_label">Auxiliar %1$d</string>
+    <string name="staff_unassigned_option">Sin asignar</string>
     <string name="plant_half_day_prompt">¿Hay alguna media jornada en este turno?</string>
     <string name="save_assignments_action">Guardar organización</string>
     <string name="plant_add_staff_option">Añadir personal de la planta</string>
