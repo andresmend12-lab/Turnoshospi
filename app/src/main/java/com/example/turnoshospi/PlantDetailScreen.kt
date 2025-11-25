@@ -613,7 +613,7 @@ private fun ShiftAssignmentsSection(
     auxOptions: List<String>,
     onSelfAssign: (String, ShiftAssignmentState) -> Unit
 ) {
-    val allowAux = plant.staffScope == stringResource(id = R.string.staff_scope_with_aux)
+    val allowAux = plant.staffScope == stringResource(id = R.string.staff_scope_with_aux) || auxOptions.isNotEmpty()
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -862,16 +862,46 @@ private fun StaffDropdownField(
     val displayValue = selectedValue.takeIf { it.isNotBlank() } ?: unassignedLabel
     val menuOptions = remember(options, unassignedLabel) { listOf(unassignedLabel) + options }
     val trailingIcon = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.ArrowDropDown
+    val activeColors = OutlinedTextFieldDefaults.colors(
+        focusedTextColor = Color.White,
+        unfocusedTextColor = Color.White,
+        disabledTextColor = Color(0xCCFFFFFF),
+        focusedBorderColor = Color(0xFF54C7EC),
+        unfocusedBorderColor = Color(0x66FFFFFF),
+        disabledBorderColor = Color(0x33FFFFFF),
+        cursorColor = Color.White,
+        focusedLabelColor = Color.White,
+        unfocusedLabelColor = Color(0xCCFFFFFF),
+        disabledLabelColor = Color(0x80FFFFFF),
+        focusedContainerColor = Color(0x22FFFFFF),
+        unfocusedContainerColor = Color(0x11FFFFFF),
+        disabledContainerColor = Color(0x11FFFFFF)
+    )
+    val inactiveColors = OutlinedTextFieldDefaults.colors(
+        focusedTextColor = Color(0xCCFFFFFF),
+        unfocusedTextColor = Color(0xCCFFFFFF),
+        disabledTextColor = Color(0xCCFFFFFF),
+        focusedBorderColor = Color(0x33FFFFFF),
+        unfocusedBorderColor = Color(0x33FFFFFF),
+        disabledBorderColor = Color(0x33FFFFFF),
+        cursorColor = Color(0xCCFFFFFF),
+        focusedLabelColor = Color(0x99FFFFFF),
+        unfocusedLabelColor = Color(0x99FFFFFF),
+        disabledLabelColor = Color(0x99FFFFFF),
+        focusedContainerColor = Color(0x11FFFFFF),
+        unfocusedContainerColor = Color(0x11FFFFFF),
+        disabledContainerColor = Color(0x11FFFFFF)
+    )
 
     Box(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(enabled = enabled) { expanded = true },
+                .clickable { expanded = true },
             value = displayValue,
             onValueChange = {},
             readOnly = true,
-            enabled = enabled,
+            enabled = true,
             label = { Text(text = label) },
             trailingIcon = {
                 Icon(
@@ -880,26 +910,12 @@ private fun StaffDropdownField(
                     tint = if (enabled) Color.White else Color(0xCCFFFFFF)
                 )
             },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                disabledTextColor = Color(0xCCFFFFFF),
-                focusedBorderColor = Color(0xFF54C7EC),
-                unfocusedBorderColor = Color(0x66FFFFFF),
-                disabledBorderColor = Color(0x33FFFFFF),
-                cursorColor = Color.White,
-                focusedLabelColor = Color.White,
-                unfocusedLabelColor = Color(0xCCFFFFFF),
-                disabledLabelColor = Color(0x80FFFFFF),
-                focusedContainerColor = Color(0x22FFFFFF),
-                unfocusedContainerColor = Color(0x11FFFFFF),
-                disabledContainerColor = Color(0x11FFFFFF)
-            ),
+            colors = if (enabled) activeColors else inactiveColors,
             singleLine = true
         )
 
         DropdownMenu(
-            expanded = expanded && enabled,
+            expanded = expanded,
             onDismissRequest = { expanded = false },
             modifier = Modifier.fillMaxWidth()
         ) {
