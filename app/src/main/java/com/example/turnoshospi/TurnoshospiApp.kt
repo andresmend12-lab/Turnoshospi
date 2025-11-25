@@ -51,7 +51,8 @@ import kotlinx.coroutines.launch
 enum class AppScreen {
     MainMenu,
     CreatePlant,
-    PlantCreated
+    PlantCreated,
+    MyPlant
 }
 
 @Composable
@@ -64,6 +65,8 @@ fun TurnoshospiApp(
     onForgotPassword: (String, (Boolean) -> Unit) -> Unit,
     onLoadProfile: (onResult: (UserProfile?) -> Unit) -> Unit,
     onSaveProfile: (UserProfile, (Boolean) -> Unit) -> Unit,
+    onLoadPlant: (onResult: (Plant?, String?) -> Unit) -> Unit,
+    onJoinPlant: (String, String, UserProfile?, (Boolean, String?) -> Unit) -> Unit,
     onSignOut: () -> Unit
 ) {
     var showLogin by remember { mutableStateOf(true) }
@@ -76,7 +79,20 @@ fun TurnoshospiApp(
     var showProfileEditor by remember { mutableStateOf(false) }
     var currentScreen by remember { mutableStateOf(AppScreen.MainMenu) }
     var lastCreatedPlantCredentials by remember { mutableStateOf<PlantCredentials?>(null) }
+    var userPlant by remember { mutableStateOf<Plant?>(null) }
+    var isLoadingPlant by remember { mutableStateOf(false) }
+    var plantError by remember { mutableStateOf<String?>(null) }
     val coroutineScope = rememberCoroutineScope()
+
+    val refreshUserPlant: () -> Unit = {
+        plantError = null
+        isLoadingPlant = true
+        onLoadPlant { plant, error ->
+            userPlant = plant
+            plantError = error
+            isLoadingPlant = false
+        }
+    }
 
     LaunchedEffect(Unit) {
         delay(2000)
@@ -89,6 +105,7 @@ fun TurnoshospiApp(
         if (user != null) {
             isLoadingProfile = true
             existingProfile = null
+            userPlant = null
             currentScreen = AppScreen.MainMenu
             onLoadProfile { profile ->
                 existingProfile = profile
@@ -98,6 +115,9 @@ fun TurnoshospiApp(
             existingProfile = null
             showRegistration = false
             isLoadingProfile = false
+            userPlant = null
+            plantError = null
+            isLoadingPlant = false
             currentScreen = AppScreen.MainMenu
         }
     }
@@ -163,7 +183,7 @@ fun TurnoshospiApp(
                 Spacer(modifier = Modifier.height(if (showLogin) 32.dp else 0.dp))
 
                 Image(
-                    painter = painterResource(id = R.mipmap.ic_logo_hospi_round),
+                    painter = painterResource(id = R.mipmap.ic_logo_hospi_foreground),
                     contentDescription = "Logo Turnoshospi",
                     modifier = Modifier.size(logoSize)
                 )
@@ -221,6 +241,10 @@ fun TurnoshospiApp(
                     isLoadingProfile = isLoadingProfile,
                     onCreatePlant = { currentScreen = AppScreen.CreatePlant },
                     onEditProfile = { showProfileEditor = true },
+                    onOpenPlant = {
+                        currentScreen = AppScreen.MyPlant
+                        refreshUserPlant()
+                    },
                     onSignOut = onSignOut
                 )
 
@@ -229,12 +253,31 @@ fun TurnoshospiApp(
                     onPlantCreated = { credentials ->
                         lastCreatedPlantCredentials = credentials
                         currentScreen = AppScreen.PlantCreated
-                    }
+                    },
+                    currentUserId = user?.uid,
+                    currentUserProfile = existingProfile
                 )
 
                 AppScreen.PlantCreated -> PlantCreatedScreen(
                     credentials = lastCreatedPlantCredentials,
                     onBackToMenu = { currentScreen = AppScreen.MainMenu }
+                )
+
+                AppScreen.MyPlant -> MyPlantScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    plant = userPlant,
+                    isLoading = isLoadingPlant,
+                    errorMessage = plantError,
+                    onBack = { currentScreen = AppScreen.MainMenu },
+                    onRefresh = { refreshUserPlant() },
+                    onJoinPlant = { plantId, invitationCode, onResult ->
+                        onJoinPlant(plantId, invitationCode, existingProfile) { success, message ->
+                            if (!success && message != null) {
+                                plantError = message
+                            }
+                            onResult(success, message)
+                        }
+                    }
                 )
             }
         }
@@ -342,6 +385,8 @@ fun SplashLoginPreview() {
             onForgotPassword = { _, _ -> },
             onLoadProfile = {},
             onSaveProfile = { _, _ -> },
+            onLoadPlant = { onResult -> onResult(null, null) },
+            onJoinPlant = { _, _, _, _ -> },
             onSignOut = {}
         )
     }
