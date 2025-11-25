@@ -69,8 +69,15 @@ import androidx.compose.ui.unit.dp
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
 import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp
+import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.database.DatabaseException
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -123,7 +130,9 @@ class MainActivity : ComponentActivity() {
                     currentUserState.value = auth.currentUser
                     onResult(true)
                 } else {
-                    authErrorMessage.value = "No se pudo iniciar sesión con ese correo"
+                    val errorMessage = task.exception?.let { formatAuthError(it) }
+                        ?: "No se pudo iniciar sesión con ese correo"
+                    authErrorMessage.value = errorMessage
                     onResult(false)
                 }
             }
@@ -143,7 +152,9 @@ class MainActivity : ComponentActivity() {
                         onResult(success)
                     }
                 } else {
-                    authErrorMessage.value = "No se pudo crear la cuenta"
+                    val errorMessage = task.exception?.let { formatAuthError(it) }
+                        ?: "No se pudo crear la cuenta"
+                    authErrorMessage.value = errorMessage
                     onResult(false)
                 }
             }
@@ -156,7 +167,9 @@ class MainActivity : ComponentActivity() {
                 if (task.isSuccessful) {
                     onResult(true)
                 } else {
-                    authErrorMessage.value = "No se pudo enviar el correo de recuperación"
+                    val errorMessage = task.exception?.let { formatAuthError(it) }
+                        ?: "No se pudo enviar el correo de recuperación"
+                    authErrorMessage.value = errorMessage
                     onResult(false)
                 }
             }
@@ -231,7 +244,12 @@ class MainActivity : ComponentActivity() {
             .updateChildren(realtimePayload)
             .addOnSuccessListener { onResult(true) }
             .addOnFailureListener {
-                authErrorMessage.value = "No se pudo guardar el perfil en tiempo real"
+                val message = if (it is DatabaseException) {
+                    "Revisa las reglas de Realtime Database y los permisos de escritura"
+                } else {
+                    "No se pudo guardar el perfil en tiempo real"
+                }
+                authErrorMessage.value = message
                 onResult(false)
             }
     }
@@ -239,6 +257,21 @@ class MainActivity : ComponentActivity() {
     private fun signOut() {
         auth.signOut()
         currentUserState.value = null
+    }
+
+    private fun formatAuthError(exception: Exception): String {
+        return when (exception) {
+            is FirebaseAuthWeakPasswordException -> "La contraseña es demasiado débil; debe tener al menos 6 caracteres"
+            is FirebaseAuthUserCollisionException -> "Ya existe una cuenta registrada con este correo"
+            is FirebaseAuthInvalidCredentialsException -> "El correo o la contraseña no son válidos"
+            is FirebaseAuthInvalidUserException -> "Esta cuenta no existe o fue deshabilitada"
+            is FirebaseAuthException -> when (exception.errorCode) {
+                "ERROR_OPERATION_NOT_ALLOWED" -> "Habilita el proveedor de Email/Contraseña en la consola de Firebase"
+                else -> "Error de autenticación: ${exception.localizedMessage ?: "intenta de nuevo"}"
+            }
+            is FirebaseNetworkException -> "No hay conexión con el servidor. Revisa tu conexión a internet"
+            else -> "No se pudo completar la operación. Inténtalo de nuevo"
+        }
     }
 }
 
