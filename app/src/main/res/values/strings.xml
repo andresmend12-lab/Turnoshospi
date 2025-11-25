@@ -71,4 +71,24 @@
     <string name="plant_access_password_label">Contraseña de acceso</string>
     <string name="plant_share_hint">Comparte estos datos con tu equipo para que puedan acceder y gestionar la planta.</string>
     <string name="back_to_menu">Volver al menú principal</string>
+    <string name="refresh_plant_action">Actualizar datos</string>
+    <string name="plant_location_label">%1$s • %2$s</string>
+    <string name="plant_shift_summary">Turnos de %1$s</string>
+    <string name="plant_half_day_allowed">Permite turnos de media jornada</string>
+    <string name="plant_half_day_not_allowed">No permite turnos de media jornada</string>
+    <string name="plant_shift_times_title">Horarios configurados</string>
+    <string name="plant_shift_item">%1$s: %2$s - %3$s</string>
+    <string name="plant_staff_requirements_title">Requerimientos mínimos</string>
+    <string name="plant_staff_requirement_item">%1$s: %2$d personas</string>
+    <string name="plant_registered_users_label">Usuarios registrados: %1$d</string>
+    <string name="my_plant_empty_title">Todavía no estás en una planta</string>
+    <string name="my_plant_empty_message">Ingresa el ID de la planta y el código de invitación que compartió tu supervisor para unirte.</string>
+    <string name="invitation_code_label">Código de invitación</string>
+    <string name="join_plant_action">Unirme a la planta</string>
+    <string name="join_plant_success">Te uniste a la planta correctamente.</string>
+    <string name="loading_my_plant">Buscando tu planta…</string>
+    <string name="join_plant_error">No se pudo procesar el código de invitación, intenta de nuevo.</string>
+    <string name="join_plant_not_found">No encontramos una planta con ese ID.</string>
+    <string name="invalid_invitation_code">El código de invitación no es válido.</string>
+    <string name="plant_load_error">No se pudo cargar tu planta, intenta nuevamente.</string>
 </resources>

@@ -61,18 +61,26 @@ data class PlantCredentials(
     val accessPassword: String
 )
 
+data class RegisteredUser(
+    val id: String = "",
+    val name: String = "",
+    val role: String = "",
+    val email: String = ""
+)
+
 data class Plant(
-    val id: String,
-    val name: String,
-    val unitType: String,
-    val hospitalName: String,
-    val shiftDuration: String,
-    val allowHalfDay: Boolean,
-    val staffScope: String,
-    val shiftTimes: Map<String, ShiftTime>,
-    val staffRequirements: Map<String, Int>,
-    val createdAt: Long,
-    val accessPassword: String
+    val id: String = "",
+    val name: String = "",
+    val unitType: String = "",
+    val hospitalName: String = "",
+    val shiftDuration: String = "",
+    val allowHalfDay: Boolean = false,
+    val staffScope: String = "",
+    val shiftTimes: Map<String, ShiftTime> = emptyMap(),
+    val staffRequirements: Map<String, Int> = emptyMap(),
+    val createdAt: Long = 0L,
+    val accessPassword: String = "",
+    val registeredUsers: Map<String, RegisteredUser> = emptyMap()
 )
 
 data class ShiftTime(val start: String = "", val end: String = "")
@@ -86,7 +94,9 @@ private enum class StaffScope {
 @Composable
 fun PlantCreationScreen(
     onBack: () -> Unit,
-    onPlantCreated: (PlantCredentials) -> Unit
+    onPlantCreated: (PlantCredentials) -> Unit,
+    currentUserId: String?,
+    currentUserProfile: UserProfile?
 ) {
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
@@ -94,6 +104,10 @@ fun PlantCreationScreen(
     val database = remember {
         FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
     }
+    val supervisorRoles = listOf(
+        stringResource(id = R.string.role_supervisor_male),
+        stringResource(id = R.string.role_supervisor_female)
+    )
 
     var isSaving by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -351,7 +365,24 @@ fun PlantCreationScreen(
                             StaffScope.NursesOnly -> "nurses_only"
                             StaffScope.NursesAndAux -> "nurses_and_aux"
                         }
-                        
+
+                        val creatorRegisteredUser = if (
+                            currentUserId != null && currentUserProfile?.role in supervisorRoles
+                        ) {
+                            val fullName = listOf(
+                                currentUserProfile.firstName,
+                                currentUserProfile.lastName
+                            ).filter { it.isNotBlank() }.joinToString(" ")
+                            RegisteredUser(
+                                id = currentUserId,
+                                name = fullName.ifBlank { currentUserProfile.email },
+                                role = currentUserProfile.role,
+                                email = currentUserProfile.email
+                            )
+                        } else {
+                            null
+                        }
+
                         val plant = Plant(
                             id = plantId,
                             name = plantName,
@@ -365,13 +396,22 @@ fun PlantCreationScreen(
                                 value.toIntOrNull() ?: 0
                             },
                             createdAt = System.currentTimeMillis(),
-                            accessPassword = accessPassword
+                            accessPassword = accessPassword,
+                            registeredUsers = creatorRegisteredUser?.let { mapOf(it.id to it) }
+                                ?: emptyMap()
                         )
 
                         coroutineScope.launch {
-                            database.getReference("plants")
-                                .child(plantId)
-                                .setValue(plant)
+                            val updates = mutableMapOf<String, Any>(
+                                "plants/$plantId" to plant
+                            )
+
+                            if (creatorRegisteredUser != null) {
+                                updates["userPlants/${creatorRegisteredUser.id}"] = plantId
+                            }
+
+                            database.reference
+                                .updateChildren(updates)
                                 .addOnSuccessListener {
                                     isSaving = false
                                     onPlantCreated(PlantCredentials(plantId, accessPassword))

@@ -54,6 +54,10 @@ class MainActivity : ComponentActivity() {
                     onForgotPassword = { email, onResult -> sendPasswordReset(email, onResult) },
                     onLoadProfile = { loadUserProfile(it) },
                     onSaveProfile = { profile, callback -> saveUserProfile(profile, callback) },
+                    onLoadPlant = { loadUserPlant(it) },
+                    onJoinPlant = { plantId, code, profile, onResult ->
+                        joinPlantWithCode(plantId, code, profile, onResult)
+                    },
                     onSignOut = { signOut() }
                 )
             }
@@ -193,6 +197,89 @@ class MainActivity : ComponentActivity() {
             }
     }
 
+    private fun loadUserPlant(onResult: (Plant?, String?) -> Unit) {
+        val user = auth.currentUser ?: run {
+            onResult(null, getString(R.string.plant_auth_error))
+            return
+        }
+
+        realtimeDatabase.getReference("userPlants")
+            .child(user.uid)
+            .get()
+            .addOnSuccessListener { mappingSnapshot ->
+                val plantId = mappingSnapshot.getValue(String::class.java)
+                if (plantId.isNullOrBlank()) {
+                    onResult(null, null)
+                    return@addOnSuccessListener
+                }
+
+                realtimeDatabase.getReference("plants")
+                    .child(plantId)
+                    .get()
+                    .addOnSuccessListener { plantSnapshot ->
+                        val plant = plantSnapshot.toPlant()
+                        if (plant != null) {
+                            onResult(plant, null)
+                        } else {
+                            onResult(null, getString(R.string.plant_load_error))
+                        }
+                    }
+                    .addOnFailureListener {
+                        onResult(null, getString(R.string.plant_load_error))
+                    }
+            }
+            .addOnFailureListener {
+                onResult(null, getString(R.string.plant_load_error))
+            }
+    }
+
+    private fun joinPlantWithCode(
+        plantId: String,
+        invitationCode: String,
+        profile: UserProfile?,
+        onResult: (Boolean, String?) -> Unit
+    ) {
+        val user = auth.currentUser ?: run {
+            onResult(false, getString(R.string.plant_auth_error))
+            return
+        }
+
+        val cleanPlantId = plantId.trim()
+        val cleanInvitationCode = invitationCode.trim()
+
+        realtimeDatabase.getReference("plants")
+            .child(cleanPlantId)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                if (!snapshot.exists()) {
+                    onResult(false, getString(R.string.join_plant_not_found))
+                    return@addOnSuccessListener
+                }
+
+                val storedCode = snapshot.child("accessPassword").getValue(String::class.java)
+                if (storedCode.isNullOrEmpty() || storedCode != cleanInvitationCode) {
+                    onResult(false, getString(R.string.invalid_invitation_code))
+                    return@addOnSuccessListener
+                }
+
+                val registeredUser = toRegisteredUser(user.uid, profile, user.email.orEmpty())
+                val updates = mapOf(
+                    "plants/$cleanPlantId/registeredUsers/${registeredUser.id}" to registeredUser,
+                    "userPlants/${registeredUser.id}" to cleanPlantId
+                )
+
+                realtimeDatabase.reference
+                    .updateChildren(updates)
+                    .addOnSuccessListener { onResult(true, null) }
+                    .addOnFailureListener {
+                        onResult(false, getString(R.string.join_plant_error))
+                    }
+            }
+            .addOnFailureListener {
+                onResult(false, getString(R.string.join_plant_error))
+            }
+    }
+
     private fun signOut() {
         auth.signOut()
         currentUserState.value = null
@@ -240,6 +327,67 @@ fun DataSnapshot.toUserProfile(fallbackEmail: String): UserProfile? {
     )
 }
 
+private fun toRegisteredUser(userId: String, profile: UserProfile?, fallbackEmail: String): RegisteredUser {
+    val fullName = profile?.let {
+        listOf(it.firstName, it.lastName).filter { part -> part.isNotBlank() }.joinToString(" ")
+    }.orEmpty()
+    val resolvedEmail = profile?.email?.takeIf { it.isNotBlank() } ?: fallbackEmail
+    val displayName = fullName.ifBlank { resolvedEmail }
+
+    return RegisteredUser(
+        id = userId,
+        name = displayName,
+        role = profile?.role.orEmpty(),
+        email = resolvedEmail
+    )
+}
+
+fun DataSnapshot.toPlant(): Plant? {
+    if (!exists()) return null
+
+    val shiftTimes = child("shiftTimes").children.mapNotNull { shiftSnapshot ->
+        val label = shiftSnapshot.key ?: return@mapNotNull null
+        val start = shiftSnapshot.child("start").getValue(String::class.java) ?: ""
+        val end = shiftSnapshot.child("end").getValue(String::class.java) ?: ""
+        label to ShiftTime(start, end)
+    }.toMap()
+
+    val staffRequirements = child("staffRequirements").children.mapNotNull { requirementSnapshot ->
+        val label = requirementSnapshot.key ?: return@mapNotNull null
+        val value = requirementSnapshot.getValue(Int::class.java)
+            ?: requirementSnapshot.getValue(Long::class.java)?.toInt()
+            ?: 0
+        label to value
+    }.toMap()
+
+    val registeredUsers = child("registeredUsers").children.mapNotNull { userSnapshot ->
+        val userId = userSnapshot.key ?: return@mapNotNull null
+        val registeredUser = userSnapshot.getValue(RegisteredUser::class.java)
+            ?: RegisteredUser(
+                id = userId,
+                name = userSnapshot.child("name").getValue(String::class.java).orEmpty(),
+                role = userSnapshot.child("role").getValue(String::class.java).orEmpty(),
+                email = userSnapshot.child("email").getValue(String::class.java).orEmpty()
+            )
+        userId to registeredUser
+    }.toMap()
+
+    return Plant(
+        id = child("id").getValue(String::class.java) ?: key.orEmpty(),
+        name = child("name").getValue(String::class.java) ?: "",
+        unitType = child("unitType").getValue(String::class.java) ?: "",
+        hospitalName = child("hospitalName").getValue(String::class.java) ?: "",
+        shiftDuration = child("shiftDuration").getValue(String::class.java) ?: "",
+        allowHalfDay = child("allowHalfDay").getValue(Boolean::class.java) ?: false,
+        staffScope = child("staffScope").getValue(String::class.java) ?: "",
+        shiftTimes = shiftTimes,
+        staffRequirements = staffRequirements,
+        createdAt = child("createdAt").getValue(Long::class.java) ?: 0L,
+        accessPassword = child("accessPassword").getValue(String::class.java) ?: "",
+        registeredUsers = registeredUsers
+    )
+}
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun MainActivityPreview() {
@@ -253,6 +401,8 @@ fun MainActivityPreview() {
             onForgotPassword = { _, _ -> },
             onLoadProfile = { onResult -> onResult(null) },
             onSaveProfile = { _, _ -> },
+            onLoadPlant = { onResult -> onResult(null, null) },
+            onJoinPlant = { _, _, _, _ -> },
             onSignOut = {}
         )
     }
