@@ -240,16 +240,14 @@ fun TurnoshospiApp(
             onSave = { profile, onComplete ->
                 saveCompleted = false
                 coroutineScope.launch {
+                    val activity = context as? Activity
+                    var restarted = false
+
                     onSaveProfile(profile) { success ->
+                        if (restarted) return@onSaveProfile
+
                         if (success) {
-                            val activity = context as? Activity
-                            if (activity != null) {
-                                onComplete(true)
-                                activity.finish()
-                                activity.startActivity(activity.intent)
-                                activity.overridePendingTransition(0, 0)
-                                return@onSaveProfile
-                            } else {
+                            if (activity == null) {
                                 existingProfile = profile
                                 showProfileEditor = false
                                 saveCompleted = true
@@ -266,6 +264,15 @@ fun TurnoshospiApp(
                             showProfileEditor = true
                             onComplete(false)
                         }
+                    }
+
+                    if (activity != null) {
+                        restarted = true
+                        showProfileEditor = false
+                        onComplete(true)
+                        activity.finish()
+                        activity.startActivity(activity.intent)
+                        activity.overridePendingTransition(0, 0)
                     }
                 }
             }
