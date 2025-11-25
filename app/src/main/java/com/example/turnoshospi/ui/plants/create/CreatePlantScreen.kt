@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -30,7 +29,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardOptions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.turnoshospi.domain.model.plants.ShiftType
@@ -112,8 +111,8 @@ fun CreatePlantScreen(
         }
 
         item {
-            if (state.error != null) {
-                Text(text = state.error, modifier = Modifier.padding(vertical = 4.dp))
+            state.error?.let { errorMessage ->
+                Text(text = errorMessage, modifier = Modifier.padding(vertical = 4.dp))
             }
             Button(
                 onClick = { viewModel.createPlant(supervisorName.value) },
@@ -172,7 +171,6 @@ private fun ShiftTypeEditor(
                     value = shiftType.startTime,
                     onValueChange = { onChange(shiftType.copy(startTime = it)) },
                     label = { Text("Hora inicio") },
-                    leadingIcon = { Icon(Icons.Filled.Schedule, contentDescription = null) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.weight(1f)
                 )
@@ -180,7 +178,6 @@ private fun ShiftTypeEditor(
                     value = shiftType.endTime,
                     onValueChange = { onChange(shiftType.copy(endTime = it)) },
                     label = { Text("Hora fin") },
-                    leadingIcon = { Icon(Icons.Filled.Schedule, contentDescription = null) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.weight(1f)
                 )
