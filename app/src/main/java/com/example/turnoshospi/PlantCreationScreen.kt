@@ -177,11 +177,11 @@ fun PlantCreationScreen(
                                 tint = Color.White
                             )
                         },
-                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                        colors = TextFieldDefaults.colors(
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White,
-                            focusedBorderColor = Color(0xFF54C7EC),
-                            unfocusedBorderColor = Color(0x66FFFFFF),
+                            focusedIndicatorColor = Color(0xFF54C7EC),
+                            unfocusedIndicatorColor = Color(0x66FFFFFF),
                             cursorColor = Color.White,
                             focusedLabelColor = Color.White,
                             unfocusedLabelColor = Color(0xCCFFFFFF)
@@ -396,11 +396,11 @@ private fun PlantTextField(
         modifier = modifier,
         label = { Text(text = label) },
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        colors = TextFieldDefaults.outlinedTextFieldColors(
+        colors = TextFieldDefaults.colors(
             focusedTextColor = Color.White,
             unfocusedTextColor = Color.White,
-            focusedBorderColor = Color(0xFF54C7EC),
-            unfocusedBorderColor = Color(0x66FFFFFF),
+            focusedIndicatorColor = Color(0xFF54C7EC),
+            unfocusedIndicatorColor = Color(0x66FFFFFF),
             cursorColor = Color.White,
             focusedLabelColor = Color.White,
             unfocusedLabelColor = Color(0xCCFFFFFF)
