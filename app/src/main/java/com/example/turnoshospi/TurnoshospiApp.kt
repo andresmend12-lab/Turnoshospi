@@ -1,5 +1,6 @@
 package com.example.turnoshospi
 
+import android.app.Activity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -33,6 +34,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.turnoshospi.R
@@ -61,6 +63,7 @@ fun TurnoshospiApp(
     var saveCompleted by remember { mutableStateOf(false) }
     var emailForReset by remember { mutableStateOf("") }
     var showProfileEditor by remember { mutableStateOf(false) }
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
@@ -239,20 +242,30 @@ fun TurnoshospiApp(
                 coroutineScope.launch {
                     onSaveProfile(profile) { success ->
                         if (success) {
-                            existingProfile = profile
-                            showProfileEditor = false
-                            saveCompleted = true
-                            isLoadingProfile = true
-                            onLoadProfile { refreshedProfile ->
-                                existingProfile = refreshedProfile ?: profile
-                                isLoadingProfile = false
+                            val activity = context as? Activity
+                            if (activity != null) {
+                                onComplete(true)
+                                activity.finish()
+                                activity.startActivity(activity.intent)
+                                activity.overridePendingTransition(0, 0)
+                                return@onSaveProfile
+                            } else {
+                                existingProfile = profile
+                                showProfileEditor = false
                                 saveCompleted = true
+                                isLoadingProfile = true
+                                onLoadProfile { refreshedProfile ->
+                                    existingProfile = refreshedProfile ?: profile
+                                    isLoadingProfile = false
+                                    saveCompleted = true
+                                }
+                                onComplete(true)
                             }
                         } else {
                             saveCompleted = false
                             showProfileEditor = true
+                            onComplete(false)
                         }
-                        onComplete(success)
                     }
                 }
             }
