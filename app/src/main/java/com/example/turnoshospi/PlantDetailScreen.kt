@@ -116,23 +116,14 @@ fun PlantDetailScreen(
         plantStaff.firstOrNull { it.id == selectedStaffId }
     }
 
-    val (nurseOptions, auxOptions) = remember(
-        plantStaff,
-        nurseRole,
-        auxRole
-    ) {
-        val nurses = plantStaff
-            .filter { it.role == nurseRole }
+    val staffOptions = remember(plantStaff) {
+        plantStaff
             .map { it.name }
             .filter { it.isNotBlank() }
             .sorted()
-        val aux = plantStaff
-            .filter { it.role == auxRole }
-            .map { it.name }
-            .filter { it.isNotBlank() }
-            .sorted()
-        nurses to aux
     }
+    val nurseOptions = staffOptions
+    val auxOptions = staffOptions
 
     var showAddStaffDialog by remember { mutableStateOf(false) }
     var isSavingStaff by remember { mutableStateOf(false) }
