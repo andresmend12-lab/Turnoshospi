@@ -268,12 +268,10 @@ class MainActivity : ComponentActivity() {
                     return@addOnSuccessListener
                 }
 
-                val registeredUser = toRegisteredUser(user.uid, profile, user.email.orEmpty())
-                val updates = mapOf(
-                    "plants/$cleanPlantId/registeredUsers/${registeredUser.id}" to registeredUser,
-                    "userPlants/${registeredUser.id}" to cleanPlantId,
-                    "users/${registeredUser.id}/plantId" to cleanPlantId
-                )
+        val updates = mapOf(
+            "userPlants/${user.uid}" to cleanPlantId,
+            "users/${user.uid}/plantId" to cleanPlantId
+        )
 
                 realtimeDatabase.reference
                     .updateChildren(updates)
@@ -355,21 +353,6 @@ fun DataSnapshot.toUserProfile(fallbackEmail: String): UserProfile? {
         plantId = child("plantId").getValue(String::class.java),
         createdAt = createdAtMillis?.let { Timestamp(Date(it)) },
         updatedAt = updatedAtMillis?.let { Timestamp(Date(it)) }
-    )
-}
-
-private fun toRegisteredUser(userId: String, profile: UserProfile?, fallbackEmail: String): RegisteredUser {
-    val fullName = profile?.let {
-        listOf(it.firstName, it.lastName).filter { part -> part.isNotBlank() }.joinToString(" ")
-    }.orEmpty()
-    val resolvedEmail = profile?.email?.takeIf { it.isNotBlank() } ?: fallbackEmail
-    val displayName = fullName.ifBlank { resolvedEmail }
-
-    return RegisteredUser(
-        id = userId,
-        name = displayName,
-        role = profile?.role.orEmpty(),
-        email = resolvedEmail
     )
 }
 

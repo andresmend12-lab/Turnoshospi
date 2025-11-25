@@ -3,6 +3,7 @@ package com.example.turnoshospi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.matchParentSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -36,17 +38,15 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
@@ -67,6 +67,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
@@ -102,14 +104,13 @@ fun PlantDetailScreen(
     val nurseRole = stringResource(id = R.string.role_nurse_generic)
     val auxRole = stringResource(id = R.string.role_aux_generic)
     val isSupervisor = currentUserProfile?.role in supervisorRoles
-    val currentUserDisplayName = remember(currentUserProfile) {
-        currentUserProfile?.let {
-            listOf(it.firstName, it.lastName).filter { part -> part.isNotBlank() }.joinToString(" ")
-                .ifBlank { it.email }
-        }
-    }
-
     val assignments = remember(plant?.id) { mutableStateMapOf<String, ShiftAssignmentState>() }
+
+    val plantStaff = plant?.registeredUsers?.values.orEmpty()
+    var selectedStaffId by remember(plant?.id) { mutableStateOf<String?>(null) }
+    val selectedStaffMember = remember(plantStaff, selectedStaffId) {
+        plantStaff.firstOrNull { it.id == selectedStaffId }
+    }
 
     val (nurseOptions, auxOptions) = remember(
         plant?.registeredUsers,
@@ -147,6 +148,12 @@ fun PlantDetailScreen(
                     halfDay = false
                 )
             )
+        }
+    }
+
+    LaunchedEffect(plantStaff) {
+        if (selectedStaffId == null && plantStaff.size == 1) {
+            selectedStaffId = plantStaff.first().id
         }
     }
 
@@ -318,16 +325,31 @@ fun PlantDetailScreen(
                     }
 
                     if (plant != null && selectedDate != null) {
+                        if (!isSupervisor) {
+                            StaffIdentitySelector(
+                                staff = plantStaff,
+                                selectedStaffId = selectedStaffId,
+                                onSelectStaff = { selectedStaffId = it }
+                            )
+                        }
+
                         ShiftAssignmentsSection(
                             plant = plant,
                             assignments = assignments,
                             selectedDateLabel = formatDate(selectedDate),
                             isSupervisor = isSupervisor,
-                            currentUserName = currentUserDisplayName,
+                            selectedStaffName = selectedStaffMember?.name,
                             nurseOptions = nurseOptions,
                             auxOptions = auxOptions,
                             onSelfAssign = { _, state ->
-                                assignSelfToShift(state.nurseNames, currentUserDisplayName)
+                                val targetList = when {
+                                    selectedStaffMember?.role == auxRole &&
+                                        plant.staffScope == stringResource(id = R.string.staff_scope_with_aux) ->
+                                        state.auxNames
+
+                                    else -> state.nurseNames
+                                }
+                                assignStaffToShift(targetList, selectedStaffMember?.name)
                             }
                         )
                     } else {
@@ -414,6 +436,63 @@ private fun InfoMessage(message: String) {
 }
 
 @Composable
+private fun StaffIdentitySelector(
+    staff: Collection<RegisteredUser>,
+    selectedStaffId: String?,
+    onSelectStaff: (String?) -> Unit
+) {
+    val unassignedLabel = stringResource(id = R.string.staff_unassigned_option)
+    val staffItems = remember(staff) {
+        staff.sortedBy { it.name.lowercase() }
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0x22000000)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0x22FFFFFF))
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = stringResource(id = R.string.staff_identity_title),
+                color = Color.White,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            if (staffItems.isEmpty()) {
+                Text(
+                    text = stringResource(id = R.string.staff_identity_missing),
+                    color = Color.White,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            } else {
+                StaffDropdownField(
+                    label = stringResource(id = R.string.staff_identity_label),
+                    selectedValue = staffItems.firstOrNull { it.id == selectedStaffId }?.name
+                        ?: unassignedLabel,
+                    options = staffItems.map { it.name },
+                    enabled = true,
+                    onOptionSelected = { selection ->
+                        val resolvedId = staffItems.firstOrNull { it.name == selection }?.id
+                        onSelectStaff(resolvedId)
+                    }
+                )
+
+                Text(
+                    text = stringResource(id = R.string.staff_identity_hint),
+                    color = Color.White.copy(alpha = 0.8f),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun StaffListDialog(
     plantName: String,
     staff: List<RegisteredUser>,
@@ -469,7 +548,7 @@ private fun ShiftAssignmentsSection(
     assignments: MutableMap<String, ShiftAssignmentState>,
     selectedDateLabel: String,
     isSupervisor: Boolean,
-    currentUserName: String?,
+    selectedStaffName: String?,
     nurseOptions: List<String>,
     auxOptions: List<String>,
     onSelfAssign: (String, ShiftAssignmentState) -> Unit
@@ -591,7 +670,7 @@ private fun ShiftAssignmentsSection(
                         )
                     }
 
-                    if (!isSupervisor && currentUserName != null) {
+                    if (!isSupervisor && selectedStaffName != null) {
                         Button(
                             modifier = Modifier.fillMaxWidth(),
                             onClick = { onSelfAssign(shiftName, state) },
@@ -630,14 +709,14 @@ private fun ensureSize(list: MutableList<String>, expected: Int) {
     }
 }
 
-private fun assignSelfToShift(slots: MutableList<String>, displayName: String?) {
-    if (displayName.isNullOrBlank()) return
+private fun assignStaffToShift(slots: MutableList<String>, staffName: String?) {
+    if (staffName.isNullOrBlank()) return
 
-    if (slots.contains(displayName)) return
+    if (slots.contains(staffName)) return
 
     val firstEmptyIndex = slots.indexOfFirst { it.isBlank() }
     if (firstEmptyIndex >= 0) {
-        slots[firstEmptyIndex] = displayName
+        slots[firstEmptyIndex] = staffName
     }
 }
 
@@ -721,35 +800,31 @@ private fun StaffDropdownField(
     var expanded by remember { mutableStateOf(false) }
     val unassignedLabel = stringResource(id = R.string.staff_unassigned_option)
     val displayValue = selectedValue.takeIf { it.isNotBlank() } ?: unassignedLabel
-    val menuOptions = remember(options, unassignedLabel) {
-        listOf(unassignedLabel) + options
-    }
+    val menuOptions = remember(options, unassignedLabel) { listOf(unassignedLabel) + options }
+    val trailingIcon = if (expanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown
 
-    ExposedDropdownMenuBox(
-        expanded = expanded && enabled,
-        onExpandedChange = { shouldExpand ->
-            if (enabled) {
-                expanded = shouldExpand
-            }
-        }
-    ) {
-        TextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(),
+    Box(modifier = Modifier.fillMaxWidth()) {
+        OutlinedTextField(
+            modifier = Modifier.fillMaxWidth(),
             value = displayValue,
             onValueChange = {},
             readOnly = true,
             enabled = enabled,
             label = { Text(text = label) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            colors = ExposedDropdownMenuDefaults.textFieldColors(
+            trailingIcon = {
+                Icon(
+                    imageVector = trailingIcon,
+                    contentDescription = null,
+                    tint = if (enabled) Color.White else Color(0xCCFFFFFF)
+                )
+            },
+            colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
                 disabledTextColor = Color(0xCCFFFFFF),
-                focusedIndicatorColor = Color(0xFF54C7EC),
-                unfocusedIndicatorColor = Color(0x66FFFFFF),
-                disabledIndicatorColor = Color(0x33FFFFFF),
+                focusedBorderColor = Color(0xFF54C7EC),
+                unfocusedBorderColor = Color(0x66FFFFFF),
+                disabledBorderColor = Color(0x33FFFFFF),
                 cursorColor = Color.White,
                 focusedLabelColor = Color.White,
                 unfocusedLabelColor = Color(0xCCFFFFFF),
@@ -757,7 +832,8 @@ private fun StaffDropdownField(
                 focusedContainerColor = Color(0x22FFFFFF),
                 unfocusedContainerColor = Color(0x11FFFFFF),
                 disabledContainerColor = Color(0x11FFFFFF)
-            )
+            ),
+            singleLine = true
         )
 
         DropdownMenu(
@@ -771,10 +847,19 @@ private fun StaffDropdownField(
                         val resolvedSelection = if (option == unassignedLabel) "" else option
                         onOptionSelected(resolvedSelection)
                         expanded = false
-                    },
-                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                    }
                 )
             }
         }
+
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(Color.Transparent)
+                .padding(horizontal = 4.dp)
+                .let { base ->
+                    if (enabled) base.clickable { expanded = true } else base
+                }
+        )
     }
 }

@@ -122,4 +122,8 @@
     <string name="plant_load_error">No se pudo cargar tu planta, intenta nuevamente.</string>
     <string name="staff_list_dialog_title">Personal de %1$s</string>
     <string name="staff_list_dialog_empty">Aún no hay personal registrado para esta planta.</string>
+    <string name="staff_identity_title">Tu perfil en la planta</string>
+    <string name="staff_identity_label">Selecciona tu nombre en la lista</string>
+    <string name="staff_identity_hint">El supervisor gestiona esta lista de personal.</string>
+    <string name="staff_identity_missing">Pídele al supervisor que añada el personal para poder asignarte.</string>
 </resources>

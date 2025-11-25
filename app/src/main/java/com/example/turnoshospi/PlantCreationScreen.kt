@@ -366,25 +366,6 @@ fun PlantCreationScreen(
                             StaffScope.NursesAndAux -> "nurses_and_aux"
                         }
 
-                        val creatorRegisteredUser = if (
-                            currentUserId != null && currentUserProfile?.role in supervisorRoles
-                        ) {
-                            currentUserProfile?.let { profile ->
-                                val fullName = listOf(
-                                    profile.firstName,
-                                    profile.lastName
-                                ).filter { it.isNotBlank() }.joinToString(" ")
-                                RegisteredUser(
-                                    id = currentUserId,
-                                    name = fullName.ifBlank { profile.email },
-                                    role = profile.role,
-                                    email = profile.email
-                                )
-                            }
-                        } else {
-                            null
-                        }
-
                         val plant = Plant(
                             id = plantId,
                             name = plantName,
@@ -399,19 +380,11 @@ fun PlantCreationScreen(
                             },
                             createdAt = System.currentTimeMillis(),
                             accessPassword = accessPassword,
-                            registeredUsers = creatorRegisteredUser?.let { mapOf(it.id to it) }
-                                ?: emptyMap()
+                            registeredUsers = emptyMap()
                         )
 
                         coroutineScope.launch {
-                            val updates = mutableMapOf<String, Any>(
-                                "plants/$plantId" to plant
-                            )
-
-                            if (creatorRegisteredUser != null) {
-                                updates["userPlants/${creatorRegisteredUser.id}"] = plantId
-                                updates["users/${creatorRegisteredUser.id}/plantId"] = plantId
-                            }
+                            val updates = mutableMapOf<String, Any>("plants/$plantId" to plant)
 
                             database.reference
                                 .updateChildren(updates)
