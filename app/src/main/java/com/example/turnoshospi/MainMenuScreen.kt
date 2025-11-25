@@ -5,24 +5,31 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.turnoshospi.R
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun MainMenuScreen(
@@ -43,6 +51,9 @@ fun MainMenuScreen(
     onEditProfile: () -> Unit,
     onSignOut: () -> Unit
 ) {
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+
     val displayName = remember(profile, userEmail) {
         val fullName = listOfNotNull(
             profile?.firstName?.takeIf { it.isNotBlank() },
@@ -51,82 +62,95 @@ fun MainMenuScreen(
         if (fullName.isNotBlank()) fullName else userEmail
     }
 
-    Column(
-        modifier = modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 20.dp),
-            text = stringResource(id = R.string.main_menu_welcome, displayName),
-            style = MaterialTheme.typography.headlineMedium,
-            color = Color.White,
-            textAlign = TextAlign.Center,
-            fontWeight = FontWeight.Bold
-        )
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            horizontalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(0.3f)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.Top
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet(
+                drawerContainerColor = Color(0xFF0F172A),
+                drawerContentColor = Color.White
             ) {
-                Card(
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0x22FFFFFF)),
-                    border = BorderStroke(1.dp, Color(0x33FFFFFF))
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.side_menu_title),
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold
-                        )
-
-                        MenuOption(
-                            title = stringResource(id = R.string.menu_create_plant),
-                            subtitle = stringResource(id = R.string.menu_create_plant_desc)
-                        )
-                        MenuOption(
-                            title = stringResource(id = R.string.menu_my_plants),
-                            subtitle = stringResource(id = R.string.menu_my_plants_desc)
-                        )
-                        MenuOption(
-                            title = stringResource(id = R.string.edit_profile),
-                            subtitle = stringResource(id = R.string.menu_settings_desc),
-                            onClick = onEditProfile
-                        )
-                        MenuOption(
-                            title = stringResource(id = R.string.menu_settings),
-                            subtitle = stringResource(id = R.string.menu_settings_desc)
-                        )
-                        TextButton(
-                            onClick = onSignOut,
-                            colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFFFFB4AB))
-                        ) {
-                            Text(text = stringResource(id = R.string.sign_out))
-                        }
+                DrawerHeader(displayName = displayName)
+                DrawerMenuItem(
+                    label = stringResource(id = R.string.menu_create_plant),
+                    description = stringResource(id = R.string.menu_create_plant_desc),
+                    onClick = { scope.launch { drawerState.close() } }
+                )
+                DrawerMenuItem(
+                    label = stringResource(id = R.string.menu_my_plants),
+                    description = stringResource(id = R.string.menu_my_plants_desc),
+                    onClick = { scope.launch { drawerState.close() } }
+                )
+                DrawerMenuItem(
+                    label = stringResource(id = R.string.edit_profile),
+                    description = stringResource(id = R.string.menu_settings_desc),
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        onEditProfile()
                     }
+                )
+                DrawerMenuItem(
+                    label = stringResource(id = R.string.menu_settings),
+                    description = stringResource(id = R.string.menu_settings_desc),
+                    onClick = { scope.launch { drawerState.close() } }
+                )
+                NavigationDrawerItem(
+                    modifier = Modifier.padding(horizontal = 12.dp),
+                    label = {
+                        Text(
+                            text = stringResource(id = R.string.sign_out),
+                            color = Color(0xFFFFB4AB)
+                        )
+                    },
+                    selected = false,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        onSignOut()
+                    },
+                    colors = NavigationDrawerItemDefaults.colors(
+                        unselectedContainerColor = Color.Transparent,
+                        unselectedTextColor = Color(0xFFFFB4AB)
+                    )
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    ) {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .background(Color.Transparent)
+                .padding(horizontal = 20.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp, bottom = 12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                IconButton(
+                    modifier = Modifier.align(Alignment.CenterStart),
+                    onClick = { scope.launch { drawerState.open() } }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Menu,
+                        contentDescription = stringResource(id = R.string.side_menu_title),
+                        tint = Color.White
+                    )
                 }
+
+                Text(
+                    text = stringResource(id = R.string.main_menu_welcome, displayName),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold
+                )
             }
 
             Card(
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(0.7f),
+                    .fillMaxWidth()
+                    .weight(1f),
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0x11FFFFFF)),
                 border = BorderStroke(1.dp, Color(0x22FFFFFF))
@@ -141,7 +165,8 @@ fun MainMenuScreen(
                     Text(
                         text = "Calendario", // Placeholder for future calendar view
                         color = Color.White,
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleLarge,
+                        textAlign = TextAlign.Center
                     )
                 }
             }
@@ -150,36 +175,49 @@ fun MainMenuScreen(
 }
 
 @Composable
-fun MenuOption(title: String, subtitle: String, onClick: (() -> Unit)? = null) {
-    Card(
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0x33000000)),
-        border = BorderStroke(1.dp, Color(0x22FFFFFF)),
-        modifier = Modifier.fillMaxWidth()
+fun DrawerHeader(displayName: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        TextButton(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = { onClick?.invoke() },
-            colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.Start
-            ) {
+        Text(
+            text = stringResource(id = R.string.side_menu_title),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+        Text(
+            text = stringResource(id = R.string.main_menu_welcome, displayName),
+            style = MaterialTheme.typography.bodySmall,
+            color = Color(0xCCFFFFFF)
+        )
+    }
+    Divider(color = Color(0x22FFFFFF))
+}
+
+@Composable
+fun DrawerMenuItem(label: String, description: String, onClick: () -> Unit) {
+    NavigationDrawerItem(
+        modifier = Modifier.padding(horizontal = 12.dp),
+        label = {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(text = label, color = Color.White, fontWeight = FontWeight.SemiBold)
                 Text(
-                    text = title,
-                    color = Color.White,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = subtitle,
+                    text = description,
                     color = Color(0xCCFFFFFF),
                     style = MaterialTheme.typography.bodySmall
                 )
             }
-        }
-    }
+        },
+        selected = false,
+        onClick = onClick,
+        colors = NavigationDrawerItemDefaults.colors(
+            unselectedContainerColor = Color.Transparent,
+            unselectedTextColor = Color.White
+        )
+    )
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF0F172A)
