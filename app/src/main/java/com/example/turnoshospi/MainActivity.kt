@@ -71,6 +71,7 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -80,6 +81,7 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var firestore: FirebaseFirestore
+    private lateinit var realtimeDatabase: FirebaseDatabase
     private val currentUserState = mutableStateOf<FirebaseUser?>(null)
     private val authErrorMessage = mutableStateOf<String?>(null)
 
@@ -89,6 +91,7 @@ class MainActivity : ComponentActivity() {
         FirebaseApp.initializeApp(this)
         auth = FirebaseAuth.getInstance()
         firestore = FirebaseFirestore.getInstance()
+        realtimeDatabase = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
         currentUserState.value = auth.currentUser
 
         setContent {
@@ -183,11 +186,13 @@ class MainActivity : ComponentActivity() {
             return
         }
 
+        val resolvedEmail = profile.email.ifEmpty { user.email.orEmpty() }
+
         val payload = mapOf(
             "firstName" to profile.firstName,
             "lastName" to profile.lastName,
             "role" to profile.role,
-            "email" to (profile.email.ifEmpty { user.email.orEmpty() }),
+            "email" to resolvedEmail,
             "createdAt" to FieldValue.serverTimestamp(),
             "updatedAt" to FieldValue.serverTimestamp()
         )
@@ -195,9 +200,38 @@ class MainActivity : ComponentActivity() {
         firestore.collection("users")
             .document(user.uid)
             .set(payload, SetOptions.merge())
-            .addOnSuccessListener { onResult(true) }
+            .addOnSuccessListener {
+                saveRealtimeUser(user.uid, profile.copy(email = resolvedEmail)) { success ->
+                    onResult(success)
+                }
+            }
             .addOnFailureListener {
                 authErrorMessage.value = "No se pudo guardar el perfil"
+                onResult(false)
+            }
+    }
+
+    private fun saveRealtimeUser(
+        userId: String,
+        profile: UserProfile,
+        onResult: (Boolean) -> Unit
+    ) {
+        val currentTime = System.currentTimeMillis()
+        val realtimePayload = mapOf(
+            "firstName" to profile.firstName,
+            "lastName" to profile.lastName,
+            "role" to profile.role,
+            "email" to profile.email,
+            "createdAt" to profile.createdAt?.toDate()?.time ?: currentTime,
+            "updatedAt" to currentTime
+        )
+
+        realtimeDatabase.getReference("users")
+            .child(userId)
+            .updateChildren(realtimePayload)
+            .addOnSuccessListener { onResult(true) }
+            .addOnFailureListener {
+                authErrorMessage.value = "No se pudo guardar el perfil en tiempo real"
                 onResult(false)
             }
     }
