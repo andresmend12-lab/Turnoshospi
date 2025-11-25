@@ -59,12 +59,6 @@
     <string name="staff_scope_with_aux">Enfermeros y auxiliares de enfermería</string>
     <string name="staff_requirements_title">Requerimiento mínimo de personal</string>
     <string name="staff_minimum_label">Número mínimo de personal por turno</string>
-    <string name="confirmation_title">Confirmación final</string>
-    <string name="confirmation_message">Esta configuración inicial creará la estructura básica de la planta.</string>
-    <string name="confirmation_action_firestore">Guardar en Firestore</string>
-    <string name="confirmation_action_staff_slots">Crear staffSlots</string>
-    <string name="confirmation_action_invite">Generar código de invitación</string>
-    <string name="confirmation_action_supervisor">Asignar supervisor</string>
     <string name="create_plant_action">Crear planta</string>
     <string name="plant_created_title">Planta creada</string>
     <string name="plant_created_message">Tu planta se ha configurado con la estructura básica y está lista para completar los siguientes pasos.</string>
