@@ -52,6 +52,7 @@ fun MainMenuScreen(
     profile: UserProfile?,
     isLoadingProfile: Boolean,
     onEditProfile: () -> Unit,
+    onCreatePlant: () -> Unit,
     onSignOut: () -> Unit
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -86,7 +87,12 @@ fun MainMenuScreen(
                     DrawerMenuItem(
                         label = stringResource(id = R.string.menu_create_plant),
                         description = stringResource(id = R.string.menu_create_plant_desc),
-                        onClick = { scope.launch { drawerState.close() } }
+                        onClick = {
+                            scope.launch {
+                                drawerState.close()
+                                onCreatePlant()
+                            }
+                        }
                     )
                 }
                 DrawerMenuItem(
@@ -262,6 +268,7 @@ fun MainMenuScreenPreview() {
             ),
             isLoadingProfile = false,
             onEditProfile = {},
+            onCreatePlant = {},
             onSignOut = {}
         )
     }

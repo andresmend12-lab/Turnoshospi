@@ -43,6 +43,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.turnoshospi.R
+import com.example.turnoshospi.domain.usecase.plants.PlantCreationResult
+import com.example.turnoshospi.ui.plants.create.CreatePlantScreen
+import com.example.turnoshospi.ui.plants.create.CreatePlantViewModel
+import com.example.turnoshospi.ui.plants.create.PlantCreationSuccessDialog
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.delay
@@ -68,6 +72,8 @@ fun TurnoshospiApp(
     var saveCompleted by remember { mutableStateOf(false) }
     var emailForReset by remember { mutableStateOf("") }
     var showProfileEditor by remember { mutableStateOf(false) }
+    var showCreatePlant by remember { mutableStateOf(false) }
+    var creationSuccess by remember { mutableStateOf<PlantCreationResult.Success?>(null) }
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
@@ -81,6 +87,8 @@ fun TurnoshospiApp(
         if (user != null) {
             isLoadingProfile = true
             existingProfile = null
+            showCreatePlant = false
+            creationSuccess = null
             onLoadProfile { profile ->
                 existingProfile = profile
                 isLoadingProfile = false
@@ -89,6 +97,8 @@ fun TurnoshospiApp(
             existingProfile = null
             showRegistration = false
             isLoadingProfile = false
+            showCreatePlant = false
+            creationSuccess = null
         }
     }
 
@@ -203,14 +213,27 @@ fun TurnoshospiApp(
         } else if (isLoadingProfile) {
             ProfileLoadingScreen(message = stringResource(id = R.string.loading_profile))
         } else {
-            MainMenuScreen(
-                modifier = Modifier.fillMaxSize(),
-                userEmail = user.email.orEmpty(),
-                profile = existingProfile,
-                isLoadingProfile = isLoadingProfile,
-                onEditProfile = { showProfileEditor = true },
-                onSignOut = onSignOut
-            )
+            if (showCreatePlant) {
+                val createPlantViewModel = remember(showCreatePlant) { CreatePlantViewModel() }
+                CreatePlantScreen(
+                    viewModel = createPlantViewModel,
+                    onFinished = { plantId, inviteCode, inviteLink ->
+                        creationSuccess = PlantCreationResult.Success(plantId, inviteCode, inviteLink)
+                        showCreatePlant = false
+                    },
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                MainMenuScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    userEmail = user.email.orEmpty(),
+                    profile = existingProfile,
+                    isLoadingProfile = isLoadingProfile,
+                    onEditProfile = { showProfileEditor = true },
+                    onCreatePlant = { showCreatePlant = true },
+                    onSignOut = onSignOut
+                )
+            }
         }
     }
 
@@ -269,6 +292,15 @@ fun TurnoshospiApp(
                     }
                 }
             }
+        )
+    }
+
+    creationSuccess?.let { success ->
+        PlantCreationSuccessDialog(
+            plantId = success.plantId,
+            inviteCode = success.inviteCode,
+            inviteLink = success.inviteLink,
+            onDismiss = { creationSuccess = null }
         )
     }
 }
