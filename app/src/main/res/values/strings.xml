@@ -101,9 +101,8 @@
     <string name="plant_self_assign_action">Seleccionarme</string>
     <string name="staff_dialog_title">Añadir personal</string>
     <string name="staff_dialog_name_label">Nombre completo</string>
-    <string name="staff_dialog_email_label">Correo electrónico</string>
     <string name="staff_dialog_role_label">Rol</string>
-    <string name="staff_dialog_error">Completa nombre y correo para continuar.</string>
+    <string name="staff_dialog_error">Completa el nombre para continuar.</string>
     <string name="staff_dialog_save_error">No se pudo guardar el personal. Intenta de nuevo.</string>
     <string name="staff_dialog_save_action">Guardar personal</string>
     <string name="cancel_label">Cancelar</string>

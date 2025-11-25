@@ -17,7 +17,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Button
@@ -107,7 +106,6 @@ fun PlantDetailScreen(
     var showAddStaffDialog by remember { mutableStateOf(false) }
     var isSavingStaff by remember { mutableStateOf(false) }
     var staffName by remember { mutableStateOf("") }
-    var staffEmail by remember { mutableStateOf("") }
     var staffRole by remember { mutableStateOf(context.getString(R.string.role_nurse_female)) }
     var addStaffError by remember { mutableStateOf<String?>(null) }
 
@@ -191,17 +189,6 @@ fun PlantDetailScreen(
                                 Icon(
                                     imageVector = Icons.Default.ArrowBack,
                                     contentDescription = stringResource(id = R.string.close_label),
-                                    tint = Color.White
-                                )
-                            }
-                        }
-                    },
-                    actions = {
-                        if (isSupervisor) {
-                            IconButton(onClick = { showAddStaffDialog = true }) {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = stringResource(id = R.string.plant_add_staff_option),
                                     tint = Color.White
                                 )
                             }
@@ -312,8 +299,6 @@ fun PlantDetailScreen(
         AddStaffDialog(
             staffName = staffName,
             onStaffNameChange = { staffName = it },
-            staffEmail = staffEmail,
-            onStaffEmailChange = { staffEmail = it },
             staffRole = staffRole,
             onStaffRoleChange = { staffRole = it },
             isSaving = isSavingStaff,
@@ -322,11 +307,10 @@ fun PlantDetailScreen(
                 showAddStaffDialog = false
                 addStaffError = null
                 staffName = ""
-                staffEmail = ""
                 staffRole = context.getString(R.string.role_nurse_female)
             },
             onConfirm = {
-                if (staffName.isBlank() || staffEmail.isBlank()) {
+                if (staffName.isBlank()) {
                     addStaffError = context.getString(R.string.staff_dialog_error)
                     return@AddStaffDialog
                 }
@@ -338,7 +322,7 @@ fun PlantDetailScreen(
                     id = UUID.randomUUID().toString(),
                     name = staffName,
                     role = staffRole,
-                    email = staffEmail
+                    email = ""
                 )
 
                 onAddStaff(plant.id, newStaff) { success ->
@@ -346,7 +330,6 @@ fun PlantDetailScreen(
                     if (success) {
                         showAddStaffDialog = false
                         staffName = ""
-                        staffEmail = ""
                         staffRole = context.getString(R.string.role_nurse_female)
                     } else {
                         addStaffError = context.getString(R.string.staff_dialog_save_error)
@@ -579,8 +562,6 @@ private fun assignSelfToShift(slots: MutableList<String>, displayName: String?) 
 private fun AddStaffDialog(
     staffName: String,
     onStaffNameChange: (String) -> Unit,
-    staffEmail: String,
-    onStaffEmailChange: (String) -> Unit,
     staffRole: String,
     onStaffRoleChange: (String) -> Unit,
     isSaving: Boolean,
@@ -589,10 +570,10 @@ private fun AddStaffDialog(
     onConfirm: () -> Unit
 ) {
     val roleOptions = listOf(
-        stringResource(id = R.string.role_supervisor_male),
-        stringResource(id = R.string.role_supervisor_female),
         stringResource(id = R.string.role_nurse_female),
-        stringResource(id = R.string.role_nurse_male)
+        stringResource(id = R.string.role_nurse_male),
+        stringResource(id = R.string.role_aux_female),
+        stringResource(id = R.string.role_aux_male)
     )
 
     AlertDialog(
@@ -615,12 +596,6 @@ private fun AddStaffDialog(
                     onValueChange = onStaffNameChange,
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text(text = stringResource(id = R.string.staff_dialog_name_label)) }
-                )
-                OutlinedTextField(
-                    value = staffEmail,
-                    onValueChange = onStaffEmailChange,
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(id = R.string.staff_dialog_email_label)) }
                 )
 
                 Text(
