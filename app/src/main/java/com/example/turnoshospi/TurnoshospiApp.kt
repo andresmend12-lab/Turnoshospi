@@ -48,6 +48,12 @@ import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+enum class AppScreen {
+    MainMenu,
+    CreatePlant,
+    PlantCreated
+}
+
 @Composable
 fun TurnoshospiApp(
     user: FirebaseUser?,
@@ -68,6 +74,8 @@ fun TurnoshospiApp(
     var saveCompleted by remember { mutableStateOf(false) }
     var emailForReset by remember { mutableStateOf("") }
     var showProfileEditor by remember { mutableStateOf(false) }
+    var currentScreen by remember { mutableStateOf(AppScreen.MainMenu) }
+    var lastCreatedPlantCredentials by remember { mutableStateOf<PlantCredentials?>(null) }
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
@@ -81,6 +89,7 @@ fun TurnoshospiApp(
         if (user != null) {
             isLoadingProfile = true
             existingProfile = null
+            currentScreen = AppScreen.MainMenu
             onLoadProfile { profile ->
                 existingProfile = profile
                 isLoadingProfile = false
@@ -89,6 +98,7 @@ fun TurnoshospiApp(
             existingProfile = null
             showRegistration = false
             isLoadingProfile = false
+            currentScreen = AppScreen.MainMenu
         }
     }
 
@@ -203,14 +213,30 @@ fun TurnoshospiApp(
         } else if (isLoadingProfile) {
             ProfileLoadingScreen(message = stringResource(id = R.string.loading_profile))
         } else {
-            MainMenuScreen(
-                modifier = Modifier.fillMaxSize(),
-                userEmail = user.email.orEmpty(),
-                profile = existingProfile,
-                isLoadingProfile = isLoadingProfile,
-                onEditProfile = { showProfileEditor = true },
-                onSignOut = onSignOut
-            )
+            when (currentScreen) {
+                AppScreen.MainMenu -> MainMenuScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    userEmail = user.email.orEmpty(),
+                    profile = existingProfile,
+                    isLoadingProfile = isLoadingProfile,
+                    onCreatePlant = { currentScreen = AppScreen.CreatePlant },
+                    onEditProfile = { showProfileEditor = true },
+                    onSignOut = onSignOut
+                )
+
+                AppScreen.CreatePlant -> PlantCreationScreen(
+                    onBack = { currentScreen = AppScreen.MainMenu },
+                    onPlantCreated = { credentials ->
+                        lastCreatedPlantCredentials = credentials
+                        currentScreen = AppScreen.PlantCreated
+                    }
+                )
+
+                AppScreen.PlantCreated -> PlantCreatedScreen(
+                    credentials = lastCreatedPlantCredentials,
+                    onBackToMenu = { currentScreen = AppScreen.MainMenu }
+                )
+            }
         }
     }
 
