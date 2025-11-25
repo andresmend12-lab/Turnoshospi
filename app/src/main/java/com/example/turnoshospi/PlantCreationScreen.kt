@@ -52,7 +52,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import java.util.UUID
 import kotlinx.coroutines.launch
@@ -62,7 +61,21 @@ data class PlantCredentials(
     val accessPassword: String
 )
 
-private data class ShiftTime(var start: String = "", var end: String = "")
+data class Plant(
+    val id: String,
+    val name: String,
+    val unitType: String,
+    val hospitalName: String,
+    val shiftDuration: String,
+    val allowHalfDay: Boolean,
+    val staffScope: String,
+    val shiftTimes: Map<String, ShiftTime>,
+    val staffRequirements: Map<String, Int>,
+    val createdAt: Long,
+    val accessPassword: String
+)
+
+data class ShiftTime(val start: String = "", val end: String = "")
 
 private enum class StaffScope {
     NursesOnly,
@@ -78,7 +91,6 @@ fun PlantCreationScreen(
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
-    val auth = remember { FirebaseAuth.getInstance() }
     val database = remember {
         FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
     }
@@ -324,12 +336,6 @@ fun PlantCreationScreen(
                 Button(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
-                        val currentUser = auth.currentUser
-                        if (currentUser == null) {
-                            errorMessage = context.getString(R.string.plant_auth_error)
-                            return@Button
-                        }
-
                         if (plantName.isBlank() || unitType.isBlank() || hospitalName.isBlank()) {
                             errorMessage = context.getString(R.string.plant_required_fields_error)
                             return@Button
@@ -338,38 +344,34 @@ fun PlantCreationScreen(
                         isSaving = true
                         errorMessage = null
 
-                        val plantId = database.reference.child("plants").child(currentUser.uid).push().key
+                        val plantId = database.reference.child("plants").push().key
                             ?: UUID.randomUUID().toString()
                         val accessPassword = UUID.randomUUID().toString().take(8)
                         val staffScopeValue = when (staffScope) {
                             StaffScope.NursesOnly -> "nurses_only"
                             StaffScope.NursesAndAux -> "nurses_and_aux"
                         }
-                        val plantPayload = mapOf(
-                            "id" to plantId,
-                            "ownerUid" to currentUser.uid,
-                            "ownerEmail" to currentUser.email,
-                            "name" to plantName,
-                            "unitType" to unitType,
-                            "hospitalName" to hospitalName,
-                            "shiftDuration" to selectedDuration,
-                            "allowHalfDay" to allowHalfDay,
-                            "staffScope" to staffScopeValue,
-                            "shiftTimes" to shiftTimes.mapValues { (label, time) ->
-                                mapOf("start" to time.start, "end" to time.end)
-                            },
-                            "staffRequirements" to staffRequirements.mapValues { (_, value) ->
+                        
+                        val plant = Plant(
+                            id = plantId,
+                            name = plantName,
+                            unitType = unitType,
+                            hospitalName = hospitalName,
+                            shiftDuration = selectedDuration,
+                            allowHalfDay = allowHalfDay,
+                            staffScope = staffScopeValue,
+                            shiftTimes = shiftTimes,
+                            staffRequirements = staffRequirements.mapValues { (_, value) ->
                                 value.toIntOrNull() ?: 0
                             },
-                            "createdAt" to System.currentTimeMillis(),
-                            "accessPassword" to accessPassword
+                            createdAt = System.currentTimeMillis(),
+                            accessPassword = accessPassword
                         )
 
                         coroutineScope.launch {
                             database.getReference("plants")
-                                .child(currentUser.uid)
                                 .child(plantId)
-                                .setValue(plantPayload)
+                                .setValue(plant)
                                 .addOnSuccessListener {
                                     isSaving = false
                                     onPlantCreated(PlantCredentials(plantId, accessPassword))
