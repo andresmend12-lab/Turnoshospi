@@ -299,7 +299,6 @@ fun TurnoshospiApp(
 
                 AppScreen.PlantDetail -> PlantDetailScreen(
                     plant = selectedPlantForDetail,
-                    userProfile = existingProfile,
                     datePickerState = sharedDatePickerState,
                     onBack = { currentScreen = AppScreen.MyPlant },
                     onAddStaff = { /* TODO: implement staff creation flow */ }

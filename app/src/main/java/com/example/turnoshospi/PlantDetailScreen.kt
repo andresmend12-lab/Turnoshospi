@@ -11,13 +11,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -25,6 +26,7 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,7 +41,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
-import androidx.compose.material3.DrawerValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -69,7 +70,6 @@ private data class ShiftAssignmentState(
 @Composable
 fun PlantDetailScreen(
     plant: Plant?,
-    userProfile: UserProfile?,
     datePickerState: DatePickerState,
     onBack: () -> Unit,
     onAddStaff: () -> Unit
@@ -196,11 +196,10 @@ fun PlantDetailScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    RoleOptionsCard(userProfile = userProfile)
-
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(18.dp),
@@ -267,65 +266,6 @@ fun PlantDetailScreen(
                     } else {
                         InfoMessage(message = stringResource(id = R.string.plant_detail_missing_data))
                     }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun RoleOptionsCard(userProfile: UserProfile?) {
-    val supervisorRoles = listOf(
-        stringResource(id = R.string.role_supervisor_male),
-        stringResource(id = R.string.role_supervisor_female)
-    )
-
-    val nurseRoles = listOf(
-        stringResource(id = R.string.role_nurse_male),
-        stringResource(id = R.string.role_nurse_female)
-    )
-
-    val roleOptions = when {
-        supervisorRoles.contains(userProfile?.role) -> listOf(
-            stringResource(id = R.string.plant_role_option_assign),
-            stringResource(id = R.string.plant_role_option_add_staff),
-            stringResource(id = R.string.plant_role_option_check_half_day)
-        )
-
-        nurseRoles.contains(userProfile?.role) -> listOf(
-            stringResource(id = R.string.plant_role_option_view_shifts),
-            stringResource(id = R.string.plant_role_option_half_day_request)
-        )
-
-        else -> listOf(stringResource(id = R.string.plant_role_option_view_shifts))
-    }
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0x22000000)),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0x22FFFFFF))
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Text(
-                text = stringResource(id = R.string.plant_role_options_title, userProfile?.role ?: ""),
-                color = Color.White,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                roleOptions.forEach { option ->
-                    AssistChip(
-                        onClick = {},
-                        label = { Text(text = option, color = Color.White) },
-                        colors = androidx.compose.material3.AssistChipDefaults.assistChipColors(
-                            containerColor = Color(0x33FFFFFF),
-                            labelColor = Color.White
-                        )
-                    )
                 }
             }
         }
