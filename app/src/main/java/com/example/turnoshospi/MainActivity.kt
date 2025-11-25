@@ -69,6 +69,7 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -118,7 +119,7 @@ class MainActivity : ComponentActivity() {
                     currentUserState.value = auth.currentUser
                     onResult(true)
                 } else {
-                    authErrorMessage.value = "No se pudo iniciar sesión con ese correo"
+                    authErrorMessage.value = mapAuthError(task.exception)
                     onResult(false)
                 }
             }
@@ -130,6 +131,11 @@ class MainActivity : ComponentActivity() {
         onResult: (Boolean) -> Unit
     ) {
         authErrorMessage.value = null
+        if (password.length < 6) {
+            authErrorMessage.value = "La contraseña debe tener al menos 6 caracteres"
+            onResult(false)
+            return
+        }
         auth.createUserWithEmailAndPassword(profile.email.trim(), password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -138,7 +144,7 @@ class MainActivity : ComponentActivity() {
                         onResult(success)
                     }
                 } else {
-                    authErrorMessage.value = "No se pudo crear la cuenta"
+                    authErrorMessage.value = mapAuthError(task.exception)
                     onResult(false)
                 }
             }
@@ -151,10 +157,22 @@ class MainActivity : ComponentActivity() {
                 if (task.isSuccessful) {
                     onResult(true)
                 } else {
-                    authErrorMessage.value = "No se pudo enviar el correo de recuperación"
+                    authErrorMessage.value = mapAuthError(task.exception)
                     onResult(false)
                 }
             }
+    }
+
+    private fun mapAuthError(exception: Exception?): String {
+        val firebaseErrorCode = (exception as? FirebaseAuthException)?.errorCode
+        return when (firebaseErrorCode) {
+            "ERROR_INVALID_EMAIL" -> "El correo no es válido"
+            "ERROR_EMAIL_ALREADY_IN_USE" -> "Ya existe una cuenta con ese correo"
+            "ERROR_WEAK_PASSWORD" -> "La contraseña debe tener al menos 6 caracteres"
+            "ERROR_USER_NOT_FOUND" -> "No existe ninguna cuenta con ese correo"
+            "ERROR_WRONG_PASSWORD" -> "La contraseña es incorrecta"
+            else -> "No se pudo completar la operación. Revisa tus datos e inténtalo de nuevo."
+        }
     }
 
     private fun loadUserProfile(onResult: (UserProfile?) -> Unit) {
