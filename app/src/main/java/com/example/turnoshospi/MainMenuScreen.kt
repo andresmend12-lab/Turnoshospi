@@ -1,5 +1,7 @@
 package com.example.turnoshospi
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -150,14 +152,19 @@ fun MainMenuScreen(
                     )
                 }
 
-                Text(
-                    text = stringResource(id = welcomeStringId, displayName),
-                    modifier = Modifier.padding(horizontal = 56.dp),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = Color.White,
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold
-                )
+                Crossfade(
+                    targetState = displayName,
+                    animationSpec = tween(durationMillis = 600)
+                ) { name ->
+                    Text(
+                        text = stringResource(id = welcomeStringId, name),
+                        modifier = Modifier.padding(horizontal = 56.dp),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
 
             Card(
@@ -201,11 +208,16 @@ fun DrawerHeader(displayName: String, welcomeStringId: Int) {
             fontWeight = FontWeight.Bold,
             color = Color.White
         )
-        Text(
-            text = stringResource(id = welcomeStringId, displayName),
-            style = MaterialTheme.typography.bodySmall,
-            color = Color(0xCCFFFFFF)
-        )
+        Crossfade(
+            targetState = displayName,
+            animationSpec = tween(durationMillis = 600)
+        ) { name ->
+            Text(
+                text = stringResource(id = welcomeStringId, name),
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xCCFFFFFF)
+            )
+        }
     }
     Divider(color = Color(0x22FFFFFF))
 }
