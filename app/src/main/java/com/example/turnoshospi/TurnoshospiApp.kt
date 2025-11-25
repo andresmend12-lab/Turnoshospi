@@ -144,7 +144,7 @@ fun TurnoshospiApp(
                 Spacer(modifier = Modifier.height(if (showLogin) 32.dp else 0.dp))
 
                 Image(
-                    painter = painterResource(id = R.mipmap.ic_logo_hospi_foreground),
+                    painter = painterResource(id = R.mipmap.ic_logo_hospi_round),
                     contentDescription = "Logo Turnoshospi",
                     modifier = Modifier.size(logoSize)
                 )
@@ -238,9 +238,22 @@ fun TurnoshospiApp(
                 saveCompleted = false
                 coroutineScope.launch {
                     onSaveProfile(profile) { success ->
-                        saveCompleted = success
-                        showProfileEditor = !success
-                        onComplete(success)
+                        if (success) {
+                            existingProfile = profile
+                            showProfileEditor = false
+                            saveCompleted = true
+                            isLoadingProfile = true
+                            onLoadProfile { refreshedProfile ->
+                                existingProfile = refreshedProfile ?: profile
+                                isLoadingProfile = false
+                                saveCompleted = true
+                            }
+                            onComplete(true)
+                        } else {
+                            saveCompleted = false
+                            showProfileEditor = true
+                            onComplete(false)
+                        }
                     }
                 }
             }
