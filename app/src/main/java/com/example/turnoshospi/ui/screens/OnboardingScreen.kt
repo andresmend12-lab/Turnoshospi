@@ -27,9 +27,10 @@ fun OnboardingScreen(
     val plantName = remember { mutableStateOf("") }
     val plantDescription = remember { mutableStateOf("") }
     val invitation = remember { mutableStateOf("") }
+    val displayName = profile?.displayName.orEmpty()
 
     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(text = "Hola ${'$'}{profile?.displayName ?: ""}", style = MaterialTheme.typography.titleLarge)
+        Text(text = "Hola ${'$'}displayName", style = MaterialTheme.typography.titleLarge)
         Card { Column(Modifier.padding(12.dp)) {
             Text("Crear planta")
             OutlinedTextField(value = plantName.value, onValueChange = { plantName.value = it }, label = { Text("Nombre") })

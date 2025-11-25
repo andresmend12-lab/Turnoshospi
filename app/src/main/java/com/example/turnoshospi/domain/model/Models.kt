@@ -59,7 +59,7 @@ data class Shift(
     val status: ShiftStatus = ShiftStatus.ASSIGNED,
     val dayType: ShiftDayType = ShiftDayType.WORKDAY,
     val isNightShift: Boolean = false,
-    val monthKey: String = "${'$'}{date.year}-${'$'}{"%02d".format(date.monthValue)}",
+    val monthKey: String = "%04d-%02d".format(date.year, date.monthValue),
 )
 
 enum class ShiftStatus { ASSIGNED, SWAPPED, CANCELED }

@@ -74,5 +74,12 @@ fun LoginScreen(
 @Preview
 @Composable
 private fun LoginScreenPreview() {
-    TurnoshospiTheme { LoginScreen({}, {}, {}, null) }
+    TurnoshospiTheme {
+        LoginScreen(
+            onLogin = { _, _ -> },
+            onGoogleLogin = {},
+            onSuccess = {},
+            errorMessage = null
+        )
+    }
 }
