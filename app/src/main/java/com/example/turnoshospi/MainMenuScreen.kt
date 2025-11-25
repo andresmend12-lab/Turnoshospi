@@ -1,7 +1,9 @@
 package com.example.turnoshospi
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,8 +16,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.background
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.turnoshospi.R
@@ -53,76 +54,50 @@ fun MainMenuScreen(
 
     Row(
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         Column(
             modifier = Modifier
-                .weight(1f)
                 .fillMaxHeight()
+                .width(220.dp)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Top
         ) {
-            Text(
-                text = stringResource(id = R.string.main_menu_welcome, displayName),
-                style = MaterialTheme.typography.headlineMedium,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = if (isLoadingProfile) {
-                    stringResource(id = R.string.loading_profile)
-                } else {
-                    stringResource(id = R.string.main_menu_subtitle)
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xCCFFFFFF)
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
             Card(
-                shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0x1AFFFFFF)),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0x22FFFFFF)),
                 border = BorderStroke(1.dp, Color(0x33FFFFFF))
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        text = stringResource(id = R.string.profile_summary_title),
+                        text = stringResource(id = R.string.side_menu_title),
                         color = Color.White,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Text(
-                        text = stringResource(id = R.string.profile_email_label, userEmail),
-                        color = Color(0xCCFFFFFF)
-                    )
-                    Text(
-                        text = stringResource(id = R.string.profile_name_label, displayName),
-                        color = Color(0xCCFFFFFF)
-                    )
-                    val roleLabel = profile?.role?.ifBlank { stringResource(id = R.string.role_aux) }
-                        ?: stringResource(id = R.string.role_aux)
-                    Text(
-                        text = stringResource(id = R.string.profile_role_label, roleLabel),
-                        color = Color(0xCCFFFFFF)
+                        fontWeight = FontWeight.Bold
                     )
 
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Button(
-                            onClick = onEditProfile,
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7C3AED))
-                        ) { Text(text = stringResource(id = R.string.edit_profile)) }
-                        TextButton(
-                            onClick = onSignOut,
-                            colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFFFFB4AB))
-                        ) {
-                            Text(text = stringResource(id = R.string.sign_out))
-                        }
+                    MenuOption(
+                        title = stringResource(id = R.string.menu_create_plant),
+                        subtitle = stringResource(id = R.string.menu_create_plant_desc)
+                    )
+                    MenuOption(
+                        title = stringResource(id = R.string.menu_my_plants),
+                        subtitle = stringResource(id = R.string.menu_my_plants_desc)
+                    )
+                    MenuOption(
+                        title = stringResource(id = R.string.edit_profile),
+                        subtitle = stringResource(id = R.string.menu_settings_desc),
+                        onClick = onEditProfile
+                    )
+                    TextButton(
+                        onClick = onSignOut,
+                        colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFFFFB4AB))
+                    ) {
+                        Text(text = stringResource(id = R.string.sign_out))
                     }
                 }
             }
@@ -130,65 +105,89 @@ fun MainMenuScreen(
 
         Card(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(),
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0x22FFFFFF)),
-            border = BorderStroke(1.dp, Color(0x33FFFFFF))
+                .fillMaxHeight()
+                .weight(1f),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0x11FFFFFF)),
+            border = BorderStroke(1.dp, Color(0x22FFFFFF))
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = stringResource(id = R.string.side_menu_title),
+                    modifier = Modifier.fillMaxWidth(),
+                    text = stringResource(id = R.string.main_menu_welcome, displayName),
+                    style = MaterialTheme.typography.headlineMedium,
                     color = Color.White,
+                    textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold
                 )
 
-                MenuOption(
-                    title = stringResource(id = R.string.menu_create_plant),
-                    subtitle = stringResource(id = R.string.menu_create_plant_desc)
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = if (isLoadingProfile) {
+                        stringResource(id = R.string.loading_profile)
+                    } else {
+                        stringResource(id = R.string.main_menu_subtitle)
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xCCFFFFFF),
+                    textAlign = TextAlign.Center
                 )
-                MenuOption(
-                    title = stringResource(id = R.string.menu_my_plants),
-                    subtitle = stringResource(id = R.string.menu_my_plants_desc)
-                )
-                MenuOption(
-                    title = stringResource(id = R.string.menu_settings),
-                    subtitle = stringResource(id = R.string.menu_settings_desc)
-                )
-                MenuOption(
-                    title = stringResource(id = R.string.menu_info),
-                    subtitle = stringResource(id = R.string.menu_info_desc)
-                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .background(Color(0x22000000), RoundedCornerShape(18.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Calendario", // Placeholder for future calendar view
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun MenuOption(title: String, subtitle: String) {
+fun MenuOption(title: String, subtitle: String, onClick: (() -> Unit)? = null) {
     Card(
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0x33000000)),
         border = BorderStroke(1.dp, Color(0x22FFFFFF)),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(
-                text = title,
-                color = Color.White,
-                fontWeight = FontWeight.SemiBold
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = subtitle,
-                color = Color(0xCCFFFFFF),
-                style = MaterialTheme.typography.bodySmall
-            )
+        TextButton(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = { onClick?.invoke() },
+            colors = ButtonDefaults.textButtonColors(contentColor = Color.White)
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.Start
+            ) {
+                Text(
+                    text = title,
+                    color = Color.White,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = subtitle,
+                    color = Color(0xCCFFFFFF),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
         }
     }
 }
