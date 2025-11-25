@@ -63,11 +63,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.rememberDatePickerState
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
@@ -433,6 +435,63 @@ private fun InfoMessage(message: String) {
             )
         }
     }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun PlantDetailScreenPreview() {
+    val nurseRole = stringResource(id = R.string.role_nurse_generic)
+    val auxRole = stringResource(id = R.string.role_aux_generic)
+    val staffScopeWithAux = stringResource(id = R.string.staff_scope_with_aux)
+    val dayShift = stringResource(id = R.string.shift_day)
+    val nightShift = stringResource(id = R.string.shift_night)
+
+    val samplePlant = Plant(
+        id = "plant-123",
+        name = "Planta Norte",
+        unitType = "UCI",
+        hospitalName = "Hospital Central",
+        shiftDuration = stringResource(id = R.string.shift_duration_12h),
+        allowHalfDay = false,
+        staffScope = staffScopeWithAux,
+        shiftTimes = mapOf(
+            dayShift to ShiftTime(start = "08:00", end = "20:00"),
+            nightShift to ShiftTime(start = "20:00", end = "08:00")
+        ),
+        staffRequirements = mapOf(dayShift to 2, nightShift to 2),
+        registeredUsers = mapOf(
+            "n1" to RegisteredUser(
+                id = "n1",
+                name = "María Pérez",
+                role = nurseRole,
+                profileType = "plant_staff"
+            ),
+            "n2" to RegisteredUser(
+                id = "n2",
+                name = "Lucía Gómez",
+                role = nurseRole,
+                profileType = "plant_staff"
+            ),
+            "a1" to RegisteredUser(
+                id = "a1",
+                name = "Carlos Ruiz",
+                role = auxRole,
+                profileType = "plant_staff"
+            )
+        )
+    )
+
+    PlantDetailScreen(
+        plant = samplePlant,
+        datePickerState = rememberDatePickerState(initialSelectedDateMillis = System.currentTimeMillis()),
+        currentUserProfile = UserProfile(
+            firstName = "Ana",
+            lastName = "Supervisor",
+            role = stringResource(id = R.string.role_supervisor_female)
+        ),
+        onBack = {},
+        onAddStaff = { _, _, callback -> callback(true) }
+    )
 }
 
 @Composable
