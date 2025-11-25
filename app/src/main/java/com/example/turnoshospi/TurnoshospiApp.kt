@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,7 +17,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -33,7 +38,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.turnoshospi.R
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
@@ -73,6 +80,7 @@ fun TurnoshospiApp(
     LaunchedEffect(user?.uid) {
         if (user != null) {
             isLoadingProfile = true
+            existingProfile = null
             onLoadProfile { profile ->
                 existingProfile = profile
                 isLoadingProfile = false
@@ -80,6 +88,7 @@ fun TurnoshospiApp(
         } else {
             existingProfile = null
             showRegistration = false
+            isLoadingProfile = false
         }
     }
 
@@ -191,11 +200,14 @@ fun TurnoshospiApp(
                     }
                 }
             }
+        } else if (isLoadingProfile) {
+            ProfileLoadingScreen(message = stringResource(id = R.string.loading_profile))
         } else {
             MainMenuScreen(
                 modifier = Modifier.fillMaxSize(),
                 userEmail = user.email.orEmpty(),
                 profile = existingProfile,
+                isLoadingProfile = isLoadingProfile,
                 onEditProfile = { showProfileEditor = true },
                 onSignOut = onSignOut
             )
@@ -258,6 +270,36 @@ fun TurnoshospiApp(
                 }
             }
         )
+    }
+}
+
+@Composable
+fun ProfileLoadingScreen(message: String) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = Color(0x33000000)),
+            shape = RoundedCornerShape(24.dp),
+            border = BorderStroke(1.dp, Color(0x22FFFFFF))
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 32.dp, vertical = 28.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                CircularProgressIndicator(color = Color(0xFF54C7EC))
+                Text(text = message, color = Color.White, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = stringResource(id = R.string.app_name),
+                    color = Color(0xCCFFFFFF),
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
     }
 }
 
