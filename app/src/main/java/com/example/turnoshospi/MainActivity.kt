@@ -5,7 +5,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.tooling.preview.Preview
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseNetworkException
@@ -239,4 +241,22 @@ fun com.google.firebase.firestore.DocumentSnapshot.toUserProfile(
         createdAt = getTimestamp("createdAt"),
         updatedAt = getTimestamp("updatedAt")
     )
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun MainActivityPreview() {
+    TurnoshospiTheme {
+        TurnoshospiApp(
+            user = null,
+            errorMessage = null,
+            onErrorDismiss = {},
+            onLogin = { _, _, _ -> },
+            onCreateAccount = { _, _, _ -> },
+            onForgotPassword = { _, _ -> },
+            onLoadProfile = { onResult -> onResult(null) },
+            onSaveProfile = { _, _ -> },
+            onSignOut = {}
+        )
+    }
 }
