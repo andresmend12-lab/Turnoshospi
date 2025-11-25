@@ -18,6 +18,8 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
@@ -29,8 +31,10 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -44,6 +48,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.turnoshospi.R
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun MainMenuScreen(
@@ -56,6 +64,13 @@ fun MainMenuScreen(
     onOpenPlant: () -> Unit,
     onSignOut: () -> Unit
 ) {
+    val datePickerState = rememberDatePickerState(initialSelectedDateMillis = null)
+    val today = remember { LocalDate.now() }
+
+    LaunchedEffect(Unit) {
+        datePickerState.setSelection(today.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli())
+    }
+
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
@@ -183,23 +198,59 @@ fun MainMenuScreen(
                 colors = CardDefaults.cardColors(containerColor = Color(0x11FFFFFF)),
                 border = BorderStroke(1.dp, Color(0x22FFFFFF))
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(20.dp)
-                        .background(Color(0x22000000), RoundedCornerShape(18.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Calendario", // Placeholder for future calendar view
-                        color = Color.White,
-                        style = MaterialTheme.typography.titleLarge,
-                        textAlign = TextAlign.Center
-                    )
-                }
+                CalendarSection(state = datePickerState)
             }
         }
     }
+}
+
+@Composable
+private fun CalendarSection(state: DatePickerState) {
+    val selectedDate = state.selectedDateMillis?.let { millis ->
+        Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(20.dp)
+            .background(Color(0x22000000), RoundedCornerShape(18.dp)),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Calendario",
+            color = Color.White,
+            style = MaterialTheme.typography.titleLarge,
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.Bold
+        )
+
+        DatePicker(
+            state = state,
+            title = null,
+            headline = null,
+            showModeToggle = false,
+            colors = CardDefaults.datePickerColors(
+                containerColor = Color.Transparent,
+                titleContentColor = Color.White,
+                headlineContentColor = Color.White
+            )
+        )
+
+        Text(
+            text = selectedDate?.let { formatDate(it) } ?: "Selecciona una fecha",
+            color = Color.White,
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.Medium
+        )
+    }
+}
+
+private fun formatDate(date: LocalDate): String {
+    val formatter = DateTimeFormatter.ofPattern("d 'de' MMMM yyyy")
+    return date.format(formatter)
 }
 
 @Composable
