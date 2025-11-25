@@ -940,11 +940,11 @@ private fun StaffDropdownField(
         OutlinedTextField(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { expanded = true },
+                .clickable(enabled = enabled) { expanded = true },
             value = displayValue,
             onValueChange = {},
             readOnly = true,
-            enabled = true,
+            enabled = enabled,
             label = { Text(text = label) },
             trailingIcon = {
                 Icon(
