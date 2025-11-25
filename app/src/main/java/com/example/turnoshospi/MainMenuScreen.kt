@@ -37,7 +37,6 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -61,16 +60,12 @@ fun MainMenuScreen(
     userEmail: String,
     profile: UserProfile?,
     isLoadingProfile: Boolean,
+    datePickerState: DatePickerState,
     onCreatePlant: () -> Unit,
     onEditProfile: () -> Unit,
     onOpenPlant: () -> Unit,
     onSignOut: () -> Unit
 ) {
-    val todayMillis = remember {
-        LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-    }
-    val datePickerState = rememberDatePickerState(initialSelectedDateMillis = todayMillis)
-
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
@@ -266,7 +261,7 @@ private fun CalendarSection(state: DatePickerState) {
     }
 }
 
-private fun formatDate(date: LocalDate): String {
+fun formatDate(date: LocalDate): String {
     val formatter = DateTimeFormatter.ofPattern("d 'de' MMMM yyyy")
     return date.format(formatter)
 }
@@ -326,6 +321,7 @@ fun DrawerMenuItem(label: String, description: String, onClick: () -> Unit) {
 @Composable
 fun MainMenuScreenPreview() {
     TurnoshospiTheme {
+        val previewDateState = rememberDatePickerState(initialSelectedDateMillis = System.currentTimeMillis())
         MainMenuScreen(
             modifier = Modifier
                 .fillMaxSize()
@@ -338,6 +334,7 @@ fun MainMenuScreenPreview() {
                 email = "demo@example.com"
             ),
             isLoadingProfile = false,
+            datePickerState = previewDateState,
             onCreatePlant = {},
             onEditProfile = {},
             onOpenPlant = {},
