@@ -58,6 +58,9 @@ class MainActivity : ComponentActivity() {
                     onJoinPlant = { plantId, code, profile, onResult ->
                         joinPlantWithCode(plantId, code, profile, onResult)
                     },
+                    onRegisterPlantStaff = { plantId, staffMember, onResult ->
+                        registerPlantStaff(plantId, staffMember, onResult)
+                    },
                     onSignOut = { signOut() }
                 )
             }
@@ -265,12 +268,10 @@ class MainActivity : ComponentActivity() {
                     return@addOnSuccessListener
                 }
 
-                val registeredUser = toRegisteredUser(user.uid, profile, user.email.orEmpty())
-                val updates = mapOf(
-                    "plants/$cleanPlantId/registeredUsers/${registeredUser.id}" to registeredUser,
-                    "userPlants/${registeredUser.id}" to cleanPlantId,
-                    "users/${registeredUser.id}/plantId" to cleanPlantId
-                )
+        val updates = mapOf(
+            "userPlants/${user.uid}" to cleanPlantId,
+            "users/${user.uid}/plantId" to cleanPlantId
+        )
 
                 realtimeDatabase.reference
                     .updateChildren(updates)
@@ -282,6 +283,28 @@ class MainActivity : ComponentActivity() {
             .addOnFailureListener {
                 onResult(false, getString(R.string.join_plant_error))
             }
+    }
+
+    private fun registerPlantStaff(
+        plantId: String,
+        staffMember: RegisteredUser,
+        onResult: (Boolean) -> Unit
+    ) {
+        val cleanPlantId = plantId.trim()
+
+        if (cleanPlantId.isEmpty()) {
+            onResult(false)
+            return
+        }
+
+        realtimeDatabase.reference
+            .child("plants")
+            .child(cleanPlantId)
+            .child("registeredUsers")
+            .child(staffMember.id)
+            .setValue(staffMember)
+            .addOnSuccessListener { onResult(true) }
+            .addOnFailureListener { onResult(false) }
     }
 
     private fun signOut() {
@@ -333,21 +356,6 @@ fun DataSnapshot.toUserProfile(fallbackEmail: String): UserProfile? {
     )
 }
 
-private fun toRegisteredUser(userId: String, profile: UserProfile?, fallbackEmail: String): RegisteredUser {
-    val fullName = profile?.let {
-        listOf(it.firstName, it.lastName).filter { part -> part.isNotBlank() }.joinToString(" ")
-    }.orEmpty()
-    val resolvedEmail = profile?.email?.takeIf { it.isNotBlank() } ?: fallbackEmail
-    val displayName = fullName.ifBlank { resolvedEmail }
-
-    return RegisteredUser(
-        id = userId,
-        name = displayName,
-        role = profile?.role.orEmpty(),
-        email = resolvedEmail
-    )
-}
-
 fun DataSnapshot.toPlant(): Plant? {
     if (!exists()) return null
 
@@ -366,17 +374,18 @@ fun DataSnapshot.toPlant(): Plant? {
         label to value
     }.toMap()
 
-    val registeredUsers = child("registeredUsers").children.mapNotNull { userSnapshot ->
-        val userId = userSnapshot.key ?: return@mapNotNull null
-        val registeredUser = userSnapshot.getValue(RegisteredUser::class.java)
-            ?: RegisteredUser(
-                id = userId,
-                name = userSnapshot.child("name").getValue(String::class.java).orEmpty(),
-                role = userSnapshot.child("role").getValue(String::class.java).orEmpty(),
-                email = userSnapshot.child("email").getValue(String::class.java).orEmpty()
-            )
-        userId to registeredUser
-    }.toMap()
+        val registeredUsers = child("registeredUsers").children.mapNotNull { userSnapshot ->
+            val userId = userSnapshot.key ?: return@mapNotNull null
+            val registeredUser = userSnapshot.getValue(RegisteredUser::class.java)
+                ?: RegisteredUser(
+                    id = userId,
+                    name = userSnapshot.child("name").getValue(String::class.java).orEmpty(),
+                    role = userSnapshot.child("role").getValue(String::class.java).orEmpty(),
+                    email = userSnapshot.child("email").getValue(String::class.java).orEmpty(),
+                    profileType = userSnapshot.child("profileType").getValue(String::class.java).orEmpty()
+                )
+            userId to registeredUser
+        }.toMap()
 
     return Plant(
         id = child("id").getValue(String::class.java) ?: key.orEmpty(),
@@ -409,6 +418,7 @@ fun MainActivityPreview() {
             onSaveProfile = { _, _ -> },
             onLoadPlant = { onResult -> onResult(null, null) },
             onJoinPlant = { _, _, _, _ -> },
+            onRegisterPlantStaff = { _, _, _ -> },
             onSignOut = {}
         )
     }

@@ -39,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -333,4 +334,32 @@ private fun InfoMessageCard(message: String, isError: Boolean = false) {
             style = MaterialTheme.typography.bodyMedium
         )
     }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0F172A)
+@Composable
+private fun MyPlantScreenPreview() {
+    val samplePlant = Plant(
+        id = "plant-123",
+        name = "Planta Norte",
+        hospitalName = "Hospital Central",
+        unitType = "UCI",
+        shiftDuration = "12h",
+        staffScope = "with_aux",
+        shiftTimes = mapOf(
+            "Día" to ShiftTime(start = "08:00", end = "20:00"),
+            "Noche" to ShiftTime(start = "20:00", end = "08:00")
+        ),
+        staffRequirements = mapOf("Día" to 4, "Noche" to 3)
+    )
+
+    MyPlantScreen(
+        plant = samplePlant,
+        isLoading = false,
+        errorMessage = null,
+        onBack = {},
+        onRefresh = {},
+        onOpenPlantDetail = {},
+        onJoinPlant = { _, _, callback -> callback(true, null) }
+    )
 }

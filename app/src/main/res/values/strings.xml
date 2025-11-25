@@ -8,6 +8,8 @@
     <string name="role_nurse_female">Enfermera</string>
     <string name="role_aux_male">Auxiliar</string>
     <string name="role_aux_female">Auxiliar</string>
+    <string name="role_nurse_generic">Enfermera/o</string>
+    <string name="role_aux_generic">Auxiliar</string>
     <string name="gender_male">Hombre</string>
     <string name="gender_female">Mujer</string>
     <string name="login_button">Iniciar sesión</string>
@@ -93,11 +95,21 @@
     <string name="plant_role_option_view_shifts">Consultar turnos</string>
     <string name="plant_role_option_half_day_request">Solicitar media jornada</string>
     <string name="plant_shifts_for_date">Turnos para %1$s</string>
-    <string name="nurse_label">Enfermero/a %1$d</string>
+    <string name="nurse_label">Enfermera/o %1$d</string>
     <string name="aux_label">Auxiliar %1$d</string>
+    <string name="staff_unassigned_option">Sin asignar</string>
     <string name="plant_half_day_prompt">¿Hay alguna media jornada en este turno?</string>
     <string name="save_assignments_action">Guardar organización</string>
     <string name="plant_add_staff_option">Añadir personal de la planta</string>
+    <string name="plant_staff_list_option">Lista de personal</string>
+    <string name="plant_self_assign_action">Seleccionarme</string>
+    <string name="staff_dialog_title">Añadir personal</string>
+    <string name="staff_dialog_name_label">Nombre completo</string>
+    <string name="staff_dialog_role_label">Rol</string>
+    <string name="staff_dialog_error">Completa el nombre para continuar.</string>
+    <string name="staff_dialog_save_error">No se pudo guardar el personal. Intenta de nuevo.</string>
+    <string name="staff_dialog_save_action">Guardar personal</string>
+    <string name="cancel_label">Cancelar</string>
     <string name="my_plant_empty_title">Todavía no estás en una planta</string>
     <string name="my_plant_empty_message">Ingresa el ID de la planta y el código de invitación que compartió tu supervisor para unirte.</string>
     <string name="invitation_code_label">Código de invitación</string>
@@ -108,4 +120,10 @@
     <string name="join_plant_not_found">No encontramos una planta con ese ID.</string>
     <string name="invalid_invitation_code">El código de invitación no es válido.</string>
     <string name="plant_load_error">No se pudo cargar tu planta, intenta nuevamente.</string>
+    <string name="staff_list_dialog_title">Personal de %1$s</string>
+    <string name="staff_list_dialog_empty">Aún no hay personal registrado para esta planta.</string>
+    <string name="staff_identity_title">Tu perfil en la planta</string>
+    <string name="staff_identity_label">Selecciona tu nombre en la lista</string>
+    <string name="staff_identity_hint">El supervisor gestiona esta lista de personal.</string>
+    <string name="staff_identity_missing">Pídele al supervisor que añada el personal para poder asignarte.</string>
 </resources>

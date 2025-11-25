@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -65,7 +66,8 @@ data class RegisteredUser(
     val id: String = "",
     val name: String = "",
     val role: String = "",
-    val email: String = ""
+    val email: String = "",
+    val profileType: String = ""
 )
 
 data class Plant(
@@ -243,7 +245,7 @@ fun PlantCreationScreen(
                                 unfocusedContainerColor = Color(0x11FFFFFF)
                             )
                         )
-                        ExposedDropdownMenu(
+                        DropdownMenu(
                             expanded = expanded,
                             onDismissRequest = { expanded = false }
                         ) {
@@ -366,25 +368,6 @@ fun PlantCreationScreen(
                             StaffScope.NursesAndAux -> "nurses_and_aux"
                         }
 
-                        val creatorRegisteredUser = if (
-                            currentUserId != null && currentUserProfile?.role in supervisorRoles
-                        ) {
-                            currentUserProfile?.let { profile ->
-                                val fullName = listOf(
-                                    profile.firstName,
-                                    profile.lastName
-                                ).filter { it.isNotBlank() }.joinToString(" ")
-                                RegisteredUser(
-                                    id = currentUserId,
-                                    name = fullName.ifBlank { profile.email },
-                                    role = profile.role,
-                                    email = profile.email
-                                )
-                            }
-                        } else {
-                            null
-                        }
-
                         val plant = Plant(
                             id = plantId,
                             name = plantName,
@@ -399,19 +382,11 @@ fun PlantCreationScreen(
                             },
                             createdAt = System.currentTimeMillis(),
                             accessPassword = accessPassword,
-                            registeredUsers = creatorRegisteredUser?.let { mapOf(it.id to it) }
-                                ?: emptyMap()
+                            registeredUsers = emptyMap()
                         )
 
                         coroutineScope.launch {
-                            val updates = mutableMapOf<String, Any>(
-                                "plants/$plantId" to plant
-                            )
-
-                            if (creatorRegisteredUser != null) {
-                                updates["userPlants/${creatorRegisteredUser.id}"] = plantId
-                                updates["users/${creatorRegisteredUser.id}/plantId"] = plantId
-                            }
+                            val updates = mutableMapOf<String, Any>("plants/$plantId" to plant)
 
                             database.reference
                                 .updateChildren(updates)
@@ -610,4 +585,15 @@ private fun StaffScopeOption(text: String, selected: Boolean, onSelect: () -> Un
         RadioButton(selected = selected, onClick = onSelect)
         Text(text = text, color = Color.White)
     }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0F172A)
+@Composable
+private fun PlantCreationScreenPreview() {
+    PlantCreationScreen(
+        onBack = {},
+        onPlantCreated = {},
+        currentUserId = "preview-user",
+        currentUserProfile = UserProfile(firstName = "Ana", lastName = "Supervisor", role = "Supervisor")
+    )
 }
