@@ -1,6 +1,7 @@
 package com.example.turnoshospi
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -23,8 +25,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -33,9 +33,9 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -76,20 +76,18 @@ fun PlantCreationScreen(
     var expanded by remember { mutableStateOf(false) }
     var selectedDuration by remember { mutableStateOf(durationOptions.first()) }
 
-    val shiftLabels: List<String>
-        @Composable
-        get() = if (selectedDuration == durationOptions.first()) {
-            listOf(
-                stringResource(id = R.string.shift_morning),
-                stringResource(id = R.string.shift_afternoon),
-                stringResource(id = R.string.shift_night)
-            )
-        } else {
-            listOf(
-                stringResource(id = R.string.shift_day),
-                stringResource(id = R.string.shift_night)
-            )
-        }
+    val shiftLabels = if (selectedDuration == durationOptions.first()) {
+        listOf(
+            stringResource(id = R.string.shift_morning),
+            stringResource(id = R.string.shift_afternoon),
+            stringResource(id = R.string.shift_night)
+        )
+    } else {
+        listOf(
+            stringResource(id = R.string.shift_day),
+            stringResource(id = R.string.shift_night)
+        )
+    }
 
     var shiftTimes by remember(selectedDuration) {
         mutableStateOf(shiftLabels.associateWith { ShiftTime() })
@@ -162,19 +160,23 @@ fun PlantCreationScreen(
                     style = MaterialTheme.typography.labelMedium,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = !expanded }
-                ) {
+                Box {
                     OutlinedTextField(
                         value = selectedDuration,
                         onValueChange = {},
                         readOnly = true,
                         modifier = Modifier
-                            .menuAnchor()
-                            .fillMaxWidth(),
+                            .fillMaxWidth()
+                            .padding(bottom = 4.dp)
+                            .clickable { expanded = true },
                         label = { Text(text = stringResource(id = R.string.shift_duration_placeholder)) },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                        trailingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = null,
+                                tint = Color.White
+                            )
+                        },
                         colors = TextFieldDefaults.outlinedTextFieldColors(
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White,
@@ -185,7 +187,7 @@ fun PlantCreationScreen(
                             unfocusedLabelColor = Color(0xCCFFFFFF)
                         )
                     )
-                    ExposedDropdownMenu(
+                    DropdownMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false }
                     ) {
@@ -195,8 +197,7 @@ fun PlantCreationScreen(
                                 onClick = {
                                     selectedDuration = option
                                     expanded = false
-                                },
-                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                                }
                             )
                         }
                     }
