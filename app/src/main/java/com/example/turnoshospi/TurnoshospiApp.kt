@@ -144,7 +144,7 @@ fun TurnoshospiApp(
                 Spacer(modifier = Modifier.height(if (showLogin) 32.dp else 0.dp))
 
                 Image(
-                    painter = painterResource(id = R.mipmap.ic_logo_hospi_foreground),
+                    painter = painterResource(id = R.mipmap.ic_logo_hospi_round),
                     contentDescription = "Logo Turnoshospi",
                     modifier = Modifier.size(logoSize)
                 )
