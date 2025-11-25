@@ -20,10 +20,12 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.DatabaseException
+import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import java.util.Date
 
 class MainActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
@@ -121,14 +123,16 @@ class MainActivity : ComponentActivity() {
             onResult(null)
             return
         }
-        firestore.collection("users")
-            .document(user.uid)
+
+        realtimeDatabase.getReference("users")
+            .child(user.uid)
             .get()
-            .addOnSuccessListener { document ->
-                val profile = document.toUserProfile(user.email.orEmpty())
+            .addOnSuccessListener { snapshot ->
+                val profile = snapshot.toUserProfile(user.email.orEmpty())
                 onResult(profile)
             }
-            .addOnFailureListener {
+            .addOnFailureListener { databaseError ->
+                authErrorMessage.value = databaseError.message
                 onResult(null)
             }
     }
@@ -175,20 +179,33 @@ class MainActivity : ComponentActivity() {
         onResult: (Boolean) -> Unit
     ) {
         val currentTime = System.currentTimeMillis()
-        val realtimePayload = mutableMapOf<String, Any?>().apply {
-            put("firstName", profile.firstName)
-            put("lastName", profile.lastName)
-            put("role", profile.role)
-            put("gender", profile.gender)
-            put("email", profile.email)
-            put("createdAt", profile.createdAt?.toDate()?.time ?: currentTime)
-            put("updatedAt", currentTime)
-        }
+        val userRef = realtimeDatabase.getReference("users").child(userId)
 
-        realtimeDatabase.getReference("users")
-            .child(userId)
-            .updateChildren(realtimePayload)
-            .addOnSuccessListener { onResult(true) }
+        userRef.get()
+            .addOnSuccessListener { snapshot ->
+                val persistedCreatedAt = snapshot.child("createdAt").getValue(Long::class.java)
+                val realtimePayload = mutableMapOf<String, Any?>().apply {
+                    put("firstName", profile.firstName)
+                    put("lastName", profile.lastName)
+                    put("role", profile.role)
+                    put("gender", profile.gender)
+                    put("email", profile.email)
+                    put("createdAt", persistedCreatedAt ?: profile.createdAt?.toDate()?.time ?: currentTime)
+                    put("updatedAt", currentTime)
+                }
+
+                userRef.setValue(realtimePayload)
+                    .addOnSuccessListener { onResult(true) }
+                    .addOnFailureListener {
+                        val message = if (it is DatabaseException) {
+                            "Revisa las reglas de Realtime Database y los permisos de escritura"
+                        } else {
+                            "No se pudo guardar el perfil en tiempo real"
+                        }
+                        authErrorMessage.value = message
+                        onResult(false)
+                    }
+            }
             .addOnFailureListener {
                 val message = if (it is DatabaseException) {
                     "Revisa las reglas de Realtime Database y los permisos de escritura"
@@ -243,6 +260,22 @@ fun com.google.firebase.firestore.DocumentSnapshot.toUserProfile(
         email = getString("email") ?: fallbackEmail,
         createdAt = getTimestamp("createdAt"),
         updatedAt = getTimestamp("updatedAt")
+    )
+}
+
+fun DataSnapshot.toUserProfile(fallbackEmail: String): UserProfile? {
+    if (!exists()) return null
+    val createdAtMillis = child("createdAt").getValue(Long::class.java)
+    val updatedAtMillis = child("updatedAt").getValue(Long::class.java)
+
+    return UserProfile(
+        firstName = child("firstName").getValue(String::class.java) ?: "",
+        lastName = child("lastName").getValue(String::class.java) ?: "",
+        role = child("role").getValue(String::class.java) ?: "",
+        gender = child("gender").getValue(String::class.java) ?: "",
+        email = child("email").getValue(String::class.java) ?: fallbackEmail,
+        createdAt = createdAtMillis?.let { Timestamp(Date(it)) },
+        updatedAt = updatedAtMillis?.let { Timestamp(Date(it)) }
     )
 }
 
