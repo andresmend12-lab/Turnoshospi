@@ -51,6 +51,7 @@ fun MainMenuScreen(
     userEmail: String,
     profile: UserProfile?,
     isLoadingProfile: Boolean,
+    onCreatePlant: () -> Unit,
     onEditProfile: () -> Unit,
     onSignOut: () -> Unit
 ) {
@@ -86,7 +87,10 @@ fun MainMenuScreen(
                     DrawerMenuItem(
                         label = stringResource(id = R.string.menu_create_plant),
                         description = stringResource(id = R.string.menu_create_plant_desc),
-                        onClick = { scope.launch { drawerState.close() } }
+                        onClick = {
+                            scope.launch { drawerState.close() }
+                            onCreatePlant()
+                        }
                     )
                 }
                 DrawerMenuItem(
@@ -261,6 +265,7 @@ fun MainMenuScreenPreview() {
                 email = "demo@example.com"
             ),
             isLoadingProfile = false,
+            onCreatePlant = {},
             onEditProfile = {},
             onSignOut = {}
         )
