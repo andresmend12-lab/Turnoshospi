@@ -22,6 +22,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -44,6 +45,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.turnoshospi.R
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
+import androidx.compose.material3.rememberDatePickerState
+import java.time.LocalDate
+import java.time.ZoneId
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -52,9 +56,11 @@ enum class AppScreen {
     MainMenu,
     CreatePlant,
     PlantCreated,
-    MyPlant
+    MyPlant,
+    PlantDetail
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TurnoshospiApp(
     user: FirebaseUser?,
@@ -82,7 +88,13 @@ fun TurnoshospiApp(
     var userPlant by remember { mutableStateOf<Plant?>(null) }
     var isLoadingPlant by remember { mutableStateOf(false) }
     var plantError by remember { mutableStateOf<String?>(null) }
+    var selectedPlantForDetail by remember { mutableStateOf<Plant?>(null) }
     val coroutineScope = rememberCoroutineScope()
+
+    val todayMillis = remember {
+        LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+    }
+    val sharedDatePickerState = rememberDatePickerState(initialSelectedDateMillis = todayMillis)
 
     val refreshUserPlant: () -> Unit = {
         plantError = null
@@ -239,6 +251,7 @@ fun TurnoshospiApp(
                     userEmail = user.email.orEmpty(),
                     profile = existingProfile,
                     isLoadingProfile = isLoadingProfile,
+                    datePickerState = sharedDatePickerState,
                     onCreatePlant = { currentScreen = AppScreen.CreatePlant },
                     onEditProfile = { showProfileEditor = true },
                     onOpenPlant = {
@@ -270,6 +283,10 @@ fun TurnoshospiApp(
                     errorMessage = plantError,
                     onBack = { currentScreen = AppScreen.MainMenu },
                     onRefresh = { refreshUserPlant() },
+                    onOpenPlantDetail = { plant ->
+                        selectedPlantForDetail = plant
+                        currentScreen = AppScreen.PlantDetail
+                    },
                     onJoinPlant = { plantId, invitationCode, onResult ->
                         onJoinPlant(plantId, invitationCode, existingProfile) { success, message ->
                             if (!success && message != null) {
@@ -278,6 +295,14 @@ fun TurnoshospiApp(
                             onResult(success, message)
                         }
                     }
+                )
+
+                AppScreen.PlantDetail -> PlantDetailScreen(
+                    plant = selectedPlantForDetail,
+                    userProfile = existingProfile,
+                    datePickerState = sharedDatePickerState,
+                    onBack = { currentScreen = AppScreen.MyPlant },
+                    onAddStaff = { /* TODO: implement staff creation flow */ }
                 )
             }
         }

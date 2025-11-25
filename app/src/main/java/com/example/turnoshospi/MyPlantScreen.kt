@@ -52,6 +52,7 @@ fun MyPlantScreen(
     errorMessage: String?,
     onBack: () -> Unit,
     onRefresh: () -> Unit,
+    onOpenPlantDetail: (Plant) -> Unit,
     onJoinPlant: (String, String, (Boolean, String?) -> Unit) -> Unit
 ) {
     var plantIdInput by remember { mutableStateOf("") }
@@ -111,7 +112,7 @@ fun MyPlantScreen(
             if (isLoading) {
                 PlantLoadingCard()
             } else if (plant != null) {
-                PlantInfoCard(plant = plant)
+                PlantInfoCard(plant = plant, onOpenPlantDetail = onOpenPlantDetail)
                 Button(
                     onClick = onRefresh,
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC))
@@ -157,7 +158,7 @@ fun MyPlantScreen(
 }
 
 @Composable
-private fun PlantInfoCard(plant: Plant) {
+private fun PlantInfoCard(plant: Plant, onOpenPlantDetail: (Plant) -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
@@ -178,6 +179,13 @@ private fun PlantInfoCard(plant: Plant) {
                 text = stringResource(id = R.string.plant_hospital_only_label, plant.hospitalName),
                 color = Color(0xCCFFFFFF)
             )
+
+            Button(
+                onClick = { onOpenPlantDetail(plant) },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC))
+            ) {
+                Text(text = stringResource(id = R.string.open_plant_detail_action), color = Color.Black)
+            }
         }
     }
 }

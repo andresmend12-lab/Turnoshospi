@@ -18,8 +18,12 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
+import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -29,10 +33,11 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,13 +49,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.turnoshospi.R
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainMenuScreen(
     modifier: Modifier = Modifier,
     userEmail: String,
     profile: UserProfile?,
     isLoadingProfile: Boolean,
+    datePickerState: DatePickerState,
     onCreatePlant: () -> Unit,
     onEditProfile: () -> Unit,
     onOpenPlant: () -> Unit,
@@ -141,7 +152,7 @@ fun MainMenuScreen(
             modifier = modifier
                 .fillMaxSize()
                 .background(Color.Transparent)
-                .padding(horizontal = 20.dp)
+                .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
             Box(
                 modifier = Modifier
@@ -183,23 +194,77 @@ fun MainMenuScreen(
                 colors = CardDefaults.cardColors(containerColor = Color(0x11FFFFFF)),
                 border = BorderStroke(1.dp, Color(0x22FFFFFF))
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(20.dp)
-                        .background(Color(0x22000000), RoundedCornerShape(18.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Calendario", // Placeholder for future calendar view
-                        color = Color.White,
-                        style = MaterialTheme.typography.titleLarge,
-                        textAlign = TextAlign.Center
-                    )
-                }
+                CalendarSection(state = datePickerState)
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CalendarSection(state: DatePickerState) {
+    val selectedDate = state.selectedDateMillis?.let { millis ->
+        Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp, vertical = 14.dp)
+            .background(Color(0x22000000), RoundedCornerShape(22.dp)),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Calendario",
+            color = Color.White,
+            style = MaterialTheme.typography.titleLarge,
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.Bold
+        )
+
+        DatePicker(
+            state = state,
+            title = null,
+            headline = null,
+            showModeToggle = false,
+            colors = DatePickerDefaults.colors(
+                containerColor = Color.Transparent,
+                titleContentColor = Color.White,
+                headlineContentColor = Color.White,
+                weekdayContentColor = Color.White,
+                subheadContentColor = Color.White,
+                yearContentColor = Color.White,
+                currentYearContentColor = Color.White,
+                selectedYearContentColor = Color.White,
+                selectedYearContainerColor = Color(0xFF1E293B),
+                disabledSelectedYearContainerColor = Color(0x661E293B),
+                selectedDayContentColor = Color.White,
+                disabledSelectedDayContentColor = Color(0x80FFFFFF),
+                selectedDayContainerColor = Color(0xFF1E293B),
+                disabledSelectedDayContainerColor = Color(0x661E293B),
+                dayContentColor = Color.White,
+                disabledDayContentColor = Color(0x80FFFFFF),
+                dayInSelectionRangeContentColor = Color.White,
+                dayInSelectionRangeContainerColor = Color(0x331E293B),
+                todayContentColor = Color.White,
+                todayDateBorderColor = Color(0x66FFFFFF)
+            )
+        )
+
+        Text(
+            text = selectedDate?.let { formatDate(it) } ?: "Selecciona una fecha",
+            color = Color.White,
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.Medium
+        )
+    }
+}
+
+fun formatDate(date: LocalDate): String {
+    val formatter = DateTimeFormatter.ofPattern("d 'de' MMMM yyyy")
+    return date.format(formatter)
 }
 
 @Composable
@@ -254,9 +319,11 @@ fun DrawerMenuItem(label: String, description: String, onClick: () -> Unit) {
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF0F172A)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainMenuScreenPreview() {
     TurnoshospiTheme {
+        val previewDateState = rememberDatePickerState(initialSelectedDateMillis = System.currentTimeMillis())
         MainMenuScreen(
             modifier = Modifier
                 .fillMaxSize()
@@ -269,6 +336,7 @@ fun MainMenuScreenPreview() {
                 email = "demo@example.com"
             ),
             isLoadingProfile = false,
+            datePickerState = previewDateState,
             onCreatePlant = {},
             onEditProfile = {},
             onOpenPlant = {},
