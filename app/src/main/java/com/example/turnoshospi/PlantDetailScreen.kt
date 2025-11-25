@@ -103,7 +103,17 @@ fun PlantDetailScreen(
         stringResource(id = R.string.role_supervisor_female)
     )
     val nurseRole = stringResource(id = R.string.role_nurse_generic)
+    val nurseRoles = listOf(
+        nurseRole,
+        stringResource(id = R.string.role_nurse_male),
+        stringResource(id = R.string.role_nurse_female)
+    )
     val auxRole = stringResource(id = R.string.role_aux_generic)
+    val auxRoles = listOf(
+        auxRole,
+        stringResource(id = R.string.role_aux_male),
+        stringResource(id = R.string.role_aux_female)
+    )
     val isSupervisor = currentUserProfile?.role in supervisorRoles
     val assignments = remember(plant?.id) { mutableStateMapOf<String, ShiftAssignmentState>() }
     val allowAuxStaffScope = plant?.staffScope == stringResource(id = R.string.staff_scope_with_aux)
@@ -118,16 +128,16 @@ fun PlantDetailScreen(
         plantStaff.firstOrNull { it.id == selectedStaffId }
     }
 
-    val nurseOptions = remember(plantStaff, nurseRole) {
+    val nurseOptions = remember(plantStaff, nurseRoles) {
         plantStaff
-            .filter { it.role == nurseRole }
+            .filter { it.role in nurseRoles }
             .map { it.name }
             .filter { it.isNotBlank() }
             .sorted()
     }
-    val auxOptions = remember(plantStaff, auxRole) {
+    val auxOptions = remember(plantStaff, auxRoles) {
         plantStaff
-            .filter { it.role == auxRole }
+            .filter { it.role in auxRoles }
             .map { it.name }
             .filter { it.isNotBlank() }
             .sorted()
