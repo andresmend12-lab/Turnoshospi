@@ -108,12 +108,14 @@ fun PlantDetailScreen(
         stringResource(id = R.string.role_nurse_male),
         stringResource(id = R.string.role_nurse_female)
     )
+    val normalizedNurseRoles = remember(nurseRoles) { nurseRoles.map { it.normalizedRole() } }
     val auxRole = stringResource(id = R.string.role_aux_generic)
     val auxRoles = listOf(
         auxRole,
         stringResource(id = R.string.role_aux_male),
         stringResource(id = R.string.role_aux_female)
     )
+    val normalizedAuxRoles = remember(auxRoles) { auxRoles.map { it.normalizedRole() } }
     val isSupervisor = currentUserProfile?.role in supervisorRoles
     val assignments = remember(plant?.id) { mutableStateMapOf<String, ShiftAssignmentState>() }
     val allowAuxStaffScope = plant?.staffScope == stringResource(id = R.string.staff_scope_with_aux)
@@ -128,19 +130,18 @@ fun PlantDetailScreen(
         plantStaff.firstOrNull { it.id == selectedStaffId }
     }
 
-    val nurseOptions = remember(plantStaff, nurseRoles) {
-        plantStaff
-            .filter { it.role in nurseRoles }
-            .map { it.name }
-            .filter { it.isNotBlank() }
-            .sorted()
+    val nurseStaff = remember(plantStaff, normalizedNurseRoles) {
+        plantStaff.filter { member -> member.isNurseRole(normalizedNurseRoles) }
     }
-    val auxOptions = remember(plantStaff, auxRoles) {
-        plantStaff
-            .filter { it.role in auxRoles }
-            .map { it.name }
-            .filter { it.isNotBlank() }
-            .sorted()
+    val auxStaff = remember(plantStaff, normalizedAuxRoles) {
+        plantStaff.filter { member -> member.isAuxRole(normalizedAuxRoles) }
+    }
+
+    val nurseOptions = remember(nurseStaff) {
+        nurseStaff.map { it.name }.filter { it.isNotBlank() }.sorted()
+    }
+    val auxOptions = remember(auxStaff) {
+        auxStaff.map { it.name }.filter { it.isNotBlank() }.sorted()
     }
 
     var showAddStaffDialog by remember { mutableStateOf(false) }
@@ -808,6 +809,18 @@ private fun assignStaffToShift(slots: MutableList<String>, staffName: String?) {
     if (firstEmptyIndex >= 0) {
         slots[firstEmptyIndex] = staffName
     }
+}
+
+private fun String.normalizedRole(): String = trim().lowercase()
+
+private fun RegisteredUser.isNurseRole(normalizedRoles: List<String>): Boolean {
+    val normalizedRole = role.normalizedRole()
+    return normalizedRoles.any { normalizedRole == it } || normalizedRole.contains("enfermer")
+}
+
+private fun RegisteredUser.isAuxRole(normalizedRoles: List<String>): Boolean {
+    val normalizedRole = role.normalizedRole()
+    return normalizedRoles.any { normalizedRole == it } || normalizedRole.contains("auxiliar")
 }
 
 @Composable

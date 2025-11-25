@@ -95,7 +95,7 @@
     <string name="plant_role_option_view_shifts">Consultar turnos</string>
     <string name="plant_role_option_half_day_request">Solicitar media jornada</string>
     <string name="plant_shifts_for_date">Turnos para %1$s</string>
-    <string name="nurse_label">Enfermero/a %1$d</string>
+    <string name="nurse_label">Enfermera/o %1$d</string>
     <string name="aux_label">Auxiliar %1$d</string>
     <string name="staff_unassigned_option">Sin asignar</string>
     <string name="plant_half_day_prompt">¿Hay alguna media jornada en este turno?</string>
