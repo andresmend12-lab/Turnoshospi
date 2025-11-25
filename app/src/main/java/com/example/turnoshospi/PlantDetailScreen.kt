@@ -512,7 +512,6 @@ private fun StaffIdentitySelector(
     selectedStaffId: String?,
     onSelectStaff: (String?) -> Unit
 ) {
-    val unassignedLabel = stringResource(id = R.string.staff_unassigned_option)
     val staffItems = remember(staff) {
         staff.sortedBy { it.name.lowercase() }
     }
@@ -544,13 +543,14 @@ private fun StaffIdentitySelector(
                 StaffDropdownField(
                     label = stringResource(id = R.string.staff_identity_label),
                     selectedValue = staffItems.firstOrNull { it.id == selectedStaffId }?.name
-                        ?: unassignedLabel,
+                        ?: "",
                     options = staffItems.map { it.name },
                     enabled = true,
                     onOptionSelected = { selection ->
                         val resolvedId = staffItems.firstOrNull { it.name == selection }?.id
                         onSelectStaff(resolvedId)
-                    }
+                    },
+                    includeUnassigned = true
                 )
 
                 Text(
@@ -898,12 +898,15 @@ private fun StaffDropdownField(
     selectedValue: String,
     options: List<String>,
     enabled: Boolean,
-    onOptionSelected: (String) -> Unit
+    onOptionSelected: (String) -> Unit,
+    includeUnassigned: Boolean = false
 ) {
     var expanded by remember { mutableStateOf(false) }
     val unassignedLabel = stringResource(id = R.string.staff_unassigned_option)
-    val displayValue = selectedValue.takeIf { it.isNotBlank() } ?: unassignedLabel
-    val menuOptions = remember(options, unassignedLabel) { listOf(unassignedLabel) + options }
+    val displayValue = selectedValue.takeIf { it.isNotBlank() } ?: if (includeUnassigned) unassignedLabel else ""
+    val menuOptions = remember(options, unassignedLabel, includeUnassigned) {
+        if (includeUnassigned) listOf(unassignedLabel) + options else options
+    }
     val trailingIcon = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.ArrowDropDown
     val activeColors = OutlinedTextFieldDefaults.colors(
         focusedTextColor = Color.White,
