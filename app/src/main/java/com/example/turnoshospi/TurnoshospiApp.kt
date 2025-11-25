@@ -238,6 +238,14 @@ fun TurnoshospiApp(
                 saveCompleted = false
                 coroutineScope.launch {
                     onSaveProfile(profile) { success ->
+                        if (success) {
+                            existingProfile = profile
+                            isLoadingProfile = true
+                            onLoadProfile { refreshedProfile ->
+                                existingProfile = refreshedProfile ?: profile
+                                isLoadingProfile = false
+                            }
+                        }
                         saveCompleted = success
                         showProfileEditor = !success
                         onComplete(success)
