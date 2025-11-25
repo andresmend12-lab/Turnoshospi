@@ -437,6 +437,7 @@ private fun InfoMessage(message: String) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun PlantDetailScreenPreview() {
