@@ -75,7 +75,7 @@ fun MainMenuScreen(
             Column(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .width(200.dp)
+                    .weight(0.3f)
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.Top
             ) {
@@ -126,7 +126,7 @@ fun MainMenuScreen(
             Card(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .weight(1f),
+                    .weight(0.7f),
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0x11FFFFFF)),
                 border = BorderStroke(1.dp, Color(0x22FFFFFF))
