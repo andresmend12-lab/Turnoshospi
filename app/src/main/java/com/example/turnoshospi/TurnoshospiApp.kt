@@ -344,6 +344,7 @@ fun TurnoshospiApp(
                     plant = selectedPlantForDetail,
                     datePickerState = sharedDatePickerState,
                     currentUserProfile = existingProfile,
+                    currentMembership = plantMembership,
                     onBack = { currentScreen = AppScreen.MyPlant },
                     onAddStaff = { plantId, staffMember, onResult ->
                         onRegisterPlantStaff(plantId, staffMember) { success ->

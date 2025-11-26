@@ -495,6 +495,8 @@ fun MainActivityPreview() {
             onSaveProfile = { _, _ -> },
             onLoadPlant = { onResult -> onResult(null, null) },
             onJoinPlant = { _, _, _, _ -> },
+            onLoadPlantMembership = { _, _, _ -> },
+            onLinkUserToStaff = { _, _, _ -> },
             onRegisterPlantStaff = { _, _, _ -> },
             onSignOut = {}
         )
