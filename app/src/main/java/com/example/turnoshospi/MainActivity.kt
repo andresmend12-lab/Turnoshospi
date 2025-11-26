@@ -58,6 +58,12 @@ class MainActivity : ComponentActivity() {
                     onJoinPlant = { plantId, code, profile, onResult ->
                         joinPlantWithCode(plantId, code, profile, onResult)
                     },
+                    onLoadPlantMembership = { plantId, userId, onResult ->
+                        loadPlantMembership(plantId, userId, onResult)
+                    },
+                    onLinkUserToStaff = { plantId, staff, onResult ->
+                        linkUserToPlantStaff(plantId, staff, onResult)
+                    },
                     onRegisterPlantStaff = { plantId, staffMember, onResult ->
                         registerPlantStaff(plantId, staffMember, onResult)
                     },
@@ -209,8 +215,9 @@ class MainActivity : ComponentActivity() {
             return
         }
 
-        realtimeDatabase.getReference("userPlants")
+        realtimeDatabase.getReference("users")
             .child(user.uid)
+            .child("plantId")
             .get()
             .addOnSuccessListener { mappingSnapshot ->
                 val plantId = mappingSnapshot.getValue(String::class.java)
@@ -237,6 +244,47 @@ class MainActivity : ComponentActivity() {
             .addOnFailureListener {
                 onResult(null, getString(R.string.plant_load_error))
             }
+    }
+
+    private fun loadPlantMembership(
+        plantId: String,
+        userId: String,
+        onResult: (PlantMembership?) -> Unit
+    ) {
+        realtimeDatabase.reference
+            .child("plants")
+            .child(plantId)
+            .child("userPlants")
+            .child(userId)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                if (!snapshot.exists()) {
+                    onResult(null)
+                    return@addOnSuccessListener
+                }
+
+                if (snapshot.hasChildren()) {
+                    val membership = PlantMembership(
+                        plantId = snapshot.child("plantId").getValue(String::class.java) ?: plantId,
+                        userId = userId,
+                        staffId = snapshot.child("staffId").getValue(String::class.java),
+                        staffName = snapshot.child("staffName").getValue(String::class.java),
+                        staffRole = snapshot.child("staffRole").getValue(String::class.java)
+                    )
+                    onResult(membership)
+                } else {
+                    onResult(
+                        PlantMembership(
+                            plantId = plantId,
+                            userId = userId,
+                            staffId = null,
+                            staffName = null,
+                            staffRole = null
+                        )
+                    )
+                }
+            }
+            .addOnFailureListener { onResult(null) }
     }
 
     private fun joinPlantWithCode(
@@ -268,10 +316,10 @@ class MainActivity : ComponentActivity() {
                     return@addOnSuccessListener
                 }
 
-        val updates = mapOf(
-            "userPlants/${user.uid}" to cleanPlantId,
-            "users/${user.uid}/plantId" to cleanPlantId
-        )
+                val updates = mapOf(
+                    "plants/$cleanPlantId/userPlants/${user.uid}/plantId" to cleanPlantId,
+                    "users/${user.uid}/plantId" to cleanPlantId
+                )
 
                 realtimeDatabase.reference
                     .updateChildren(updates)
@@ -300,9 +348,36 @@ class MainActivity : ComponentActivity() {
         realtimeDatabase.reference
             .child("plants")
             .child(cleanPlantId)
-            .child("registeredUsers")
+            .child("personal_de_planta")
             .child(staffMember.id)
             .setValue(staffMember)
+            .addOnSuccessListener { onResult(true) }
+            .addOnFailureListener { onResult(false) }
+    }
+
+    private fun linkUserToPlantStaff(
+        plantId: String,
+        staffMember: RegisteredUser,
+        onResult: (Boolean) -> Unit
+    ) {
+        val user = auth.currentUser ?: run {
+            onResult(false)
+            return
+        }
+
+        val updates = mapOf(
+            "plants/$plantId/userPlants/${user.uid}/plantId" to plantId,
+            "plants/$plantId/userPlants/${user.uid}/staffId" to staffMember.id,
+            "plants/$plantId/userPlants/${user.uid}/staffName" to staffMember.name,
+            "plants/$plantId/userPlants/${user.uid}/staffRole" to staffMember.role,
+            "users/${user.uid}/plantId" to plantId,
+            "users/${user.uid}/plantStaffId" to staffMember.id,
+            "users/${user.uid}/role" to staffMember.role,
+            "users/${user.uid}/linkedStaffName" to staffMember.name
+        )
+
+        realtimeDatabase.reference
+            .updateChildren(updates)
             .addOnSuccessListener { onResult(true) }
             .addOnFailureListener { onResult(false) }
     }
@@ -374,18 +449,18 @@ fun DataSnapshot.toPlant(): Plant? {
         label to value
     }.toMap()
 
-        val registeredUsers = child("registeredUsers").children.mapNotNull { userSnapshot ->
-            val userId = userSnapshot.key ?: return@mapNotNull null
-            val registeredUser = userSnapshot.getValue(RegisteredUser::class.java)
-                ?: RegisteredUser(
-                    id = userId,
-                    name = userSnapshot.child("name").getValue(String::class.java).orEmpty(),
-                    role = userSnapshot.child("role").getValue(String::class.java).orEmpty(),
-                    email = userSnapshot.child("email").getValue(String::class.java).orEmpty(),
-                    profileType = userSnapshot.child("profileType").getValue(String::class.java).orEmpty()
-                )
-            userId to registeredUser
-        }.toMap()
+    val personalDePlanta = child("personal_de_planta").children.mapNotNull { userSnapshot ->
+        val userId = userSnapshot.key ?: return@mapNotNull null
+        val registeredUser = userSnapshot.getValue(RegisteredUser::class.java)
+            ?: RegisteredUser(
+                id = userId,
+                name = userSnapshot.child("name").getValue(String::class.java).orEmpty(),
+                role = userSnapshot.child("role").getValue(String::class.java).orEmpty(),
+                email = userSnapshot.child("email").getValue(String::class.java).orEmpty(),
+                profileType = userSnapshot.child("profileType").getValue(String::class.java).orEmpty()
+            )
+        userId to registeredUser
+    }.toMap()
 
     return Plant(
         id = child("id").getValue(String::class.java) ?: key.orEmpty(),
@@ -399,7 +474,7 @@ fun DataSnapshot.toPlant(): Plant? {
         staffRequirements = staffRequirements,
         createdAt = child("createdAt").getValue(Long::class.java) ?: 0L,
         accessPassword = child("accessPassword").getValue(String::class.java) ?: "",
-        registeredUsers = registeredUsers
+        personal_de_planta = personalDePlanta
     )
 }
 
@@ -418,6 +493,8 @@ fun MainActivityPreview() {
             onSaveProfile = { _, _ -> },
             onLoadPlant = { onResult -> onResult(null, null) },
             onJoinPlant = { _, _, _, _ -> },
+            onLoadPlantMembership = { _, _, _ -> },
+            onLinkUserToStaff = { _, _, _ -> },
             onRegisterPlantStaff = { _, _, _ -> },
             onSignOut = {}
         )

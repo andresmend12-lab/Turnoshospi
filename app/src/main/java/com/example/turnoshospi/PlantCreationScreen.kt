@@ -82,7 +82,7 @@ data class Plant(
     val staffRequirements: Map<String, Int> = emptyMap(),
     val createdAt: Long = 0L,
     val accessPassword: String = "",
-    val registeredUsers: Map<String, RegisteredUser> = emptyMap()
+    val personal_de_planta: Map<String, RegisteredUser> = emptyMap()
 )
 
 data class ShiftTime(val start: String = "", val end: String = "")
@@ -382,7 +382,7 @@ fun PlantCreationScreen(
                             },
                             createdAt = System.currentTimeMillis(),
                             accessPassword = accessPassword,
-                            registeredUsers = emptyMap()
+                            personal_de_planta = emptyMap()
                         )
 
                         coroutineScope.launch {

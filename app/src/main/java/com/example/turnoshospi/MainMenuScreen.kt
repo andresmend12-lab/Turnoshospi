@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
@@ -89,12 +90,14 @@ fun MainMenuScreen(
 
     ModalNavigationDrawer(
         drawerState = drawerState,
+        gesturesEnabled = false, // <-- IMPORTANTE: desactiva abrir con gesto desde el borde
         drawerContent = {
             ModalDrawerSheet(
                 drawerContainerColor = Color(0xFF0F172A),
                 drawerContentColor = Color.White
             ) {
                 DrawerHeader(displayName = displayName, welcomeStringId = welcomeStringId)
+
                 if (showCreatePlant) {
                     DrawerMenuItem(
                         label = stringResource(id = R.string.menu_create_plant),
@@ -105,6 +108,7 @@ fun MainMenuScreen(
                         }
                     )
                 }
+
                 DrawerMenuItem(
                     label = stringResource(id = R.string.menu_my_plants),
                     description = stringResource(id = R.string.menu_my_plants_desc),
@@ -113,6 +117,7 @@ fun MainMenuScreen(
                         onOpenPlant()
                     }
                 )
+
                 DrawerMenuItem(
                     label = stringResource(id = R.string.edit_profile),
                     description = stringResource(id = R.string.menu_settings_desc),
@@ -121,11 +126,13 @@ fun MainMenuScreen(
                         onEditProfile()
                     }
                 )
+
                 DrawerMenuItem(
                     label = stringResource(id = R.string.menu_settings),
                     description = stringResource(id = R.string.menu_settings_desc),
                     onClick = { scope.launch { drawerState.close() } }
                 )
+
                 NavigationDrawerItem(
                     modifier = Modifier.padding(horizontal = 12.dp),
                     label = {
@@ -144,10 +151,12 @@ fun MainMenuScreen(
                         unselectedTextColor = Color(0xFFFFB4AB)
                     )
                 )
+
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
     ) {
+        // CONTENIDO DE LA PANTALLA (sin menú lateral fijo)
         Column(
             modifier = modifier
                 .fillMaxSize()
@@ -162,7 +171,10 @@ fun MainMenuScreen(
             ) {
                 IconButton(
                     modifier = Modifier.align(Alignment.CenterStart),
-                    onClick = { scope.launch { drawerState.open() } }
+                    onClick = {
+                        // SOLO se abre al pulsar este icono
+                        scope.launch { drawerState.open() }
+                    }
                 ) {
                     Icon(
                         imageVector = Icons.Default.Menu,
@@ -189,7 +201,7 @@ fun MainMenuScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f),
+                    .weight(1f),    // <-- quito fillMaxSize() aquí
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0x11FFFFFF)),
                 border = BorderStroke(1.dp, Color(0x22FFFFFF))
@@ -220,7 +232,8 @@ private fun CalendarSection(state: DatePickerState) {
             color = Color.White,
             style = MaterialTheme.typography.titleLarge,
             textAlign = TextAlign.Center,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.fillMaxWidth()
         )
 
         DatePicker(
@@ -228,6 +241,9 @@ private fun CalendarSection(state: DatePickerState) {
             title = null,
             headline = null,
             showModeToggle = false,
+            modifier = Modifier
+                .weight(1f)       // <-- se queda con todo el alto disponible
+                .fillMaxWidth(),  // <-- ocupa todo el ancho
             colors = DatePickerDefaults.colors(
                 containerColor = Color.Transparent,
                 titleContentColor = Color.White,
