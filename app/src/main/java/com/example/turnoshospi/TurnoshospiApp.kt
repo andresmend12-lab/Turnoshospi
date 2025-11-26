@@ -351,7 +351,7 @@ fun TurnoshospiApp(
                         onRegisterPlantStaff(plantId, staffMember) { success ->
                             if (success) {
                                 selectedPlantForDetail = selectedPlantForDetail?.copy(
-                                    registeredUsers = selectedPlantForDetail?.registeredUsers.orEmpty() +
+                                    personal_de_planta = selectedPlantForDetail?.personal_de_planta.orEmpty() +
                                         (staffMember.id to staffMember)
                                 )
                             }

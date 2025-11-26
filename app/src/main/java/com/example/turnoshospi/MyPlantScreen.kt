@@ -28,6 +28,8 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -94,8 +96,8 @@ fun MyPlantScreen(
     val resolvedRole = plantMembership?.staffRole?.ifBlank { currentUserProfile?.role } ?: currentUserProfile?.role
     val normalizedUserRole = resolvedRole?.normalizedRole()
     val isSupervisor = normalizedUserRole != null && normalizedUserRole in normalizedSupervisorRoles
-    val staffOptions = remember(plant?.registeredUsers, normalizedUserRole) {
-        val staff = plant?.registeredUsers?.values.orEmpty()
+    val staffOptions = remember(plant?.personal_de_planta, normalizedUserRole) {
+        val staff = plant?.personal_de_planta?.values.orEmpty()
         val roleFiltered = when {
             normalizedUserRole == null -> staff
             normalizedUserRole in normalizedSupervisorRoles -> staff
@@ -411,6 +413,7 @@ private fun EmptyPlantCard(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun StaffLinkDialog(
     plantName: String,
@@ -458,21 +461,14 @@ private fun StaffLinkDialog(
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(text = stringResource(id = R.string.plant_staff_link_message))
 
-                Box {
+                ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
                     OutlinedTextField(
                         value = selectedStaff?.readableName().orEmpty(),
                         onValueChange = {},
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { expanded = true },
+                        modifier = Modifier.fillMaxWidth().menuAnchor(),
                         label = { Text(text = stringResource(id = R.string.plant_staff_link_field_label)) },
                         readOnly = true,
-                        trailingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.ArrowDropDown,
-                                contentDescription = stringResource(id = R.string.plant_staff_link_field_label)
-                            )
-                        },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                         colors = TextFieldDefaults.colors(
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White,
@@ -486,7 +482,7 @@ private fun StaffLinkDialog(
                         )
                     )
 
-                    DropdownMenu(
+                    ExposedDropdownMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false }
                     ) {
@@ -599,7 +595,7 @@ private fun MyPlantScreenPreview() {
         plant = samplePlant,
         isLoading = false,
         isLoadingMembership = false,
-        currentUserProfile = UserProfile(name = "Elena", role = "Enfermera"),
+        currentUserProfile = UserProfile(firstName = "Elena", role = "Enfermera"),
         plantMembership = null,
         isLinkingStaff = false,
         errorMessage = null,

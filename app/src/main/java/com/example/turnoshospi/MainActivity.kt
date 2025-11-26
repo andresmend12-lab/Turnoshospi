@@ -258,8 +258,21 @@ class MainActivity : ComponentActivity() {
             .child(userId)
             .get()
             .addOnSuccessListener { snapshot ->
-                val legacyValue = snapshot.getValue(String::class.java)
-                if (legacyValue != null) {
+                if (!snapshot.exists()) {
+                    onResult(null)
+                    return@addOnSuccessListener
+                }
+
+                if (snapshot.hasChildren()) {
+                    val membership = PlantMembership(
+                        plantId = snapshot.child("plantId").getValue(String::class.java) ?: plantId,
+                        userId = userId,
+                        staffId = snapshot.child("staffId").getValue(String::class.java),
+                        staffName = snapshot.child("staffName").getValue(String::class.java),
+                        staffRole = snapshot.child("staffRole").getValue(String::class.java)
+                    )
+                    onResult(membership)
+                } else {
                     onResult(
                         PlantMembership(
                             plantId = plantId,
@@ -269,22 +282,7 @@ class MainActivity : ComponentActivity() {
                             staffRole = null
                         )
                     )
-                    return@addOnSuccessListener
                 }
-
-                if (!snapshot.exists()) {
-                    onResult(null)
-                    return@addOnSuccessListener
-                }
-
-                val membership = PlantMembership(
-                    plantId = snapshot.child("plantId").getValue(String::class.java) ?: plantId,
-                    userId = userId,
-                    staffId = snapshot.child("staffId").getValue(String::class.java),
-                    staffName = snapshot.child("staffName").getValue(String::class.java),
-                    staffRole = snapshot.child("staffRole").getValue(String::class.java)
-                )
-                onResult(membership)
             }
             .addOnFailureListener { onResult(null) }
     }
@@ -350,7 +348,7 @@ class MainActivity : ComponentActivity() {
         realtimeDatabase.reference
             .child("plants")
             .child(cleanPlantId)
-            .child("registeredUsers")
+            .child("personal_de_planta")
             .child(staffMember.id)
             .setValue(staffMember)
             .addOnSuccessListener { onResult(true) }
@@ -451,18 +449,18 @@ fun DataSnapshot.toPlant(): Plant? {
         label to value
     }.toMap()
 
-        val registeredUsers = child("registeredUsers").children.mapNotNull { userSnapshot ->
-            val userId = userSnapshot.key ?: return@mapNotNull null
-            val registeredUser = userSnapshot.getValue(RegisteredUser::class.java)
-                ?: RegisteredUser(
-                    id = userId,
-                    name = userSnapshot.child("name").getValue(String::class.java).orEmpty(),
-                    role = userSnapshot.child("role").getValue(String::class.java).orEmpty(),
-                    email = userSnapshot.child("email").getValue(String::class.java).orEmpty(),
-                    profileType = userSnapshot.child("profileType").getValue(String::class.java).orEmpty()
-                )
-            userId to registeredUser
-        }.toMap()
+    val personalDePlanta = child("personal_de_planta").children.mapNotNull { userSnapshot ->
+        val userId = userSnapshot.key ?: return@mapNotNull null
+        val registeredUser = userSnapshot.getValue(RegisteredUser::class.java)
+            ?: RegisteredUser(
+                id = userId,
+                name = userSnapshot.child("name").getValue(String::class.java).orEmpty(),
+                role = userSnapshot.child("role").getValue(String::class.java).orEmpty(),
+                email = userSnapshot.child("email").getValue(String::class.java).orEmpty(),
+                profileType = userSnapshot.child("profileType").getValue(String::class.java).orEmpty()
+            )
+        userId to registeredUser
+    }.toMap()
 
     return Plant(
         id = child("id").getValue(String::class.java) ?: key.orEmpty(),
@@ -476,7 +474,7 @@ fun DataSnapshot.toPlant(): Plant? {
         staffRequirements = staffRequirements,
         createdAt = child("createdAt").getValue(Long::class.java) ?: 0L,
         accessPassword = child("accessPassword").getValue(String::class.java) ?: "",
-        registeredUsers = registeredUsers
+        personal_de_planta = personalDePlanta
     )
 }
 

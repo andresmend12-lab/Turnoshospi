@@ -144,7 +144,7 @@ fun PlantDetailScreen(
     }
     val allowAuxStaffScope = plant?.staffScope == stringResource(id = R.string.staff_scope_with_aux)
 
-    val plantStaff = plant?.registeredUsers?.values.orEmpty()
+    val plantStaff = plant?.personal_de_planta?.values.orEmpty()
     val nurseStaff = remember(plantStaff, normalizedNurseRoles) {
         plantStaff.filter { member -> member.isNurseRole(normalizedNurseRoles) }
     }
@@ -522,7 +522,7 @@ private fun PlantDetailScreenPreview() {
             nightShift to ShiftTime(start = "20:00", end = "08:00")
         ),
         staffRequirements = mapOf(dayShift to 2, nightShift to 2),
-        registeredUsers = mapOf(
+        personal_de_planta = mapOf(
             "n1" to RegisteredUser(
                 id = "n1",
                 name = "María Pérez",
