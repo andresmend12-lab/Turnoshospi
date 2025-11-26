@@ -658,7 +658,13 @@ private fun ShiftAssignmentsSection(
         }
 
         orderedShiftEntries.forEach { (shiftName, timing) ->
-            val requirement = plant.staffRequirements[shiftName] ?: 0
+            val nurseRequirement = plant.staffRequirements[shiftName] ?: 0
+            val auxRequirement = if (allowAux) {
+                val requestedAuxSlots = plant.staffRequirements[shiftName] ?: 0
+                if (requestedAuxSlots > 0) requestedAuxSlots else auxOptions.size.coerceAtLeast(1)
+            } else {
+                0
+            }
             val state = assignments.getOrPut(shiftName) {
                 ShiftAssignmentState(
                     nurseNames = mutableStateListOf(),
@@ -667,9 +673,11 @@ private fun ShiftAssignmentsSection(
                 )
             }
 
-            ensureSize(state.nurseNames, requirement.coerceAtLeast(1))
-            if (allowAux) {
-                ensureSize(state.auxNames, requirement.coerceAtLeast(1))
+            ensureSize(state.nurseNames, nurseRequirement.coerceAtLeast(1))
+            if (auxRequirement > 0) {
+                ensureSize(state.auxNames, auxRequirement)
+            } else {
+                state.auxNames.clear()
             }
 
             Card(
@@ -698,7 +706,7 @@ private fun ShiftAssignmentsSection(
                         text = stringResource(
                             id = R.string.plant_staff_requirement_item,
                             shiftName,
-                            requirement
+                            nurseRequirement
                         ),
                         color = Color(0xCCFFFFFF),
                         style = MaterialTheme.typography.bodySmall
@@ -713,7 +721,8 @@ private fun ShiftAssignmentsSection(
                                 enabled = isSupervisor,
                                 onOptionSelected = { selection ->
                                     state.nurseNames[index] = selection
-                                }
+                                },
+                                includeUnassigned = true
                             )
                         }
 
@@ -727,7 +736,8 @@ private fun ShiftAssignmentsSection(
                                     enabled = isSupervisor,
                                     onOptionSelected = { selection ->
                                         state.auxNames[index] = selection
-                                    }
+                                    },
+                                    includeUnassigned = true
                                 )
                             }
                         }
