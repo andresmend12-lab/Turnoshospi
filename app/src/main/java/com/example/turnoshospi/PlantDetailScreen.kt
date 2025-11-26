@@ -727,22 +727,13 @@ private fun ShiftAssignmentsSection(
                             val nurseHalfDayLabel = stringResource(id = R.string.nurse_half_day_label)
                             if (isSupervisor) {
                                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    Box {
-                                        StaffDropdownField(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(end = 52.dp),
-                                            label = if (slot.hasHalfDay) nurseHalfDayLabel else nurseLabel,
-                                            selectedValue = slot.primaryName,
-                                            options = nurseOptions,
-                                            enabled = true,
-                                            onOptionSelected = { selection ->
-                                                state.nurseSlots[index] = state.nurseSlots[index].copy(primaryName = selection)
-                                            },
-                                            includeUnassigned = true
-                                        )
+                                    val halfDayIndent = 52.dp + 8.dp
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
                                         Switch(
-                                            modifier = Modifier.align(Alignment.CenterEnd),
+                                            modifier = Modifier.width(52.dp),
                                             checked = slot.hasHalfDay,
                                             onCheckedChange = { checked ->
                                                 state.nurseSlots[index] = state.nurseSlots[index].copy(
@@ -762,11 +753,24 @@ private fun ShiftAssignmentsSection(
                                                 )
                                             }
                                         )
+                                        StaffDropdownField(
+                                            modifier = Modifier.weight(1f),
+                                            label = if (slot.hasHalfDay) nurseHalfDayLabel else nurseLabel,
+                                            selectedValue = slot.primaryName,
+                                            options = nurseOptions,
+                                            enabled = true,
+                                            onOptionSelected = { selection ->
+                                                state.nurseSlots[index] = state.nurseSlots[index].copy(primaryName = selection)
+                                            },
+                                            includeUnassigned = true
+                                        )
                                     }
 
                                     if (slot.hasHalfDay) {
                                         StaffDropdownField(
-                                            modifier = Modifier.fillMaxWidth(),
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(start = halfDayIndent),
                                             label = nurseHalfDayLabel,
                                             selectedValue = slot.secondaryName,
                                             options = nurseOptions,
@@ -795,22 +799,13 @@ private fun ShiftAssignmentsSection(
                                 val auxHalfDayLabel = stringResource(id = R.string.aux_half_day_label)
                                 if (isSupervisor) {
                                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                        Box {
-                                            StaffDropdownField(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(end = 52.dp),
-                                                label = if (slot.hasHalfDay) auxHalfDayLabel else auxLabel,
-                                                selectedValue = slot.primaryName,
-                                                options = auxOptions,
-                                                enabled = true,
-                                                onOptionSelected = { selection ->
-                                                    state.auxSlots[index] = state.auxSlots[index].copy(primaryName = selection)
-                                                },
-                                                includeUnassigned = true
-                                            )
+                                        val halfDayIndent = 52.dp + 8.dp
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
                                             Switch(
-                                                modifier = Modifier.align(Alignment.CenterEnd),
+                                                modifier = Modifier.width(52.dp),
                                                 checked = slot.hasHalfDay,
                                                 onCheckedChange = { checked ->
                                                     state.auxSlots[index] = state.auxSlots[index].copy(
@@ -830,11 +825,24 @@ private fun ShiftAssignmentsSection(
                                                     )
                                                 }
                                             )
+                                            StaffDropdownField(
+                                                modifier = Modifier.weight(1f),
+                                                label = if (slot.hasHalfDay) auxHalfDayLabel else auxLabel,
+                                                selectedValue = slot.primaryName,
+                                                options = auxOptions,
+                                                enabled = true,
+                                                onOptionSelected = { selection ->
+                                                    state.auxSlots[index] = state.auxSlots[index].copy(primaryName = selection)
+                                                },
+                                                includeUnassigned = true
+                                            )
                                         }
 
                                         if (slot.hasHalfDay) {
                                             StaffDropdownField(
-                                                modifier = Modifier.fillMaxWidth(),
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(start = halfDayIndent),
                                                 label = auxHalfDayLabel,
                                                 selectedValue = slot.secondaryName,
                                                 options = auxOptions,
