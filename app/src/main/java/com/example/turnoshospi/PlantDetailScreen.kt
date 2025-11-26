@@ -765,6 +765,7 @@ private fun ShiftAssignmentsSection(
 
                                     if (slot.hasHalfDay) {
                                         StaffDropdownField(
+                                            modifier = Modifier.fillMaxWidth(),
                                             label = nurseLabel + " - Media jornada",
                                             selectedValue = slot.secondaryName,
                                             options = nurseOptions,
@@ -830,6 +831,7 @@ private fun ShiftAssignmentsSection(
 
                                         if (slot.hasHalfDay) {
                                             StaffDropdownField(
+                                                modifier = Modifier.fillMaxWidth(),
                                                 label = auxLabel + " - Media jornada",
                                                 selectedValue = slot.secondaryName,
                                                 options = auxOptions,
