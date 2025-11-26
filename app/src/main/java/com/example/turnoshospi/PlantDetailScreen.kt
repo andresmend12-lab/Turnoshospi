@@ -18,7 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -26,7 +26,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerState
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -248,7 +248,7 @@ fun PlantDetailScreen(
                             }
                             IconButton(onClick = onBack) {
                                 Icon(
-                                    imageVector = Icons.Default.ArrowBack,
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                     contentDescription = stringResource(id = R.string.close_label),
                                     tint = Color.White
                                 )
@@ -601,7 +601,7 @@ private fun StaffListDialog(
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                             )
                         }
-                        Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
                     }
                 }
             }
@@ -718,7 +718,7 @@ private fun ShiftAssignmentsSection(
                         }
 
                         if (allowAux) {
-                            Divider(color = Color(0x22FFFFFF))
+                            HorizontalDivider(color = Color(0x22FFFFFF))
                             state.auxNames.forEachIndexed { index, name ->
                                 StaffDropdownField(
                                     label = stringResource(id = R.string.aux_label, index + 1),
