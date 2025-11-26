@@ -138,10 +138,14 @@ fun PlantDetailScreen(
     }
 
     val nurseOptions = remember(nurseStaff) {
-        nurseStaff.map { it.name }.filter { it.isNotBlank() }.sorted()
+        nurseStaff
+            .map { member -> member.name.ifBlank { member.email.ifBlank { nurseRole } } }
+            .sorted()
     }
     val auxOptions = remember(auxStaff) {
-        auxStaff.map { it.name }.filter { it.isNotBlank() }.sorted()
+        auxStaff
+            .map { member -> member.name.ifBlank { member.email.ifBlank { auxRole } } }
+            .sorted()
     }
 
     var showAddStaffDialog by remember { mutableStateOf(false) }
@@ -624,7 +628,10 @@ private fun ShiftAssignmentsSection(
     auxOptions: List<String>,
     onSelfAssign: (String, ShiftAssignmentState) -> Unit
 ) {
-    val allowAux = plant.staffScope == stringResource(id = R.string.staff_scope_with_aux) || auxOptions.isNotEmpty()
+    val allowAux = plant.staffScope.normalizedRole() ==
+        stringResource(id = R.string.staff_scope_with_aux).normalizedRole() ||
+        plant.staffScope.contains("aux", ignoreCase = true) ||
+        auxOptions.isNotEmpty()
 
     Column(
         modifier = Modifier.fillMaxWidth(),
