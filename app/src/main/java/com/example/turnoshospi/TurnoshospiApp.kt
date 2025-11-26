@@ -73,6 +73,8 @@ fun TurnoshospiApp(
     onSaveProfile: (UserProfile, (Boolean) -> Unit) -> Unit,
     onLoadPlant: (onResult: (Plant?, String?) -> Unit) -> Unit,
     onJoinPlant: (String, String, UserProfile?, (Boolean, String?) -> Unit) -> Unit,
+    onLoadPlantMembership: (String, String, (PlantMembership?) -> Unit) -> Unit,
+    onLinkUserToStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
     onRegisterPlantStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
     onSignOut: () -> Unit
 ) {
@@ -87,7 +89,10 @@ fun TurnoshospiApp(
     var currentScreen by remember { mutableStateOf(AppScreen.MainMenu) }
     var lastCreatedPlantCredentials by remember { mutableStateOf<PlantCredentials?>(null) }
     var userPlant by remember { mutableStateOf<Plant?>(null) }
+    var plantMembership by remember { mutableStateOf<PlantMembership?>(null) }
     var isLoadingPlant by remember { mutableStateOf(false) }
+    var isLoadingMembership by remember { mutableStateOf(false) }
+    var isLinkingStaff by remember { mutableStateOf(false) }
     var plantError by remember { mutableStateOf<String?>(null) }
     var selectedPlantForDetail by remember { mutableStateOf<Plant?>(null) }
     val coroutineScope = rememberCoroutineScope()
@@ -100,10 +105,21 @@ fun TurnoshospiApp(
     val refreshUserPlant: () -> Unit = {
         plantError = null
         isLoadingPlant = true
+        isLoadingMembership = true
+        plantMembership = null
         onLoadPlant { plant, error ->
             userPlant = plant
             plantError = error
             isLoadingPlant = false
+            val uid = user?.uid
+            if (plant != null && uid != null) {
+                onLoadPlantMembership(plant.id, uid) { membership ->
+                    plantMembership = membership
+                    isLoadingMembership = false
+                }
+            } else {
+                isLoadingMembership = false
+            }
         }
     }
 
@@ -129,8 +145,10 @@ fun TurnoshospiApp(
             showRegistration = false
             isLoadingProfile = false
             userPlant = null
+            plantMembership = null
             plantError = null
             isLoadingPlant = false
+            isLoadingMembership = false
             currentScreen = AppScreen.MainMenu
         }
     }
@@ -281,7 +299,10 @@ fun TurnoshospiApp(
                     modifier = Modifier.fillMaxSize(),
                     plant = userPlant,
                     isLoading = isLoadingPlant,
+                    isLoadingMembership = isLoadingMembership,
+                    plantMembership = plantMembership,
                     errorMessage = plantError,
+                    isLinkingStaff = isLinkingStaff,
                     onBack = { currentScreen = AppScreen.MainMenu },
                     onRefresh = { refreshUserPlant() },
                     onOpenPlantDetail = { plant ->
@@ -294,6 +315,27 @@ fun TurnoshospiApp(
                                 plantError = message
                             }
                             onResult(success, message)
+                            if (success) {
+                                refreshUserPlant()
+                            }
+                        }
+                    },
+                    onLinkUserToStaff = { staff ->
+                        val plantId = userPlant?.id ?: return@MyPlantScreen
+                        isLinkingStaff = true
+                        onLinkUserToStaff(plantId, staff) { success ->
+                            if (success) {
+                                val uid = user?.uid.orEmpty()
+                                plantMembership = PlantMembership(
+                                    plantId = plantId,
+                                    userId = uid,
+                                    staffId = staff.id,
+                                    staffName = staff.name,
+                                    staffRole = staff.role
+                                )
+                                existingProfile = existingProfile?.copy(role = staff.role)
+                            }
+                            isLinkingStaff = false
                         }
                     }
                 )
@@ -423,6 +465,8 @@ fun SplashLoginPreview() {
             onSaveProfile = { _, _ -> },
             onLoadPlant = { onResult -> onResult(null, null) },
             onJoinPlant = { _, _, _, _ -> },
+            onLoadPlantMembership = { _, _, _ -> },
+            onLinkUserToStaff = { _, _, _ -> },
             onRegisterPlantStaff = { _, _, _ -> },
             onSignOut = {}
         )

@@ -1,6 +1,7 @@
 package com.example.turnoshospi
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,7 +15,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -30,6 +34,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,17 +55,43 @@ fun MyPlantScreen(
     modifier: Modifier = Modifier,
     plant: Plant?,
     isLoading: Boolean,
+    isLoadingMembership: Boolean,
+    plantMembership: PlantMembership?,
+    isLinkingStaff: Boolean,
     errorMessage: String?,
     onBack: () -> Unit,
     onRefresh: () -> Unit,
     onOpenPlantDetail: (Plant) -> Unit,
-    onJoinPlant: (String, String, (Boolean, String?) -> Unit) -> Unit
+    onJoinPlant: (String, String, (Boolean, String?) -> Unit) -> Unit,
+    onLinkUserToStaff: (RegisteredUser) -> Unit
 ) {
     var plantIdInput by remember { mutableStateOf("") }
     var invitationCode by remember { mutableStateOf("") }
     var joinError by remember { mutableStateOf<String?>(null) }
     var joinSuccess by remember { mutableStateOf(false) }
     var isJoining by remember { mutableStateOf(false) }
+    val staffOptions = remember(plant?.registeredUsers) {
+        plant?.registeredUsers?.values.orEmpty().sortedBy { it.name.lowercase() }
+    }
+    val resolvedMembership = remember(plantMembership, plant?.id) {
+        plantMembership?.takeIf { it.plantId == plant?.id }
+    }
+    var selectedStaffId by remember(plant?.id) { mutableStateOf(resolvedMembership?.staffId) }
+    var showStaffLinkDialog by remember(plant?.id, resolvedMembership?.staffId) { mutableStateOf(false) }
+    val shouldPromptLink = plant != null && !isLoading && !isLoadingMembership &&
+        resolvedMembership?.staffId == null && staffOptions.isNotEmpty()
+
+    LaunchedEffect(shouldPromptLink) {
+        if (shouldPromptLink) {
+            showStaffLinkDialog = true
+        }
+    }
+
+    LaunchedEffect(staffOptions) {
+        if (selectedStaffId == null && staffOptions.isNotEmpty()) {
+            selectedStaffId = staffOptions.first().id
+        }
+    }
 
     Scaffold(
         modifier = modifier,
@@ -113,7 +144,12 @@ fun MyPlantScreen(
             if (isLoading) {
                 PlantLoadingCard()
             } else if (plant != null) {
-                PlantInfoCard(plant = plant, onOpenPlantDetail = onOpenPlantDetail)
+                PlantInfoCard(
+                    plant = plant,
+                    membership = resolvedMembership,
+                    isMembershipLoading = isLoadingMembership,
+                    onOpenPlantDetail = onOpenPlantDetail
+                )
                 Button(
                     onClick = onRefresh,
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC))
@@ -156,10 +192,32 @@ fun MyPlantScreen(
             }
         }
     }
+
+    if (showStaffLinkDialog && shouldPromptLink) {
+        StaffLinkDialog(
+            plantName = plant?.name.orEmpty(),
+            staffOptions = staffOptions,
+            selectedStaffId = selectedStaffId,
+            isLinking = isLinkingStaff,
+            onStaffSelected = { selectedStaffId = it },
+            onConfirm = {
+                val chosen = staffOptions.firstOrNull { it.id == selectedStaffId }
+                if (chosen != null && !isLinkingStaff) {
+                    onLinkUserToStaff(chosen)
+                }
+            },
+            onDismiss = { showStaffLinkDialog = false }
+        )
+    }
 }
 
 @Composable
-private fun PlantInfoCard(plant: Plant, onOpenPlantDetail: (Plant) -> Unit) {
+private fun PlantInfoCard(
+    plant: Plant,
+    membership: PlantMembership?,
+    isMembershipLoading: Boolean,
+    onOpenPlantDetail: (Plant) -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
@@ -180,6 +238,40 @@ private fun PlantInfoCard(plant: Plant, onOpenPlantDetail: (Plant) -> Unit) {
                 text = stringResource(id = R.string.plant_hospital_only_label, plant.hospitalName),
                 color = Color(0xCCFFFFFF)
             )
+
+            if (isMembershipLoading) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.width(18.dp),
+                        color = Color(0xFF54C7EC),
+                        strokeWidth = 2.dp
+                    )
+                    Text(
+                        text = stringResource(id = R.string.plant_staff_lookup_message),
+                        color = Color(0xCCFFFFFF),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            } else if (!membership?.staffName.isNullOrBlank()) {
+                Text(
+                    text = stringResource(
+                        id = R.string.plant_staff_linked_label,
+                        membership?.staffName.orEmpty(),
+                        membership?.staffRole.orEmpty()
+                    ),
+                    color = Color(0xCCFFFFFF),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            } else {
+                Text(
+                    text = stringResource(id = R.string.plant_staff_link_prompt),
+                    color = Color(0x99FFFFFF),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
 
             Button(
                 onClick = { onOpenPlantDetail(plant) },
@@ -281,6 +373,108 @@ private fun EmptyPlantCard(
             }
         }
     }
+}
+
+@Composable
+private fun StaffLinkDialog(
+    plantName: String,
+    staffOptions: List<RegisteredUser>,
+    selectedStaffId: String?,
+    isLinking: Boolean,
+    onStaffSelected: (String) -> Unit,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val selectedStaff = staffOptions.firstOrNull { it.id == selectedStaffId }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                enabled = selectedStaff != null && !isLinking,
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC))
+            ) {
+                if (isLinking) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.width(18.dp),
+                        color = Color.Black,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(text = stringResource(id = R.string.plant_staff_link_confirm), color = Color.Black)
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = stringResource(id = R.string.close_label))
+            }
+        },
+        title = {
+            Text(
+                text = stringResource(id = R.string.plant_staff_link_title, plantName),
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(text = stringResource(id = R.string.plant_staff_link_message))
+
+                Box {
+                    OutlinedTextField(
+                        value = selectedStaff?.readableName().orEmpty(),
+                        onValueChange = {},
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { expanded = true },
+                        label = { Text(text = stringResource(id = R.string.plant_staff_link_field_label)) },
+                        readOnly = true,
+                        trailingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = stringResource(id = R.string.plant_staff_link_field_label)
+                            )
+                        },
+                        colors = TextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedIndicatorColor = Color(0xFF54C7EC),
+                            unfocusedIndicatorColor = Color(0x66FFFFFF),
+                            cursorColor = Color.White,
+                            focusedLabelColor = Color.White,
+                            unfocusedLabelColor = Color(0xCCFFFFFF),
+                            focusedContainerColor = Color(0x22FFFFFF),
+                            unfocusedContainerColor = Color(0x11FFFFFF)
+                        )
+                    )
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        staffOptions.forEach { staff ->
+                            DropdownMenuItem(
+                                text = { Text(text = staff.readableName()) },
+                                onClick = {
+                                    onStaffSelected(staff.id)
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        containerColor = Color(0xFF0F172A),
+        textContentColor = Color.White,
+        titleContentColor = Color.White
+    )
+}
+
+private fun RegisteredUser.readableName(): String {
+    return name.ifBlank { email.ifBlank { role.ifBlank { id } } }
 }
 
 @Composable

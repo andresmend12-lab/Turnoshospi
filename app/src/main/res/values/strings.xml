@@ -125,6 +125,13 @@
     <string name="plant_load_error">No se pudo cargar tu planta, intenta nuevamente.</string>
     <string name="staff_list_dialog_title">Personal de %1$s</string>
     <string name="staff_list_dialog_empty">Aún no hay personal registrado para esta planta.</string>
+    <string name="plant_staff_link_title">Elige tu perfil en %1$s</string>
+    <string name="plant_staff_link_message">Selecciona el registro de personal que te corresponde para vincular tu cuenta a esta planta.</string>
+    <string name="plant_staff_link_field_label">Personal de planta</string>
+    <string name="plant_staff_link_confirm">Vincular</string>
+    <string name="plant_staff_lookup_message">Buscando tu perfil de planta…</string>
+    <string name="plant_staff_linked_label">Vinculado como %1$s (%2$s)</string>
+    <string name="plant_staff_link_prompt">Vincula tu cuenta a un perfil de planta para mantener los datos sincronizados.</string>
     <string name="staff_identity_title">Tu perfil en la planta</string>
     <string name="staff_identity_label">Selecciona tu nombre en la lista</string>
     <string name="staff_identity_hint">El supervisor gestiona esta lista de personal.</string>

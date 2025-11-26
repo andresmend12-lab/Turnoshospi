@@ -58,6 +58,12 @@ class MainActivity : ComponentActivity() {
                     onJoinPlant = { plantId, code, profile, onResult ->
                         joinPlantWithCode(plantId, code, profile, onResult)
                     },
+                    onLoadPlantMembership = { plantId, userId, onResult ->
+                        loadPlantMembership(plantId, userId, onResult)
+                    },
+                    onLinkUserToStaff = { plantId, staff, onResult ->
+                        linkUserToPlantStaff(plantId, staff, onResult)
+                    },
                     onRegisterPlantStaff = { plantId, staffMember, onResult ->
                         registerPlantStaff(plantId, staffMember, onResult)
                     },
@@ -240,6 +246,49 @@ class MainActivity : ComponentActivity() {
             }
     }
 
+    private fun loadPlantMembership(
+        plantId: String,
+        userId: String,
+        onResult: (PlantMembership?) -> Unit
+    ) {
+        realtimeDatabase.reference
+            .child("plants")
+            .child(plantId)
+            .child("userPlants")
+            .child(userId)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val legacyValue = snapshot.getValue(String::class.java)
+                if (legacyValue != null) {
+                    onResult(
+                        PlantMembership(
+                            plantId = plantId,
+                            userId = userId,
+                            staffId = null,
+                            staffName = null,
+                            staffRole = null
+                        )
+                    )
+                    return@addOnSuccessListener
+                }
+
+                if (!snapshot.exists()) {
+                    onResult(null)
+                    return@addOnSuccessListener
+                }
+
+                val membership = PlantMembership(
+                    plantId = snapshot.child("plantId").getValue(String::class.java) ?: plantId,
+                    userId = userId,
+                    staffId = snapshot.child("staffId").getValue(String::class.java),
+                    staffName = snapshot.child("staffName").getValue(String::class.java),
+                    staffRole = snapshot.child("staffRole").getValue(String::class.java)
+                )
+                onResult(membership)
+            }
+            .addOnFailureListener { onResult(null) }
+    }
+
     private fun joinPlantWithCode(
         plantId: String,
         invitationCode: String,
@@ -269,10 +318,10 @@ class MainActivity : ComponentActivity() {
                     return@addOnSuccessListener
                 }
 
-        val updates = mapOf(
-            "plants/$cleanPlantId/userPlants/${user.uid}" to cleanPlantId,
-            "users/${user.uid}/plantId" to cleanPlantId
-        )
+                val updates = mapOf(
+                    "plants/$cleanPlantId/userPlants/${user.uid}/plantId" to cleanPlantId,
+                    "users/${user.uid}/plantId" to cleanPlantId
+                )
 
                 realtimeDatabase.reference
                     .updateChildren(updates)
@@ -304,6 +353,33 @@ class MainActivity : ComponentActivity() {
             .child("registeredUsers")
             .child(staffMember.id)
             .setValue(staffMember)
+            .addOnSuccessListener { onResult(true) }
+            .addOnFailureListener { onResult(false) }
+    }
+
+    private fun linkUserToPlantStaff(
+        plantId: String,
+        staffMember: RegisteredUser,
+        onResult: (Boolean) -> Unit
+    ) {
+        val user = auth.currentUser ?: run {
+            onResult(false)
+            return
+        }
+
+        val updates = mapOf(
+            "plants/$plantId/userPlants/${user.uid}/plantId" to plantId,
+            "plants/$plantId/userPlants/${user.uid}/staffId" to staffMember.id,
+            "plants/$plantId/userPlants/${user.uid}/staffName" to staffMember.name,
+            "plants/$plantId/userPlants/${user.uid}/staffRole" to staffMember.role,
+            "users/${user.uid}/plantId" to plantId,
+            "users/${user.uid}/plantStaffId" to staffMember.id,
+            "users/${user.uid}/role" to staffMember.role,
+            "users/${user.uid}/linkedStaffName" to staffMember.name
+        )
+
+        realtimeDatabase.reference
+            .updateChildren(updates)
             .addOnSuccessListener { onResult(true) }
             .addOnFailureListener { onResult(false) }
     }

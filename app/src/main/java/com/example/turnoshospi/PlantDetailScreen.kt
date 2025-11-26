@@ -100,6 +100,7 @@ fun PlantDetailScreen(
     plant: Plant?,
     datePickerState: DatePickerState,
     currentUserProfile: UserProfile?,
+    currentMembership: PlantMembership?,
     onBack: () -> Unit,
     onAddStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit
 ) {
@@ -132,7 +133,9 @@ fun PlantDetailScreen(
         stringResource(id = R.string.role_aux_female)
     )
     val normalizedAuxRoles = remember(auxRoles) { auxRoles.map { it.normalizedRole() } }
-    val isSupervisor = currentUserProfile?.role in supervisorRoles
+    val resolvedRole = currentMembership?.staffRole?.ifBlank { currentUserProfile?.role }
+        ?: currentUserProfile?.role
+    val isSupervisor = resolvedRole in supervisorRoles
     val assignmentsByDate = remember(plant?.id) {
         mutableStateMapOf<String, MutableMap<String, ShiftAssignmentState>>()
     }
@@ -549,6 +552,7 @@ private fun PlantDetailScreenPreview() {
             lastName = "Supervisor",
             role = stringResource(id = R.string.role_supervisor_female)
         ),
+        currentMembership = null,
         onBack = {},
         onAddStaff = { _, _, callback -> callback(true) }
     )
