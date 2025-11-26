@@ -96,7 +96,9 @@
     <string name="plant_role_option_half_day_request">Solicitar media jornada</string>
     <string name="plant_shifts_for_date">Turnos para %1$s</string>
     <string name="nurse_label">Enfermera/o %1$d</string>
+    <string name="nurse_half_day_label">Enfermero/a media jornada</string>
     <string name="aux_label">Auxiliar %1$d</string>
+    <string name="aux_half_day_label">Auxiliar media jornada</string>
     <string name="staff_unassigned_option">Sin asignar</string>
     <string name="half_day_readonly_label">Media jornada: %1$s</string>
     <string name="save_assignments_action">Guardar organización</string>

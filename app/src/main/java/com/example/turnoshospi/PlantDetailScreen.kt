@@ -724,15 +724,15 @@ private fun ShiftAssignmentsSection(
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         state.nurseSlots.forEachIndexed { index, slot ->
                             val nurseLabel = stringResource(id = R.string.nurse_label, index + 1)
+                            val nurseHalfDayLabel = stringResource(id = R.string.nurse_half_day_label)
                             if (isSupervisor) {
                                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
+                                    Box {
                                         StaffDropdownField(
-                                            modifier = Modifier.weight(1f),
-                                            label = nurseLabel,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(end = 52.dp),
+                                            label = if (slot.hasHalfDay) nurseHalfDayLabel else nurseLabel,
                                             selectedValue = slot.primaryName,
                                             options = nurseOptions,
                                             enabled = true,
@@ -742,6 +742,7 @@ private fun ShiftAssignmentsSection(
                                             includeUnassigned = true
                                         )
                                         Switch(
+                                            modifier = Modifier.align(Alignment.CenterEnd),
                                             checked = slot.hasHalfDay,
                                             onCheckedChange = { checked ->
                                                 state.nurseSlots[index] = state.nurseSlots[index].copy(
@@ -766,7 +767,7 @@ private fun ShiftAssignmentsSection(
                                     if (slot.hasHalfDay) {
                                         StaffDropdownField(
                                             modifier = Modifier.fillMaxWidth(),
-                                            label = nurseLabel + " - Media jornada",
+                                            label = nurseHalfDayLabel,
                                             selectedValue = slot.secondaryName,
                                             options = nurseOptions,
                                             enabled = true,
@@ -779,7 +780,8 @@ private fun ShiftAssignmentsSection(
                                 }
                             } else {
                                 ReadOnlyAssignmentRow(
-                                    label = nurseLabel,
+                                    label = if (slot.hasHalfDay) nurseHalfDayLabel else nurseLabel,
+                                    halfDayLabel = nurseHalfDayLabel,
                                     slot = slot,
                                     unassignedLabel = unassignedLabel
                                 )
@@ -790,15 +792,15 @@ private fun ShiftAssignmentsSection(
                             HorizontalDivider(color = Color(0x22FFFFFF))
                             state.auxSlots.forEachIndexed { index, slot ->
                                 val auxLabel = stringResource(id = R.string.aux_label, index + 1)
+                                val auxHalfDayLabel = stringResource(id = R.string.aux_half_day_label)
                                 if (isSupervisor) {
                                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                        ) {
+                                        Box {
                                             StaffDropdownField(
-                                                modifier = Modifier.weight(1f),
-                                                label = auxLabel,
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(end = 52.dp),
+                                                label = if (slot.hasHalfDay) auxHalfDayLabel else auxLabel,
                                                 selectedValue = slot.primaryName,
                                                 options = auxOptions,
                                                 enabled = true,
@@ -808,6 +810,7 @@ private fun ShiftAssignmentsSection(
                                                 includeUnassigned = true
                                             )
                                             Switch(
+                                                modifier = Modifier.align(Alignment.CenterEnd),
                                                 checked = slot.hasHalfDay,
                                                 onCheckedChange = { checked ->
                                                     state.auxSlots[index] = state.auxSlots[index].copy(
@@ -832,7 +835,7 @@ private fun ShiftAssignmentsSection(
                                         if (slot.hasHalfDay) {
                                             StaffDropdownField(
                                                 modifier = Modifier.fillMaxWidth(),
-                                                label = auxLabel + " - Media jornada",
+                                                label = auxHalfDayLabel,
                                                 selectedValue = slot.secondaryName,
                                                 options = auxOptions,
                                                 enabled = true,
@@ -845,7 +848,8 @@ private fun ShiftAssignmentsSection(
                                     }
                                 } else {
                                     ReadOnlyAssignmentRow(
-                                        label = auxLabel,
+                                        label = if (slot.hasHalfDay) auxHalfDayLabel else auxLabel,
+                                        halfDayLabel = auxHalfDayLabel,
                                         slot = slot,
                                         unassignedLabel = unassignedLabel
                                     )
@@ -962,7 +966,12 @@ private fun RegisteredUser.isAuxRole(normalizedRoles: List<String>): Boolean {
 }
 
 @Composable
-private fun ReadOnlyAssignmentRow(label: String, slot: SlotAssignment, unassignedLabel: String) {
+private fun ReadOnlyAssignmentRow(
+    label: String,
+    halfDayLabel: String,
+    slot: SlotAssignment,
+    unassignedLabel: String
+) {
     val primaryDisplay = slot.primaryName.ifBlank { unassignedLabel }
     val secondaryDisplay = if (slot.hasHalfDay) slot.secondaryName.ifBlank { unassignedLabel } else null
 
@@ -980,9 +989,15 @@ private fun ReadOnlyAssignmentRow(label: String, slot: SlotAssignment, unassigne
         )
         if (secondaryDisplay != null) {
             Text(
-                text = stringResource(id = R.string.half_day_readonly_label, secondaryDisplay),
+                text = halfDayLabel,
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xCCFFFFFF)
+                color = Color(0xCCFFFFFF),
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = secondaryDisplay,
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.White
             )
         }
     }
