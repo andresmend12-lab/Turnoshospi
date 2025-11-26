@@ -29,6 +29,9 @@ import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenu
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -44,9 +47,9 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.surfaceColorAtElevation
+import androidx.compose.material3.menuAnchor
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -67,8 +70,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.rememberDatePickerState
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -924,13 +925,13 @@ private fun StaffDropdownField(
     onOptionSelected: (String) -> Unit,
     includeUnassigned: Boolean = false
 ) {
+    // expanded toggles the dropdown visibility; keep state local for easier manual inspection
     var expanded by remember { mutableStateOf(false) }
     val unassignedLabel = stringResource(id = R.string.staff_unassigned_option)
     val displayValue = selectedValue.takeIf { it.isNotBlank() } ?: if (includeUnassigned) unassignedLabel else ""
     val menuOptions = remember(options, unassignedLabel, includeUnassigned) {
         if (includeUnassigned) listOf(unassignedLabel) + options else options
     }
-    val trailingIcon = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.ArrowDropDown
     val activeColors = OutlinedTextFieldDefaults.colors(
         focusedTextColor = Color.White,
         unfocusedTextColor = Color.White,
@@ -961,29 +962,28 @@ private fun StaffDropdownField(
         unfocusedContainerColor = Color(0x11FFFFFF),
         disabledContainerColor = Color(0x11FFFFFF)
     )
-
-    Box(modifier = Modifier.fillMaxWidth()) {
+    // Use ExposedDropdownMenuBox so any tap on the field or arrow reliably toggles the menu
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { shouldExpand -> if (enabled) expanded = shouldExpand }
+    ) {
         OutlinedTextField(
             modifier = Modifier
-                .fillMaxWidth()
-                .clickable(enabled = enabled) { expanded = true },
+                .menuAnchor()
+                .fillMaxWidth(),
             value = displayValue,
             onValueChange = {},
             readOnly = true,
             enabled = enabled,
             label = { Text(text = label) },
             trailingIcon = {
-                Icon(
-                    imageVector = trailingIcon,
-                    contentDescription = null,
-                    tint = if (enabled) Color.White else Color(0xCCFFFFFF)
-                )
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
             },
             colors = if (enabled) activeColors else inactiveColors,
             singleLine = true
         )
 
-        DropdownMenu(
+        ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
             modifier = Modifier.fillMaxWidth()
