@@ -766,39 +766,29 @@ private fun ShiftAssignmentsSection(
                                         },
                                         includeUnassigned = true
                                     )
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                    ) {
-                                        Text(
-                                            text = stringResource(id = R.string.plant_half_day_prompt),
-                                            color = Color.White,
-                                            style = MaterialTheme.typography.bodySmall
-                                        )
-                                        Switch(
-                                            checked = slot.hasHalfDay,
-                                            onCheckedChange = { checked ->
-                                                if (isSupervisor) {
-                                                    state.nurseSlots[index] = state.nurseSlots[index].copy(
-                                                        hasHalfDay = checked,
-                                                        secondaryName = if (checked) slot.secondaryName else ""
-                                                    )
-                                                }
-                                            },
-                                            enabled = isSupervisor,
-                                            thumbContent = {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .width(14.dp)
-                                                        .height(14.dp)
-                                                        .background(
-                                                            color = if (slot.hasHalfDay) Color(0xFF54C7EC) else Color.White,
-                                                            shape = CircleShape
-                                                        )
+                                    Switch(
+                                        checked = slot.hasHalfDay,
+                                        onCheckedChange = { checked ->
+                                            if (isSupervisor) {
+                                                state.nurseSlots[index] = state.nurseSlots[index].copy(
+                                                    hasHalfDay = checked,
+                                                    secondaryName = if (checked) slot.secondaryName else ""
                                                 )
                                             }
-                                        )
-                                    }
+                                        },
+                                        enabled = isSupervisor,
+                                        thumbContent = {
+                                            Box(
+                                                modifier = Modifier
+                                                    .width(14.dp)
+                                                    .height(14.dp)
+                                                    .background(
+                                                        color = if (slot.hasHalfDay) Color(0xFF54C7EC) else Color.White,
+                                                        shape = CircleShape
+                                                    )
+                                            )
+                                        }
+                                    )
                                 }
 
                                 if (slot.hasHalfDay) {
@@ -835,39 +825,29 @@ private fun ShiftAssignmentsSection(
                                             },
                                             includeUnassigned = true
                                         )
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                        ) {
-                                            Text(
-                                                text = stringResource(id = R.string.plant_half_day_prompt),
-                                                color = Color.White,
-                                                style = MaterialTheme.typography.bodySmall
-                                            )
-                                            Switch(
-                                                checked = slot.hasHalfDay,
-                                                onCheckedChange = { checked ->
-                                                    if (isSupervisor) {
-                                                        state.auxSlots[index] = state.auxSlots[index].copy(
-                                                            hasHalfDay = checked,
-                                                            secondaryName = if (checked) slot.secondaryName else ""
-                                                        )
-                                                    }
-                                                },
-                                                enabled = isSupervisor,
-                                                thumbContent = {
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .width(14.dp)
-                                                            .height(14.dp)
-                                                            .background(
-                                                                color = if (slot.hasHalfDay) Color(0xFF54C7EC) else Color.White,
-                                                                shape = CircleShape
-                                                            )
+                                        Switch(
+                                            checked = slot.hasHalfDay,
+                                            onCheckedChange = { checked ->
+                                                if (isSupervisor) {
+                                                    state.auxSlots[index] = state.auxSlots[index].copy(
+                                                        hasHalfDay = checked,
+                                                        secondaryName = if (checked) slot.secondaryName else ""
                                                     )
                                                 }
-                                            )
-                                        }
+                                            },
+                                            enabled = isSupervisor,
+                                            thumbContent = {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .width(14.dp)
+                                                        .height(14.dp)
+                                                        .background(
+                                                            color = if (slot.hasHalfDay) Color(0xFF54C7EC) else Color.White,
+                                                            shape = CircleShape
+                                                        )
+                                                )
+                                            }
+                                        )
                                     }
 
                                     if (slot.hasHalfDay) {
