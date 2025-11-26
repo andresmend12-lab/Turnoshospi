@@ -120,11 +120,7 @@ fun PlantDetailScreen(
     val assignments = remember(plant?.id) { mutableStateMapOf<String, ShiftAssignmentState>() }
     val allowAuxStaffScope = plant?.staffScope == stringResource(id = R.string.staff_scope_with_aux)
 
-    val plantStaff = plant?.registeredUsers?.values
-        ?.filter { member ->
-            member.profileType == "plant_staff" || (member.profileType.isBlank() && member.email.isBlank())
-        }
-        .orEmpty()
+    val plantStaff = plant?.registeredUsers?.values.orEmpty()
     var selectedStaffId by remember(plant?.id) { mutableStateOf<String?>(null) }
     val selectedStaffMember = remember(plantStaff, selectedStaffId) {
         plantStaff.firstOrNull { it.id == selectedStaffId }
@@ -139,12 +135,12 @@ fun PlantDetailScreen(
 
     val nurseOptions = remember(nurseStaff) {
         nurseStaff
-            .map { member -> member.name.ifBlank { member.email.ifBlank { nurseRole } } }
+            .map { member -> member.displayName(nurseRole) }
             .sorted()
     }
     val auxOptions = remember(auxStaff) {
         auxStaff
-            .map { member -> member.name.ifBlank { member.email.ifBlank { auxRole } } }
+            .map { member -> member.displayName(auxRole) }
             .sorted()
     }
 
@@ -517,7 +513,9 @@ private fun StaffIdentitySelector(
     onSelectStaff: (String?) -> Unit
 ) {
     val staffItems = remember(staff) {
-        staff.sortedBy { it.name.lowercase() }
+        staff
+            .map { member -> member to member.displayName(member.role) }
+            .sortedBy { (_, displayName) -> displayName.lowercase() }
     }
 
     Card(
@@ -546,12 +544,12 @@ private fun StaffIdentitySelector(
             } else {
                 StaffDropdownField(
                     label = stringResource(id = R.string.staff_identity_label),
-                    selectedValue = staffItems.firstOrNull { it.id == selectedStaffId }?.name
+                    selectedValue = staffItems.firstOrNull { it.first.id == selectedStaffId }?.second
                         ?: "",
-                    options = staffItems.map { it.name },
+                    options = staffItems.map { it.second },
                     enabled = true,
                     onOptionSelected = { selection ->
-                        val resolvedId = staffItems.firstOrNull { it.name == selection }?.id
+                        val resolvedId = staffItems.firstOrNull { it.second == selection }?.first?.id
                         onSelectStaff(resolvedId)
                     },
                     includeUnassigned = true
@@ -829,6 +827,12 @@ private fun assignStaffToShift(slots: MutableList<String>, staffName: String?) {
 }
 
 private fun String.normalizedRole(): String = trim().lowercase()
+
+private fun RegisteredUser.displayName(defaultRoleLabel: String): String {
+    if (name.isNotBlank()) return name
+    if (email.isNotBlank()) return email
+    return role.ifBlank { defaultRoleLabel }
+}
 
 private fun RegisteredUser.isNurseRole(normalizedRoles: List<String>): Boolean {
     val normalizedRole = role.normalizedRole()
