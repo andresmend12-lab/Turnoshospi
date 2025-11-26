@@ -1,6 +1,7 @@
 package com.example.turnoshospi
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,6 +25,7 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.ui.draw.rotate
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
@@ -42,6 +44,7 @@ import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -576,19 +579,32 @@ private fun StaffListDialog(
         staff.sortedBy { it.name.lowercase() }
     }
 
+    val dialogShape = RoundedCornerShape(20.dp)
+    val glassSurface = Color(0xEE0B1021)
+    val glassStroke = Color(0x33FFFFFF)
+
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF54C7EC))
+            ) {
                 Text(text = stringResource(id = R.string.close_label))
             }
         },
         title = {
-            Text(text = stringResource(id = R.string.staff_list_dialog_title, plantName))
+            Text(
+                text = stringResource(id = R.string.staff_list_dialog_title, plantName),
+                color = Color.White
+            )
         },
         text = {
             if (sortedStaff.isEmpty()) {
-                Text(text = stringResource(id = R.string.staff_list_dialog_empty))
+                Text(
+                    text = stringResource(id = R.string.staff_list_dialog_empty),
+                    color = Color.White
+                )
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     sortedStaff.forEach { member ->
@@ -596,23 +612,25 @@ private fun StaffListDialog(
                             Text(
                                 text = member.name,
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = Color.White
                             )
                             Text(
                                 text = member.role,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                color = Color.White.copy(alpha = 0.7f)
                             )
                         }
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+                        HorizontalDivider(color = Color.White.copy(alpha = 0.2f))
                     }
                 }
             }
         },
-        containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
-        tonalElevation = 6.dp,
-        textContentColor = MaterialTheme.colorScheme.onSurface,
-        titleContentColor = MaterialTheme.colorScheme.onSurface
+        shape = dialogShape,
+        modifier = Modifier.border(1.dp, glassStroke, dialogShape),
+        containerColor = glassSurface,
+        tonalElevation = 0.dp,
+        textContentColor = Color.White,
+        titleContentColor = Color.White
     )
 }
 
@@ -861,15 +879,44 @@ private fun AddStaffDialog(
         stringResource(id = R.string.role_aux_generic)
     )
 
+    val dialogShape = RoundedCornerShape(20.dp)
+    val glassSurface = Color(0xEE0B1021)
+    val glassStroke = Color(0x33FFFFFF)
+    val fieldColors = OutlinedTextFieldDefaults.colors(
+        focusedTextColor = Color.White,
+        unfocusedTextColor = Color.White,
+        cursorColor = Color.White,
+        focusedBorderColor = Color(0xFF54C7EC),
+        unfocusedBorderColor = Color(0x66FFFFFF),
+        focusedLabelColor = Color.White,
+        unfocusedLabelColor = Color(0xCCFFFFFF),
+        focusedContainerColor = Color(0x22FFFFFF),
+        unfocusedContainerColor = Color(0x11FFFFFF)
+    )
+
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
-            Button(onClick = onConfirm, enabled = !isSaving) {
-                Text(text = stringResource(id = R.string.staff_dialog_save_action))
+            Button(
+                onClick = onConfirm,
+                enabled = !isSaving,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF1E293B),
+                    contentColor = Color.White
+                )
+            ) {
+                Text(
+                    text = stringResource(id = R.string.staff_dialog_save_action),
+                    color = Color.White
+                )
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss, enabled = !isSaving) {
+            TextButton(
+                onClick = onDismiss,
+                enabled = !isSaving,
+                colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF54C7EC))
+            ) {
                 Text(text = stringResource(id = R.string.cancel_label))
             }
         },
@@ -880,12 +927,15 @@ private fun AddStaffDialog(
                     value = staffName,
                     onValueChange = onStaffNameChange,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(id = R.string.staff_dialog_name_label)) }
+                    label = { Text(text = stringResource(id = R.string.staff_dialog_name_label)) },
+                    colors = fieldColors,
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.White)
                 )
 
                 Text(
                     text = stringResource(id = R.string.staff_dialog_role_label),
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = Color.White,
+                    style = MaterialTheme.typography.bodyMedium
                 )
                 roleOptions.forEach { option ->
                     Row(
@@ -895,9 +945,17 @@ private fun AddStaffDialog(
                     ) {
                         RadioButton(
                             selected = staffRole == option,
-                            onClick = { onStaffRoleChange(option) }
+                            onClick = { onStaffRoleChange(option) },
+                            colors = RadioButtonDefaults.colors(
+                                selectedColor = Color(0xFF54C7EC),
+                                unselectedColor = Color.White
+                            )
                         )
-                        Text(text = option, color = MaterialTheme.colorScheme.onSurface)
+                        Text(
+                            text = option,
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                     }
                 }
 
@@ -906,10 +964,12 @@ private fun AddStaffDialog(
                 }
             }
         },
-        containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
-        tonalElevation = 6.dp,
-        textContentColor = MaterialTheme.colorScheme.onSurface,
-        titleContentColor = MaterialTheme.colorScheme.onSurface
+        shape = dialogShape,
+        modifier = Modifier.border(1.dp, glassStroke, dialogShape),
+        containerColor = glassSurface,
+        tonalElevation = 0.dp,
+        textContentColor = Color.White,
+        titleContentColor = Color.White
     )
 }
 
@@ -990,21 +1050,31 @@ private fun StaffDropdownField(
             singleLine = true
         )
 
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            menuOptions.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(text = option) },
-                    onClick = {
-                        val resolvedSelection = if (option == unassignedLabel) "" else option
-                        onOptionSelected(resolvedSelection)
-                        expanded = false
-                    }
-                )
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.fillMaxWidth(),
+                containerColor = Color(0xF00B1021),
+                tonalElevation = 0.dp,
+                shadowElevation = 10.dp,
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                menuOptions.forEach { option ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = option,
+                                color = Color.White,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        },
+                        onClick = {
+                            val resolvedSelection = if (option == unassignedLabel) "" else option
+                            onOptionSelected(resolvedSelection)
+                            expanded = false
+                        }
+                    )
+                }
             }
-        }
     }
 }
