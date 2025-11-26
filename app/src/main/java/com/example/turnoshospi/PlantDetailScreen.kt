@@ -938,8 +938,10 @@ private fun saveShiftAssignments(
     }
 
     database.reference
-        .child("turnos-$dateKey")
+        .child("plants")
         .child(plantId)
+        .child("turnos")
+        .child("turnos-$dateKey")
         .setValue(payload)
 }
 

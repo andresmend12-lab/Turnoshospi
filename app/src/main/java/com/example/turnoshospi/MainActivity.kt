@@ -209,8 +209,9 @@ class MainActivity : ComponentActivity() {
             return
         }
 
-        realtimeDatabase.getReference("userPlants")
+        realtimeDatabase.getReference("users")
             .child(user.uid)
+            .child("plantId")
             .get()
             .addOnSuccessListener { mappingSnapshot ->
                 val plantId = mappingSnapshot.getValue(String::class.java)
@@ -269,7 +270,7 @@ class MainActivity : ComponentActivity() {
                 }
 
         val updates = mapOf(
-            "userPlants/${user.uid}" to cleanPlantId,
+            "plants/$cleanPlantId/userPlants/${user.uid}" to cleanPlantId,
             "users/${user.uid}/plantId" to cleanPlantId
         )
 
