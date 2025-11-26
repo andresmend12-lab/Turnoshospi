@@ -127,10 +127,12 @@ fun PlantDetailScreen(
     }
 
     val nurseStaff = remember(plantStaff, normalizedNurseRoles) {
-        plantStaff.filter { member -> member.isNurseRole(normalizedNurseRoles) }
+        val roleMatches = plantStaff.filter { member -> member.isNurseRole(normalizedNurseRoles) }
+        if (roleMatches.isNotEmpty()) roleMatches else plantStaff
     }
     val auxStaff = remember(plantStaff, normalizedAuxRoles) {
-        plantStaff.filter { member -> member.isAuxRole(normalizedAuxRoles) }
+        val roleMatches = plantStaff.filter { member -> member.isAuxRole(normalizedAuxRoles) }
+        if (roleMatches.isNotEmpty()) roleMatches else plantStaff
     }
 
     val nurseOptions = remember(nurseStaff) {
