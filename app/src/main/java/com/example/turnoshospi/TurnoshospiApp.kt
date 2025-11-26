@@ -300,6 +300,7 @@ fun TurnoshospiApp(
                     plant = userPlant,
                     isLoading = isLoadingPlant,
                     isLoadingMembership = isLoadingMembership,
+                    currentUserProfile = existingProfile,
                     plantMembership = plantMembership,
                     errorMessage = plantError,
                     isLinkingStaff = isLinkingStaff,

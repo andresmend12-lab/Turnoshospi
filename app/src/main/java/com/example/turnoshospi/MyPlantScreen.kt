@@ -59,6 +59,7 @@ fun MyPlantScreen(
     plant: Plant?,
     isLoading: Boolean,
     isLoadingMembership: Boolean,
+    currentUserProfile: UserProfile?,
     plantMembership: PlantMembership?,
     isLinkingStaff: Boolean,
     errorMessage: String?,
@@ -73,8 +74,36 @@ fun MyPlantScreen(
     var joinError by remember { mutableStateOf<String?>(null) }
     var joinSuccess by remember { mutableStateOf(false) }
     var isJoining by remember { mutableStateOf(false) }
-    val staffOptions = remember(plant?.registeredUsers) {
-        plant?.registeredUsers?.values.orEmpty().sortedBy { it.name.lowercase() }
+    val supervisorRoles = listOf(
+        stringResource(id = R.string.role_supervisor_male),
+        stringResource(id = R.string.role_supervisor_female)
+    )
+    val nurseRoles = listOf(
+        stringResource(id = R.string.role_nurse_generic),
+        stringResource(id = R.string.role_nurse_male),
+        stringResource(id = R.string.role_nurse_female)
+    )
+    val auxRoles = listOf(
+        stringResource(id = R.string.role_aux_generic),
+        stringResource(id = R.string.role_aux_male),
+        stringResource(id = R.string.role_aux_female)
+    )
+    val normalizedSupervisorRoles = remember(supervisorRoles) { supervisorRoles.map { it.normalizedRole() } }
+    val normalizedNurseRoles = remember(nurseRoles) { nurseRoles.map { it.normalizedRole() } }
+    val normalizedAuxRoles = remember(auxRoles) { auxRoles.map { it.normalizedRole() } }
+    val resolvedRole = plantMembership?.staffRole?.ifBlank { currentUserProfile?.role } ?: currentUserProfile?.role
+    val normalizedUserRole = resolvedRole?.normalizedRole()
+    val isSupervisor = normalizedUserRole != null && normalizedUserRole in normalizedSupervisorRoles
+    val staffOptions = remember(plant?.registeredUsers, normalizedUserRole) {
+        val staff = plant?.registeredUsers?.values.orEmpty()
+        val roleFiltered = when {
+            normalizedUserRole == null -> staff
+            normalizedUserRole in normalizedSupervisorRoles -> staff
+            normalizedUserRole in normalizedNurseRoles -> staff.filter { it.isNurseRole(normalizedNurseRoles) }
+            normalizedUserRole in normalizedAuxRoles -> staff.filter { it.isAuxRole(normalizedAuxRoles) }
+            else -> staff
+        }
+        (roleFiltered.ifEmpty { staff }).sortedBy { it.name.lowercase() }
     }
     val resolvedMembership = remember(plantMembership, plant?.id) {
         plantMembership?.takeIf { it.plantId == plant?.id }
@@ -82,7 +111,7 @@ fun MyPlantScreen(
     var selectedStaffId by remember(plant?.id) { mutableStateOf(resolvedMembership?.staffId) }
     var showStaffLinkDialog by remember(plant?.id, resolvedMembership?.staffId) { mutableStateOf(false) }
     val shouldPromptLink = plant != null && !isLoading && !isLoadingMembership &&
-        resolvedMembership?.staffId == null && staffOptions.isNotEmpty()
+        resolvedMembership?.staffId == null && staffOptions.isNotEmpty() && !isSupervisor
 
     LaunchedEffect(shouldPromptLink) {
         if (shouldPromptLink) {
@@ -151,6 +180,7 @@ fun MyPlantScreen(
                     plant = plant,
                     membership = resolvedMembership,
                     isMembershipLoading = isLoadingMembership,
+                    isSupervisor = isSupervisor,
                     onOpenPlantDetail = onOpenPlantDetail
                 )
                 Button(
@@ -219,6 +249,7 @@ private fun PlantInfoCard(
     plant: Plant,
     membership: PlantMembership?,
     isMembershipLoading: Boolean,
+    isSupervisor: Boolean,
     onOpenPlantDetail: (Plant) -> Unit
 ) {
     Card(
@@ -242,38 +273,40 @@ private fun PlantInfoCard(
                 color = Color(0xCCFFFFFF)
             )
 
-            if (isMembershipLoading) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.width(18.dp),
-                        color = Color(0xFF54C7EC),
-                        strokeWidth = 2.dp
-                    )
+            if (!isSupervisor) {
+                if (isMembershipLoading) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.width(18.dp),
+                            color = Color(0xFF54C7EC),
+                            strokeWidth = 2.dp
+                        )
+                        Text(
+                            text = stringResource(id = R.string.plant_staff_lookup_message),
+                            color = Color(0xCCFFFFFF),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                } else if (!membership?.staffName.isNullOrBlank()) {
                     Text(
-                        text = stringResource(id = R.string.plant_staff_lookup_message),
+                        text = stringResource(
+                            id = R.string.plant_staff_linked_label,
+                            membership?.staffName.orEmpty(),
+                            membership?.staffRole.orEmpty()
+                        ),
                         color = Color(0xCCFFFFFF),
                         style = MaterialTheme.typography.bodyMedium
                     )
+                } else {
+                    Text(
+                        text = stringResource(id = R.string.plant_staff_link_prompt),
+                        color = Color(0x99FFFFFF),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
-            } else if (!membership?.staffName.isNullOrBlank()) {
-                Text(
-                    text = stringResource(
-                        id = R.string.plant_staff_linked_label,
-                        membership?.staffName.orEmpty(),
-                        membership?.staffRole.orEmpty()
-                    ),
-                    color = Color(0xCCFFFFFF),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            } else {
-                Text(
-                    text = stringResource(id = R.string.plant_staff_link_prompt),
-                    color = Color(0x99FFFFFF),
-                    style = MaterialTheme.typography.bodyMedium
-                )
             }
 
             Button(
@@ -533,6 +566,18 @@ private fun InfoMessageCard(message: String, isError: Boolean = false) {
     }
 }
 
+private fun String.normalizedRole(): String = trim().lowercase()
+
+private fun RegisteredUser.isNurseRole(normalizedRoles: List<String>): Boolean {
+    val normalizedRole = role.normalizedRole()
+    return normalizedRoles.any { normalizedRole == it } || normalizedRole.contains("enfermer")
+}
+
+private fun RegisteredUser.isAuxRole(normalizedRoles: List<String>): Boolean {
+    val normalizedRole = role.normalizedRole()
+    return normalizedRoles.any { normalizedRole == it } || normalizedRole.contains("auxiliar")
+}
+
 @Preview(showBackground = true, backgroundColor = 0xFF0F172A)
 @Composable
 private fun MyPlantScreenPreview() {
@@ -554,6 +599,7 @@ private fun MyPlantScreenPreview() {
         plant = samplePlant,
         isLoading = false,
         isLoadingMembership = false,
+        currentUserProfile = UserProfile(name = "Elena", role = "Enfermera"),
         plantMembership = null,
         isLinkingStaff = false,
         errorMessage = null,
