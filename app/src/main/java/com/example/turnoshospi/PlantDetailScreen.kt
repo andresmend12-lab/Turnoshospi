@@ -22,7 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.ui.draw.rotate
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -981,7 +981,9 @@ private fun StaffDropdownField(
                     onClick = { if (enabled) expanded = !expanded }
                 ) {
                     Icon(
-                        imageVector = if (expanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
+                        imageVector = Icons.Filled.ArrowDropDown,
+                        // rotate to indicate the expanded state without needing ArrowDropUp
+                        modifier = Modifier.rotate(if (expanded) 180f else 0f),
                         contentDescription = null
                     )
                 }
