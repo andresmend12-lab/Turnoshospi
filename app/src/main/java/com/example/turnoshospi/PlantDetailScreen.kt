@@ -78,11 +78,17 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
 import java.util.UUID
+import com.google.firebase.database.FirebaseDatabase
+
+private data class SlotAssignment(
+    var primaryName: String = "",
+    var secondaryName: String = "",
+    var hasHalfDay: Boolean = false
+)
 
 private data class ShiftAssignmentState(
-    val nurseNames: MutableList<String>,
-    val auxNames: MutableList<String>,
-    var halfDay: Boolean
+    val nurseSlots: MutableList<SlotAssignment>,
+    val auxSlots: MutableList<SlotAssignment>
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -97,6 +103,9 @@ fun PlantDetailScreen(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val database = remember {
+        FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
+    }
 
     val selectedDate = datePickerState.selectedDateMillis?.let { millis ->
         Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
@@ -121,7 +130,9 @@ fun PlantDetailScreen(
     )
     val normalizedAuxRoles = remember(auxRoles) { auxRoles.map { it.normalizedRole() } }
     val isSupervisor = currentUserProfile?.role in supervisorRoles
-    val assignments = remember(plant?.id) { mutableStateMapOf<String, ShiftAssignmentState>() }
+    val assignmentsByDate = remember(plant?.id) {
+        mutableStateMapOf<String, MutableMap<String, ShiftAssignmentState>>()
+    }
     val allowAuxStaffScope = plant?.staffScope == stringResource(id = R.string.staff_scope_with_aux)
 
     val plantStaff = plant?.registeredUsers?.values.orEmpty()
@@ -154,19 +165,6 @@ fun PlantDetailScreen(
     var staffName by remember { mutableStateOf("") }
     var staffRole by remember { mutableStateOf(nurseRole) }
     var addStaffError by remember { mutableStateOf<String?>(null) }
-
-    LaunchedEffect(plant?.shiftTimes) {
-        plant?.shiftTimes?.keys?.forEach { shift ->
-            assignments.putIfAbsent(
-                shift,
-                ShiftAssignmentState(
-                    nurseNames = mutableStateListOf(),
-                    auxNames = mutableStateListOf(),
-                    halfDay = false
-                )
-            )
-        }
-    }
 
     LaunchedEffect(plantStaff) {
         if (selectedStaffId == null && plantStaff.size == 1) {
@@ -342,6 +340,10 @@ fun PlantDetailScreen(
                     }
 
                     if (plant != null && selectedDate != null) {
+                        val dateKey = selectedDate.toString()
+                        val assignments = assignmentsByDate.getOrPut(dateKey) {
+                            mutableStateMapOf()
+                        }
                         if (!isSupervisor) {
                             StaffIdentitySelector(
                                 staff = plantStaff,
@@ -361,11 +363,20 @@ fun PlantDetailScreen(
                             onSelfAssign = { _, state ->
                                 val targetList = when {
                                     selectedStaffMember?.role == auxRole && allowAuxStaffScope ->
-                                        state.auxNames
+                                        state.auxSlots
 
-                                    else -> state.nurseNames
+                                    else -> state.nurseSlots
                                 }
                                 assignStaffToShift(targetList, selectedStaffMember?.name)
+                            },
+                            onSaveAssignments = { states ->
+                                saveShiftAssignments(
+                                    database = database,
+                                    plantId = plant.id,
+                                    dateKey = dateKey,
+                                    assignments = states,
+                                    unassignedLabel = stringResource(id = R.string.staff_unassigned_option)
+                                )
                             }
                         )
                     } else {
@@ -643,7 +654,8 @@ private fun ShiftAssignmentsSection(
     selectedStaffName: String?,
     nurseOptions: List<String>,
     auxOptions: List<String>,
-    onSelfAssign: (String, ShiftAssignmentState) -> Unit
+    onSelfAssign: (String, ShiftAssignmentState) -> Unit,
+    onSaveAssignments: (Map<String, ShiftAssignmentState>) -> Unit
 ) {
     val allowAux = plant.staffScope.normalizedRole() ==
         stringResource(id = R.string.staff_scope_with_aux).normalizedRole() ||
@@ -691,17 +703,16 @@ private fun ShiftAssignmentsSection(
             }
             val state = assignments.getOrPut(shiftName) {
                 ShiftAssignmentState(
-                    nurseNames = mutableStateListOf(),
-                    auxNames = mutableStateListOf(),
-                    halfDay = false
+                    nurseSlots = mutableStateListOf(),
+                    auxSlots = mutableStateListOf()
                 )
             }
 
-            ensureSize(state.nurseNames, nurseRequirement.coerceAtLeast(1))
+            ensureSlotSize(state.nurseSlots, nurseRequirement.coerceAtLeast(1))
             if (auxRequirement > 0) {
-                ensureSize(state.auxNames, auxRequirement)
+                ensureSlotSize(state.auxSlots, auxRequirement)
             } else {
-                state.auxNames.clear()
+                state.auxSlots.clear()
             }
 
             Card(
@@ -737,62 +748,142 @@ private fun ShiftAssignmentsSection(
                     )
 
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        state.nurseNames.forEachIndexed { index, name ->
-                            StaffDropdownField(
-                                label = stringResource(id = R.string.nurse_label, index + 1),
-                                selectedValue = name,
-                                options = nurseOptions,
-                                enabled = isSupervisor,
-                                onOptionSelected = { selection ->
-                                    state.nurseNames[index] = selection
-                                },
-                                includeUnassigned = true
-                            )
+                        state.nurseSlots.forEachIndexed { index, slot ->
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    StaffDropdownField(
+                                        modifier = Modifier.weight(1f),
+                                        label = stringResource(id = R.string.nurse_label, index + 1),
+                                        selectedValue = slot.primaryName,
+                                        options = nurseOptions,
+                                        enabled = isSupervisor,
+                                        onOptionSelected = { selection ->
+                                            state.nurseSlots[index] = state.nurseSlots[index].copy(primaryName = selection)
+                                        },
+                                        includeUnassigned = true
+                                    )
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        Text(
+                                            text = stringResource(id = R.string.plant_half_day_prompt),
+                                            color = Color.White,
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
+                                        Switch(
+                                            checked = slot.hasHalfDay,
+                                            onCheckedChange = { checked ->
+                                                if (isSupervisor) {
+                                                    state.nurseSlots[index] = state.nurseSlots[index].copy(
+                                                        hasHalfDay = checked,
+                                                        secondaryName = if (checked) slot.secondaryName else ""
+                                                    )
+                                                }
+                                            },
+                                            enabled = isSupervisor,
+                                            thumbContent = {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .width(14.dp)
+                                                        .height(14.dp)
+                                                        .background(
+                                                            color = if (slot.hasHalfDay) Color(0xFF54C7EC) else Color.White,
+                                                            shape = CircleShape
+                                                        )
+                                                )
+                                            }
+                                        )
+                                    }
+                                }
+
+                                if (slot.hasHalfDay) {
+                                    StaffDropdownField(
+                                        label = stringResource(id = R.string.nurse_label, index + 1) + " - Media jornada",
+                                        selectedValue = slot.secondaryName,
+                                        options = nurseOptions,
+                                        enabled = isSupervisor,
+                                        onOptionSelected = { selection ->
+                                            state.nurseSlots[index] = state.nurseSlots[index].copy(secondaryName = selection)
+                                        },
+                                        includeUnassigned = true
+                                    )
+                                }
+                            }
                         }
 
                         if (allowAux) {
                             HorizontalDivider(color = Color(0x22FFFFFF))
-                            state.auxNames.forEachIndexed { index, name ->
-                                StaffDropdownField(
-                                    label = stringResource(id = R.string.aux_label, index + 1),
-                                    selectedValue = name,
-                                    options = auxOptions,
-                                    enabled = isSupervisor,
-                                    onOptionSelected = { selection ->
-                                        state.auxNames[index] = selection
-                                    },
-                                    includeUnassigned = true
-                                )
+                            state.auxSlots.forEachIndexed { index, slot ->
+                                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        StaffDropdownField(
+                                            modifier = Modifier.weight(1f),
+                                            label = stringResource(id = R.string.aux_label, index + 1),
+                                            selectedValue = slot.primaryName,
+                                            options = auxOptions,
+                                            enabled = isSupervisor,
+                                            onOptionSelected = { selection ->
+                                                state.auxSlots[index] = state.auxSlots[index].copy(primaryName = selection)
+                                            },
+                                            includeUnassigned = true
+                                        )
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                        ) {
+                                            Text(
+                                                text = stringResource(id = R.string.plant_half_day_prompt),
+                                                color = Color.White,
+                                                style = MaterialTheme.typography.bodySmall
+                                            )
+                                            Switch(
+                                                checked = slot.hasHalfDay,
+                                                onCheckedChange = { checked ->
+                                                    if (isSupervisor) {
+                                                        state.auxSlots[index] = state.auxSlots[index].copy(
+                                                            hasHalfDay = checked,
+                                                            secondaryName = if (checked) slot.secondaryName else ""
+                                                        )
+                                                    }
+                                                },
+                                                enabled = isSupervisor,
+                                                thumbContent = {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .width(14.dp)
+                                                            .height(14.dp)
+                                                            .background(
+                                                                color = if (slot.hasHalfDay) Color(0xFF54C7EC) else Color.White,
+                                                                shape = CircleShape
+                                                            )
+                                                    )
+                                                }
+                                            )
+                                        }
+                                    }
+
+                                    if (slot.hasHalfDay) {
+                                        StaffDropdownField(
+                                            label = stringResource(id = R.string.aux_label, index + 1) + " - Media jornada",
+                                            selectedValue = slot.secondaryName,
+                                            options = auxOptions,
+                                            enabled = isSupervisor,
+                                            onOptionSelected = { selection ->
+                                                state.auxSlots[index] = state.auxSlots[index].copy(secondaryName = selection)
+                                            },
+                                            includeUnassigned = true
+                                        )
+                                    }
+                                }
                             }
                         }
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.plant_half_day_prompt),
-                            color = Color.White,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Switch(
-                            checked = state.halfDay,
-                            onCheckedChange = { if (isSupervisor) state.halfDay = it },
-                            enabled = isSupervisor,
-                            thumbContent = {
-                                Box(
-                                    modifier = Modifier
-                                        .width(14.dp)
-                                        .height(14.dp)
-                                        .background(
-                                            color = if (state.halfDay) Color(0xFF54C7EC) else Color.White,
-                                            shape = CircleShape
-                                        )
-                                )
-                            }
-                        )
                     }
 
                     if (!isSupervisor && selectedStaffName != null) {
@@ -810,7 +901,7 @@ private fun ShiftAssignmentsSection(
 
                     Button(
                         modifier = Modifier.fillMaxWidth(),
-                        onClick = {},
+                        onClick = { onSaveAssignments(assignments) },
                         enabled = isSupervisor,
                         colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF54C7EC),
@@ -825,24 +916,58 @@ private fun ShiftAssignmentsSection(
     }
 }
 
-private fun ensureSize(list: MutableList<String>, expected: Int) {
+private fun ensureSlotSize(list: MutableList<SlotAssignment>, expected: Int) {
     while (list.size < expected) {
-        list.add("")
+        list.add(SlotAssignment())
     }
     if (list.size > expected) {
         repeat(list.size - expected) { list.removeLastOrNull() }
     }
 }
 
-private fun assignStaffToShift(slots: MutableList<String>, staffName: String?) {
+private fun assignStaffToShift(slots: MutableList<SlotAssignment>, staffName: String?) {
     if (staffName.isNullOrBlank()) return
 
-    if (slots.contains(staffName)) return
+    if (slots.any { it.primaryName == staffName || it.secondaryName == staffName }) return
 
-    val firstEmptyIndex = slots.indexOfFirst { it.isBlank() }
+    val firstEmptyIndex = slots.indexOfFirst { it.primaryName.isBlank() }
     if (firstEmptyIndex >= 0) {
-        slots[firstEmptyIndex] = staffName
+        slots[firstEmptyIndex] = slots[firstEmptyIndex].copy(primaryName = staffName)
+        return
     }
+
+    val firstHalfDayIndex = slots.indexOfFirst { it.hasHalfDay && it.secondaryName.isBlank() }
+    if (firstHalfDayIndex >= 0) {
+        slots[firstHalfDayIndex] = slots[firstHalfDayIndex].copy(secondaryName = staffName)
+    }
+}
+
+private fun saveShiftAssignments(
+    database: FirebaseDatabase,
+    plantId: String,
+    dateKey: String,
+    assignments: Map<String, ShiftAssignmentState>,
+    unassignedLabel: String
+) {
+    val payload = assignments.mapValues { (_, state) ->
+        mapOf(
+            "nurses" to state.nurseSlots.map { slot -> slot.toFirebaseMap(unassignedLabel) },
+            "auxiliaries" to state.auxSlots.map { slot -> slot.toFirebaseMap(unassignedLabel) }
+        )
+    }
+
+    database.reference
+        .child("turnos-$dateKey")
+        .child(plantId)
+        .setValue(payload)
+}
+
+private fun SlotAssignment.toFirebaseMap(unassignedLabel: String): Map<String, Any> {
+    return mapOf(
+        "halfDay" to hasHalfDay,
+        "primary" to primaryName.ifBlank { unassignedLabel },
+        "secondary" to if (hasHalfDay) secondaryName.ifBlank { unassignedLabel } else ""
+    )
 }
 
 private fun String.normalizedRole(): String = trim().lowercase()
@@ -976,6 +1101,7 @@ private fun AddStaffDialog(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun StaffDropdownField(
+    modifier: Modifier = Modifier,
     label: String,
     selectedValue: String,
     options: List<String>,
@@ -1020,7 +1146,7 @@ private fun StaffDropdownField(
         unfocusedContainerColor = Color(0x11FFFFFF),
         disabledContainerColor = Color(0x11FFFFFF)
     )
-    Box(modifier = Modifier.fillMaxWidth()) {
+    Box(modifier = modifier.fillMaxWidth()) {
         OutlinedTextField(
             modifier = Modifier
                 .fillMaxWidth()
