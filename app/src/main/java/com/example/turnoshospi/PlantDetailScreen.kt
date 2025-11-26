@@ -142,11 +142,6 @@ fun PlantDetailScreen(
     val allowAuxStaffScope = plant?.staffScope == stringResource(id = R.string.staff_scope_with_aux)
 
     val plantStaff = plant?.registeredUsers?.values.orEmpty()
-    var selectedStaffId by remember(plant?.id) { mutableStateOf<String?>(null) }
-    val selectedStaffMember = remember(plantStaff, selectedStaffId) {
-        plantStaff.firstOrNull { it.id == selectedStaffId }
-    }
-
     val nurseStaff = remember(plantStaff, normalizedNurseRoles) {
         plantStaff.filter { member -> member.isNurseRole(normalizedNurseRoles) }
     }
@@ -171,12 +166,6 @@ fun PlantDetailScreen(
     var staffName by remember { mutableStateOf("") }
     var staffRole by remember { mutableStateOf(nurseRole) }
     var addStaffError by remember { mutableStateOf<String?>(null) }
-
-    LaunchedEffect(plantStaff) {
-        if (selectedStaffId == null && plantStaff.size == 1) {
-            selectedStaffId = plantStaff.first().id
-        }
-    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -400,32 +389,15 @@ fun PlantDetailScreen(
                                     }
                                 )
                         }
-                        if (!isSupervisor) {
-                            StaffIdentitySelector(
-                                staff = plantStaff,
-                                selectedStaffId = selectedStaffId,
-                                onSelectStaff = { selectedStaffId = it }
-                            )
-                        }
-
                         ShiftAssignmentsSection(
                             plant = plant,
                             assignments = assignments,
                             selectedDateLabel = formatDate(selectedDate),
                             isSupervisor = isSupervisor,
                             isSavedForDate = savedAssignmentsByDate[dateKey] == true,
-                            selectedStaffName = selectedStaffMember?.name,
+                            unassignedLabel = unassignedLabel,
                             nurseOptions = nurseOptions,
                             auxOptions = auxOptions,
-                            onSelfAssign = { _, state ->
-                                val targetList = when {
-                                    selectedStaffMember?.role == auxRole && allowAuxStaffScope ->
-                                        state.auxSlots
-
-                                    else -> state.nurseSlots
-                                }
-                                assignStaffToShift(targetList, selectedStaffMember?.name)
-                            },
                             onSaveAssignments = { states ->
                                 saveShiftAssignments(
                                     database = database,
@@ -583,65 +555,6 @@ private fun PlantDetailScreenPreview() {
 }
 
 @Composable
-private fun StaffIdentitySelector(
-    staff: Collection<RegisteredUser>,
-    selectedStaffId: String?,
-    onSelectStaff: (String?) -> Unit
-) {
-    val staffItems = remember(staff) {
-        staff
-            .map { member -> member to member.displayName(member.role) }
-            .sortedBy { (_, displayName) -> displayName.lowercase() }
-    }
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0x22000000)),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0x22FFFFFF))
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text(
-                text = stringResource(id = R.string.staff_identity_title),
-                color = Color.White,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-
-            if (staffItems.isEmpty()) {
-                Text(
-                    text = stringResource(id = R.string.staff_identity_missing),
-                    color = Color.White,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            } else {
-                StaffDropdownField(
-                    label = stringResource(id = R.string.staff_identity_label),
-                    selectedValue = staffItems.firstOrNull { it.first.id == selectedStaffId }?.second
-                        ?: "",
-                    options = staffItems.map { it.second },
-                    enabled = true,
-                    onOptionSelected = { selection ->
-                        val resolvedId = staffItems.firstOrNull { it.second == selection }?.first?.id
-                        onSelectStaff(resolvedId)
-                    },
-                    includeUnassigned = true
-                )
-
-                Text(
-                    text = stringResource(id = R.string.staff_identity_hint),
-                    color = Color.White.copy(alpha = 0.8f),
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-        }
-    }
-}
-
-@Composable
 private fun StaffListDialog(
     plantName: String,
     staff: List<RegisteredUser>,
@@ -713,10 +626,9 @@ private fun ShiftAssignmentsSection(
     selectedDateLabel: String,
     isSupervisor: Boolean,
     isSavedForDate: Boolean,
-    selectedStaffName: String?,
+    unassignedLabel: String,
     nurseOptions: List<String>,
     auxOptions: List<String>,
-    onSelfAssign: (String, ShiftAssignmentState) -> Unit,
     onSaveAssignments: (Map<String, ShiftAssignmentState>) -> Unit
 ) {
     val allowAux = plant.staffScope.normalizedRole() ==
@@ -811,65 +723,8 @@ private fun ShiftAssignmentsSection(
 
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         state.nurseSlots.forEachIndexed { index, slot ->
-                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    StaffDropdownField(
-                                        modifier = Modifier.weight(1f),
-                                        label = stringResource(id = R.string.nurse_label, index + 1),
-                                        selectedValue = slot.primaryName,
-                                        options = nurseOptions,
-                                        enabled = isSupervisor,
-                                        onOptionSelected = { selection ->
-                                            state.nurseSlots[index] = state.nurseSlots[index].copy(primaryName = selection)
-                                        },
-                                        includeUnassigned = true
-                                    )
-                                    Switch(
-                                        checked = slot.hasHalfDay,
-                                        onCheckedChange = { checked ->
-                                            if (isSupervisor) {
-                                                state.nurseSlots[index] = state.nurseSlots[index].copy(
-                                                    hasHalfDay = checked,
-                                                    secondaryName = if (checked) slot.secondaryName else ""
-                                                )
-                                            }
-                                        },
-                                        enabled = isSupervisor,
-                                        thumbContent = {
-                                            Box(
-                                                modifier = Modifier
-                                                    .width(14.dp)
-                                                    .height(14.dp)
-                                                    .background(
-                                                        color = if (slot.hasHalfDay) Color(0xFF54C7EC) else Color.White,
-                                                        shape = CircleShape
-                                                    )
-                                            )
-                                        }
-                                    )
-                                }
-
-                                if (slot.hasHalfDay) {
-                                    StaffDropdownField(
-                                        label = stringResource(id = R.string.nurse_label, index + 1) + " - Media jornada",
-                                        selectedValue = slot.secondaryName,
-                                        options = nurseOptions,
-                                        enabled = isSupervisor,
-                                        onOptionSelected = { selection ->
-                                            state.nurseSlots[index] = state.nurseSlots[index].copy(secondaryName = selection)
-                                        },
-                                        includeUnassigned = true
-                                    )
-                                }
-                            }
-                        }
-
-                        if (allowAux) {
-                            HorizontalDivider(color = Color(0x22FFFFFF))
-                            state.auxSlots.forEachIndexed { index, slot ->
+                            val nurseLabel = stringResource(id = R.string.nurse_label, index + 1)
+                            if (isSupervisor) {
                                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
@@ -877,26 +732,23 @@ private fun ShiftAssignmentsSection(
                                     ) {
                                         StaffDropdownField(
                                             modifier = Modifier.weight(1f),
-                                            label = stringResource(id = R.string.aux_label, index + 1),
+                                            label = nurseLabel,
                                             selectedValue = slot.primaryName,
-                                            options = auxOptions,
-                                            enabled = isSupervisor,
+                                            options = nurseOptions,
+                                            enabled = true,
                                             onOptionSelected = { selection ->
-                                                state.auxSlots[index] = state.auxSlots[index].copy(primaryName = selection)
+                                                state.nurseSlots[index] = state.nurseSlots[index].copy(primaryName = selection)
                                             },
                                             includeUnassigned = true
                                         )
                                         Switch(
                                             checked = slot.hasHalfDay,
                                             onCheckedChange = { checked ->
-                                                if (isSupervisor) {
-                                                    state.auxSlots[index] = state.auxSlots[index].copy(
-                                                        hasHalfDay = checked,
-                                                        secondaryName = if (checked) slot.secondaryName else ""
-                                                    )
-                                                }
+                                                state.nurseSlots[index] = state.nurseSlots[index].copy(
+                                                    hasHalfDay = checked,
+                                                    secondaryName = if (checked) slot.secondaryName else ""
+                                                )
                                             },
-                                            enabled = isSupervisor,
                                             thumbContent = {
                                                 Box(
                                                     modifier = Modifier
@@ -913,50 +765,110 @@ private fun ShiftAssignmentsSection(
 
                                     if (slot.hasHalfDay) {
                                         StaffDropdownField(
-                                            label = stringResource(id = R.string.aux_label, index + 1) + " - Media jornada",
+                                            label = nurseLabel + " - Media jornada",
                                             selectedValue = slot.secondaryName,
-                                            options = auxOptions,
-                                            enabled = isSupervisor,
+                                            options = nurseOptions,
+                                            enabled = true,
                                             onOptionSelected = { selection ->
-                                                state.auxSlots[index] = state.auxSlots[index].copy(secondaryName = selection)
+                                                state.nurseSlots[index] = state.nurseSlots[index].copy(secondaryName = selection)
                                             },
                                             includeUnassigned = true
                                         )
                                     }
                                 }
+                            } else {
+                                ReadOnlyAssignmentRow(
+                                    label = nurseLabel,
+                                    slot = slot,
+                                    unassignedLabel = unassignedLabel
+                                )
+                            }
+                        }
+
+                        if (allowAux) {
+                            HorizontalDivider(color = Color(0x22FFFFFF))
+                            state.auxSlots.forEachIndexed { index, slot ->
+                                val auxLabel = stringResource(id = R.string.aux_label, index + 1)
+                                if (isSupervisor) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            StaffDropdownField(
+                                                modifier = Modifier.weight(1f),
+                                                label = auxLabel,
+                                                selectedValue = slot.primaryName,
+                                                options = auxOptions,
+                                                enabled = true,
+                                                onOptionSelected = { selection ->
+                                                    state.auxSlots[index] = state.auxSlots[index].copy(primaryName = selection)
+                                                },
+                                                includeUnassigned = true
+                                            )
+                                            Switch(
+                                                checked = slot.hasHalfDay,
+                                                onCheckedChange = { checked ->
+                                                    state.auxSlots[index] = state.auxSlots[index].copy(
+                                                        hasHalfDay = checked,
+                                                        secondaryName = if (checked) slot.secondaryName else ""
+                                                    )
+                                                },
+                                                thumbContent = {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .width(14.dp)
+                                                            .height(14.dp)
+                                                            .background(
+                                                                color = if (slot.hasHalfDay) Color(0xFF54C7EC) else Color.White,
+                                                                shape = CircleShape
+                                                            )
+                                                    )
+                                                }
+                                            )
+                                        }
+
+                                        if (slot.hasHalfDay) {
+                                            StaffDropdownField(
+                                                label = auxLabel + " - Media jornada",
+                                                selectedValue = slot.secondaryName,
+                                                options = auxOptions,
+                                                enabled = true,
+                                                onOptionSelected = { selection ->
+                                                    state.auxSlots[index] = state.auxSlots[index].copy(secondaryName = selection)
+                                                },
+                                                includeUnassigned = true
+                                            )
+                                        }
+                                    }
+                                } else {
+                                    ReadOnlyAssignmentRow(
+                                        label = auxLabel,
+                                        slot = slot,
+                                        unassignedLabel = unassignedLabel
+                                    )
+                                }
                             }
                         }
                     }
 
-                    if (!isSupervisor && selectedStaffName != null) {
+                    if (isSupervisor) {
+                        val saveButtonLabel = if (isSavedForDate) {
+                            stringResource(id = R.string.edit_assignments_action)
+                        } else {
+                            stringResource(id = R.string.save_assignments_action)
+                        }
+
                         Button(
                             modifier = Modifier.fillMaxWidth(),
-                            onClick = { onSelfAssign(shiftName, state) },
+                            onClick = { onSaveAssignments(assignments) },
                             colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                                 containerColor = Color(0xFF54C7EC),
                                 contentColor = Color.Black
                             )
                         ) {
-                            Text(text = stringResource(id = R.string.plant_self_assign_action))
+                            Text(text = saveButtonLabel)
                         }
-                    }
-
-                    val saveButtonLabel = if (isSavedForDate) {
-                        stringResource(id = R.string.edit_assignments_action)
-                    } else {
-                        stringResource(id = R.string.save_assignments_action)
-                    }
-
-                    Button(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = { onSaveAssignments(assignments) },
-                        enabled = isSupervisor,
-                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF54C7EC),
-                            contentColor = Color.Black
-                        )
-                    ) {
-                        Text(text = saveButtonLabel)
                     }
                 }
             }
@@ -973,23 +885,6 @@ private fun ensureSlotSize(list: MutableList<SlotAssignment>, expected: Int) {
     }
 }
 
-private fun assignStaffToShift(slots: MutableList<SlotAssignment>, staffName: String?) {
-    if (staffName.isNullOrBlank()) return
-
-    if (slots.any { it.primaryName == staffName || it.secondaryName == staffName }) return
-
-    val firstEmptyIndex = slots.indexOfFirst { it.primaryName.isBlank() }
-    if (firstEmptyIndex >= 0) {
-        slots[firstEmptyIndex] = slots[firstEmptyIndex].copy(primaryName = staffName)
-        return
-    }
-
-    val firstHalfDayIndex = slots.indexOfFirst { it.hasHalfDay && it.secondaryName.isBlank() }
-    if (firstHalfDayIndex >= 0) {
-        slots[firstHalfDayIndex] = slots[firstHalfDayIndex].copy(secondaryName = staffName)
-    }
-}
-
 private fun saveShiftAssignments(
     database: FirebaseDatabase,
     plantId: String,
@@ -1000,8 +895,14 @@ private fun saveShiftAssignments(
 ) {
     val payload = assignments.mapValues { (_, state) ->
         mapOf(
-            "nurses" to state.nurseSlots.map { slot -> slot.toFirebaseMap(unassignedLabel) },
-            "auxiliaries" to state.auxSlots.map { slot -> slot.toFirebaseMap(unassignedLabel) }
+            "nurses" to state.nurseSlots.mapIndexed { index, slot ->
+                val baseLabel = "enfermero${index + 1}"
+                slot.toFirebaseMap(unassignedLabel, baseLabel)
+            },
+            "auxiliaries" to state.auxSlots.mapIndexed { index, slot ->
+                val baseLabel = "auxiliar${index + 1}"
+                slot.toFirebaseMap(unassignedLabel, baseLabel)
+            }
         )
     }
 
@@ -1015,11 +916,16 @@ private fun saveShiftAssignments(
         .addOnFailureListener { onComplete(false) }
 }
 
-private fun SlotAssignment.toFirebaseMap(unassignedLabel: String): Map<String, Any> {
+private fun SlotAssignment.toFirebaseMap(
+    unassignedLabel: String,
+    baseLabel: String
+): Map<String, Any> {
     return mapOf(
         "halfDay" to hasHalfDay,
         "primary" to primaryName.ifBlank { unassignedLabel },
-        "secondary" to if (hasHalfDay) secondaryName.ifBlank { unassignedLabel } else ""
+        "secondary" to if (hasHalfDay) secondaryName.ifBlank { unassignedLabel } else "",
+        "primaryLabel" to baseLabel,
+        "secondaryLabel" to if (hasHalfDay) "$baseLabel media jornada" else ""
     )
 }
 
@@ -1051,6 +957,33 @@ private fun RegisteredUser.isNurseRole(normalizedRoles: List<String>): Boolean {
 private fun RegisteredUser.isAuxRole(normalizedRoles: List<String>): Boolean {
     val normalizedRole = role.normalizedRole()
     return normalizedRoles.any { normalizedRole == it } || normalizedRole.contains("auxiliar")
+}
+
+@Composable
+private fun ReadOnlyAssignmentRow(label: String, slot: SlotAssignment, unassignedLabel: String) {
+    val primaryDisplay = slot.primaryName.ifBlank { unassignedLabel }
+    val secondaryDisplay = if (slot.hasHalfDay) slot.secondaryName.ifBlank { unassignedLabel } else null
+
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color(0xCCFFFFFF),
+            fontWeight = FontWeight.SemiBold
+        )
+        Text(
+            text = primaryDisplay,
+            style = MaterialTheme.typography.bodyLarge,
+            color = Color.White
+        )
+        if (secondaryDisplay != null) {
+            Text(
+                text = stringResource(id = R.string.half_day_readonly_label, secondaryDisplay),
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xCCFFFFFF)
+            )
+        }
+    }
 }
 
 @Composable

@@ -98,6 +98,7 @@
     <string name="nurse_label">Enfermera/o %1$d</string>
     <string name="aux_label">Auxiliar %1$d</string>
     <string name="staff_unassigned_option">Sin asignar</string>
+    <string name="half_day_readonly_label">Media jornada: %1$s</string>
     <string name="save_assignments_action">Guardar organización</string>
     <string name="edit_assignments_action">Editar organización</string>
     <string name="plant_add_staff_option">Añadir personal de la planta</string>
