@@ -79,6 +79,9 @@ import java.time.Instant
 import java.time.ZoneId
 import java.util.UUID
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
 
 private data class SlotAssignment(
     var primaryName: String = "",
@@ -132,6 +135,9 @@ fun PlantDetailScreen(
     val isSupervisor = currentUserProfile?.role in supervisorRoles
     val assignmentsByDate = remember(plant?.id) {
         mutableStateMapOf<String, MutableMap<String, ShiftAssignmentState>>()
+    }
+    val savedAssignmentsByDate = remember(plant?.id) {
+        mutableStateMapOf<String, Boolean>()
     }
     val allowAuxStaffScope = plant?.staffScope == stringResource(id = R.string.staff_scope_with_aux)
 
@@ -345,6 +351,55 @@ fun PlantDetailScreen(
                             mutableStateMapOf()
                         }
                         val unassignedLabel = stringResource(id = R.string.staff_unassigned_option)
+
+                        LaunchedEffect(plant.id, dateKey) {
+                            database.reference
+                                .child("plants")
+                                .child(plant.id)
+                                .child("turnos")
+                                .child("turnos-$dateKey")
+                                .addListenerForSingleValueEvent(
+                                    object : ValueEventListener {
+                                        override fun onDataChange(snapshot: DataSnapshot) {
+                                            if (snapshot.exists()) {
+                                                val loadedAssignments = mutableMapOf<String, ShiftAssignmentState>()
+
+                                                snapshot.children.forEach { shiftSnapshot ->
+                                                    val shiftName = shiftSnapshot.key ?: return@forEach
+                                                    val nurseSlots =
+                                                        shiftSnapshot.child("nurses")
+                                                            .children
+                                                            .sortedBy { it.key?.toIntOrNull() ?: 0 }
+                                                            .map { it.toSlotAssignment(unassignedLabel) }
+                                                            .toMutableList()
+
+                                                    val auxSlots =
+                                                        shiftSnapshot.child("auxiliaries")
+                                                            .children
+                                                            .sortedBy { it.key?.toIntOrNull() ?: 0 }
+                                                            .map { it.toSlotAssignment(unassignedLabel) }
+                                                            .toMutableList()
+
+                                                    loadedAssignments[shiftName] = ShiftAssignmentState(
+                                                        nurseSlots = mutableStateListOf(*nurseSlots.toTypedArray()),
+                                                        auxSlots = mutableStateListOf(*auxSlots.toTypedArray())
+                                                    )
+                                                }
+
+                                                assignments.clear()
+                                                assignments.putAll(loadedAssignments)
+                                                savedAssignmentsByDate[dateKey] = true
+                                            } else {
+                                                savedAssignmentsByDate[dateKey] = false
+                                            }
+                                        }
+
+                                        override fun onCancelled(error: DatabaseError) {
+                                            savedAssignmentsByDate[dateKey] = false
+                                        }
+                                    }
+                                )
+                        }
                         if (!isSupervisor) {
                             StaffIdentitySelector(
                                 staff = plantStaff,
@@ -358,6 +413,7 @@ fun PlantDetailScreen(
                             assignments = assignments,
                             selectedDateLabel = formatDate(selectedDate),
                             isSupervisor = isSupervisor,
+                            isSavedForDate = savedAssignmentsByDate[dateKey] == true,
                             selectedStaffName = selectedStaffMember?.name,
                             nurseOptions = nurseOptions,
                             auxOptions = auxOptions,
@@ -377,7 +433,11 @@ fun PlantDetailScreen(
                                     dateKey = dateKey,
                                     assignments = states,
                                     unassignedLabel = unassignedLabel
-                                )
+                                ) { success ->
+                                    if (success) {
+                                        savedAssignmentsByDate[dateKey] = true
+                                    }
+                                }
                             }
                         )
                     } else {
@@ -652,6 +712,7 @@ private fun ShiftAssignmentsSection(
     assignments: MutableMap<String, ShiftAssignmentState>,
     selectedDateLabel: String,
     isSupervisor: Boolean,
+    isSavedForDate: Boolean,
     selectedStaffName: String?,
     nurseOptions: List<String>,
     auxOptions: List<String>,
@@ -880,6 +941,12 @@ private fun ShiftAssignmentsSection(
                         }
                     }
 
+                    val saveButtonLabel = if (isSavedForDate) {
+                        stringResource(id = R.string.edit_assignments_action)
+                    } else {
+                        stringResource(id = R.string.save_assignments_action)
+                    }
+
                     Button(
                         modifier = Modifier.fillMaxWidth(),
                         onClick = { onSaveAssignments(assignments) },
@@ -889,7 +956,7 @@ private fun ShiftAssignmentsSection(
                             contentColor = Color.Black
                         )
                     ) {
-                        Text(text = stringResource(id = R.string.save_assignments_action))
+                        Text(text = saveButtonLabel)
                     }
                 }
             }
@@ -928,7 +995,8 @@ private fun saveShiftAssignments(
     plantId: String,
     dateKey: String,
     assignments: Map<String, ShiftAssignmentState>,
-    unassignedLabel: String
+    unassignedLabel: String,
+    onComplete: (Boolean) -> Unit
 ) {
     val payload = assignments.mapValues { (_, state) ->
         mapOf(
@@ -943,6 +1011,8 @@ private fun saveShiftAssignments(
         .child("turnos")
         .child("turnos-$dateKey")
         .setValue(payload)
+        .addOnSuccessListener { onComplete(true) }
+        .addOnFailureListener { onComplete(false) }
 }
 
 private fun SlotAssignment.toFirebaseMap(unassignedLabel: String): Map<String, Any> {
@@ -950,6 +1020,18 @@ private fun SlotAssignment.toFirebaseMap(unassignedLabel: String): Map<String, A
         "halfDay" to hasHalfDay,
         "primary" to primaryName.ifBlank { unassignedLabel },
         "secondary" to if (hasHalfDay) secondaryName.ifBlank { unassignedLabel } else ""
+    )
+}
+
+private fun DataSnapshot.toSlotAssignment(unassignedLabel: String): SlotAssignment {
+    val halfDay = child("halfDay").value as? Boolean ?: false
+    val primary = (child("primary").value as? String).orEmpty()
+    val secondary = (child("secondary").value as? String).orEmpty()
+
+    return SlotAssignment(
+        primaryName = primary.takeUnless { it == unassignedLabel } ?: "",
+        secondaryName = secondary.takeUnless { it == unassignedLabel } ?: "",
+        hasHalfDay = halfDay
     )
 }
 
