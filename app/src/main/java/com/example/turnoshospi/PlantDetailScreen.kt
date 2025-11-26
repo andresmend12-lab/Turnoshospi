@@ -344,6 +344,7 @@ fun PlantDetailScreen(
                         val assignments = assignmentsByDate.getOrPut(dateKey) {
                             mutableStateMapOf()
                         }
+                        val unassignedLabel = stringResource(id = R.string.staff_unassigned_option)
                         if (!isSupervisor) {
                             StaffIdentitySelector(
                                 staff = plantStaff,
@@ -375,7 +376,7 @@ fun PlantDetailScreen(
                                     plantId = plant.id,
                                     dateKey = dateKey,
                                     assignments = states,
-                                    unassignedLabel = stringResource(id = R.string.staff_unassigned_option)
+                                    unassignedLabel = unassignedLabel
                                 )
                             }
                         )
