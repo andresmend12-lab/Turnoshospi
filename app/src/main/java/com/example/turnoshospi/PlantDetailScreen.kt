@@ -257,7 +257,7 @@ fun PlantDetailScreen(
                                 headline = null,
                                 showModeToggle = false,
                                 colors = DatePickerDefaults.colors(
-                                    containerColor = (MaterialTheme.colorScheme.background),
+                                    containerColor = Color(0xFF0F172A),
                                     titleContentColor = Color.White,
                                     headlineContentColor = Color.White,
                                     weekdayContentColor = Color.White,
