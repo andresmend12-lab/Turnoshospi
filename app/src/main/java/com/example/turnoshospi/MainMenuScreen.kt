@@ -35,6 +35,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
@@ -45,6 +46,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -91,9 +93,9 @@ fun MainMenuScreen(
     onOpenPlant: () -> Unit,
     onOpenSettings: () -> Unit,
     onListenToShifts: (String, String, (Map<String, UserShift>) -> Unit) -> Unit,
-    // ACTUALIZADO: Lista de Colleague
     onFetchColleagues: (String, String, String, (List<Colleague>) -> Unit) -> Unit,
-    onSignOut: () -> Unit
+    onSignOut: () -> Unit,
+    onOpenDirectChats: () -> Unit // Callback para abrir chats
 ) {
     var isMenuOpen by remember { mutableStateOf(false) }
     var userShifts by remember { mutableStateOf<Map<String, UserShift>>(emptyMap()) }
@@ -204,6 +206,7 @@ fun MainMenuScreen(
             }
         }
 
+        // --- MENU LATERAL (DRAWER) ---
         AnimatedVisibility(
             visible = isMenuOpen,
             enter = slideInHorizontally { -it } + fadeIn(),
@@ -261,6 +264,22 @@ fun MainMenuScreen(
                 )
             }
         }
+
+        // --- BOTÓN FLOTANTE PARA CHAT (ABAJO A LA DERECHA) ---
+        // Solo visible si el usuario pertenece a una planta y el menú no está abierto
+        if (userPlant != null && !isMenuOpen) {
+            FloatingActionButton(
+                onClick = onOpenDirectChats,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(24.dp),
+                containerColor = Color(0xFF54C7EC),
+                contentColor = Color.Black,
+                shape = CircleShape
+            ) {
+                Icon(Icons.Default.Email, contentDescription = "Chats")
+            }
+        }
     }
 }
 
@@ -271,7 +290,7 @@ fun CustomCalendar(
     plantId: String?,
     selectedDate: LocalDate?,
     selectedShift: UserShift?,
-    colleagues: List<Colleague>, // Recibe lista de objetos Colleague
+    colleagues: List<Colleague>,
     isLoadingColleagues: Boolean,
     onDayClick: (LocalDate, UserShift?) -> Unit
 ) {
@@ -294,7 +313,7 @@ fun CustomCalendar(
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Mes anterior", tint = Color.White)
             }
             Text(
-                text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale("es", "ES")).uppercase()} ${currentMonth.year}",
+                text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es-ES")).uppercase()} ${currentMonth.year}",
                 color = Color.White,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
@@ -413,7 +432,7 @@ fun CustomCalendar(
             HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
             Spacer(modifier = Modifier.height(16.dp))
 
-            val formatter = DateTimeFormatter.ofPattern("d 'de' MMMM", Locale("es", "ES"))
+            val formatter = DateTimeFormatter.ofPattern("d 'de' MMMM", Locale.forLanguageTag("es-ES"))
             val dateStr = selectedDate.format(formatter)
 
             Column(
@@ -612,7 +631,8 @@ fun MainMenuScreenPreview() {
             onOpenSettings = {},
             onListenToShifts = { _, _, _ -> },
             onFetchColleagues = { _, _, _, _ -> },
-            onSignOut = {}
+            onSignOut = {},
+            onOpenDirectChats = {}
         )
     }
 }

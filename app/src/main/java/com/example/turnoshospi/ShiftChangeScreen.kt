@@ -64,26 +64,25 @@ data class MyShiftDisplay(
     val fullDate: LocalDate
 )
 
-// --- 2. VALIDADOR (Reglas de Negocio) ---
+// --- 2. VALIDADOR DE UI (Puente con ShiftRulesEngine) ---
 
-object ShiftValidator {
-    fun validateRequest(
+object UILogicValidator {
+    fun validatePreRequest(
+        userRole: String,
         requestDate: LocalDate,
-        shiftName: String
+        shiftName: String,
+        currentShifts: List<MyShiftDisplay>
     ): String? {
-        val today = LocalDate.now()
-
-        // Regla: No turnos pasados
-        if (requestDate.isBefore(today)) {
-            return "No puedes cambiar un turno que ya ha pasado."
+        // Regla 1: Rol
+        if (!ShiftRulesEngine.canUserParticipate(userRole)) {
+            return "Tu rol ($userRole) no permite solicitar cambios de turno."
         }
 
-        // Regla: Mínimo 24h de antelación
-        if (requestDate.isEqual(today)) {
-            return "Las solicitudes deben hacerse con al menos 1 día de antelación."
-        }
-
-        return null // Válido
+        // Regla 2: Turno válido
+        val hasShift = currentShifts.any { it.fullDate == requestDate && it.shiftName == shiftName }
+        // Simulamos isShiftBlocked como false por ahora
+        return ShiftRulesEngine.validateCreateRequest(requestDate, hasShift, false, listOf("temp"))
+            ?.replace("Debes ofrecer al menos un día alternativo para trabajar.", "")
     }
 }
 
@@ -120,7 +119,7 @@ fun ShiftChangeScreen(
         // 1. Cargar Turnos
         val turnosRef = database.getReference("plants/$plantId/turnos")
 
-        turnosRef.limitToLast(30).addListenerForSingleValueEvent(object : ValueEventListener {
+        turnosRef.limitToLast(60).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 myShifts.clear()
                 val today = LocalDate.now()
@@ -130,18 +129,17 @@ fun ShiftChangeScreen(
                     val dateKey = dateSnapshot.key?.removePrefix("turnos-") ?: return@forEach
                     try {
                         val date = LocalDate.parse(dateKey)
-                        if (date.isAfter(today.minusDays(1))) { // Solo futuros o hoy
-                            dateSnapshot.children.forEach { shiftSnapshot ->
-                                val shiftName = shiftSnapshot.key ?: ""
-                                val nurses = shiftSnapshot.child("nurses").children
-                                val auxs = shiftSnapshot.child("auxiliaries").children
+                        // Cargamos historial reciente para validar reglas laborales, aunque solo mostramos futuros
+                        dateSnapshot.children.forEach { shiftSnapshot ->
+                            val shiftName = shiftSnapshot.key ?: ""
+                            val nurses = shiftSnapshot.child("nurses").children
+                            val auxs = shiftSnapshot.child("auxiliaries").children
 
-                                val isNurse = nurses.any { it.child("primary").value.toString().equals(userName, ignoreCase = true) || it.child("secondary").value.toString().equals(userName, ignoreCase = true) }
-                                val isAux = auxs.any { it.child("primary").value.toString().equals(userName, ignoreCase = true) || it.child("secondary").value.toString().equals(userName, ignoreCase = true) }
+                            val isNurse = nurses.any { it.child("primary").value.toString().equals(userName, ignoreCase = true) || it.child("secondary").value.toString().equals(userName, ignoreCase = true) }
+                            val isAux = auxs.any { it.child("primary").value.toString().equals(userName, ignoreCase = true) || it.child("secondary").value.toString().equals(userName, ignoreCase = true) }
 
-                                if (isNurse || isAux) {
-                                    myShifts.add(MyShiftDisplay(dateKey, shiftName, date))
-                                }
+                            if (isNurse || isAux) {
+                                myShifts.add(MyShiftDisplay(dateKey, shiftName, date))
                             }
                         }
                     } catch (e: Exception) { /* Ignorar fechas mal formadas */ }
@@ -203,8 +201,13 @@ fun ShiftChangeScreen(
 
             Box(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
                 if (selectedTab == 0) {
+                    val futureShifts = remember(myShifts) {
+                        val today = LocalDate.now()
+                        myShifts.filter { !it.fullDate.isBefore(today) }
+                    }
+
                     MyShiftsTab(
-                        shifts = myShifts,
+                        shifts = futureShifts,
                         isLoading = isLoadingShifts,
                         onRequestChange = { date, shift ->
                             selectedShiftForRequest = date to shift
@@ -212,7 +215,7 @@ fun ShiftChangeScreen(
                         }
                     )
                 } else {
-                    RequestsTab(activeRequests, currentUserId)
+                    RequestsTab(activeRequests, currentUserId, currentUser?.role ?: "")
                 }
             }
         }
@@ -221,15 +224,25 @@ fun ShiftChangeScreen(
     // Diálogo de Creación
     if (showCreateRequestDialog && selectedShiftForRequest != null) {
         val (dateStr, shiftName) = selectedShiftForRequest!!
+        val requestDate = LocalDate.parse(dateStr)
 
-        val error = ShiftValidator.validateRequest(LocalDate.parse(dateStr), shiftName)
+        // Validación inicial usando el nuevo Engine
+        val error = UILogicValidator.validatePreRequest(
+            currentUser?.role ?: "",
+            requestDate,
+            shiftName,
+            myShifts
+        )
 
         if (error != null) {
             AlertDialog(
                 onDismissRequest = { showCreateRequestDialog = false },
-                title = { Text("No se puede solicitar") },
+                title = { Text("No permitido") },
                 text = { Text(error) },
-                confirmButton = { TextButton(onClick = { showCreateRequestDialog = false }) { Text("OK") } }
+                confirmButton = { TextButton(onClick = { showCreateRequestDialog = false }) { Text("Entendido") } },
+                containerColor = Color(0xFF0F172A),
+                titleContentColor = Color.White,
+                textContentColor = Color.White
             )
         } else {
             CreateChangeRequestDialog(
@@ -237,6 +250,11 @@ fun ShiftChangeScreen(
                 shiftName = shiftName,
                 onDismiss = { showCreateRequestDialog = false },
                 onConfirm = { offeredDates ->
+                    if (offeredDates.isEmpty()) {
+                        Toast.makeText(context, "Debes seleccionar al menos una fecha alternativa", Toast.LENGTH_LONG).show()
+                        return@CreateChangeRequestDialog
+                    }
+
                     val reqId = database.getReference("plants/$plantId/shift_requests").push().key ?: UUID.randomUUID().toString()
                     val newRequest = ShiftChangeRequest(
                         id = reqId,
@@ -246,7 +264,8 @@ fun ShiftChangeScreen(
                         requesterRole = currentUser?.role ?: "",
                         originalDate = dateStr,
                         originalShift = shiftName,
-                        offeredDates = offeredDates
+                        offeredDates = offeredDates,
+                        status = RequestStatus.SEARCHING
                     )
 
                     database.getReference("plants/$plantId/shift_requests/$reqId").setValue(newRequest)
@@ -297,7 +316,7 @@ fun MyShiftsTab(
 }
 
 @Composable
-fun RequestsTab(requests: List<ShiftChangeRequest>, currentUserId: String) {
+fun RequestsTab(requests: List<ShiftChangeRequest>, currentUserId: String, currentUserRole: String) {
     if (requests.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text("No hay solicitudes activas.", color = Color(0xCCFFFFFF))
@@ -305,7 +324,17 @@ fun RequestsTab(requests: List<ShiftChangeRequest>, currentUserId: String) {
     } else {
         LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             items(requests) { req ->
-                RequestCard(req, isMine = req.requesterId == currentUserId)
+                // Regla 1: Visualización - Solo mostrar compatibles o propias
+                val isCompatibleRole = ShiftRulesEngine.areRolesCompatible(currentUserRole, req.requesterRole)
+                val isMine = req.requesterId == currentUserId
+
+                if (isCompatibleRole || isMine) {
+                    RequestCard(
+                        request = req,
+                        isMine = isMine,
+                        canAccept = isCompatibleRole && !isMine
+                    )
+                }
             }
         }
     }
@@ -348,7 +377,7 @@ fun ShiftCard(date: String, shiftName: String, actionLabel: String, isDestructiv
 }
 
 @Composable
-fun RequestCard(request: ShiftChangeRequest, isMine: Boolean) {
+fun RequestCard(request: ShiftChangeRequest, isMine: Boolean, canAccept: Boolean) {
     val statusColor = when (request.status) {
         RequestStatus.SEARCHING -> Color(0xFFFFA000)
         RequestStatus.MATCH_FOUND -> Color(0xFF54C7EC)
@@ -384,12 +413,21 @@ fun RequestCard(request: ShiftChangeRequest, isMine: Boolean) {
 
             if (!isMine && request.status == RequestStatus.SEARCHING) {
                 Spacer(modifier = Modifier.height(12.dp))
-                Button(
-                    onClick = { /* Lógica de Aceptación (Paso 3) futura */ },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFA855F7))
-                ) {
-                    Text("Me interesa")
+                if (canAccept) {
+                    Button(
+                        onClick = { /* Lógica futura de match con ShiftRulesEngine */ },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFA855F7))
+                    ) {
+                        Text("Ver compatibilidad")
+                    }
+                } else {
+                    Text(
+                        "No disponible para tu rol",
+                        color = Color.Gray,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
                 }
             }
         }
@@ -443,7 +481,7 @@ fun CreateChangeRequestDialog(
 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = Color.White.copy(0.1f))
 
-                Text("Días que ofreces trabajar (Opcional):", color = Color.White)
+                Text("Días que ofreces trabajar (Obligatorio):", color = Color.White)
 
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     offeredDates.forEach { date ->

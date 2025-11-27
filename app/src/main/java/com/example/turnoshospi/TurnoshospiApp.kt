@@ -70,7 +70,9 @@ enum class AppScreen {
     PlantSettings,
     ImportShifts,
     GroupChat,
-    ShiftChange
+    ShiftChange,
+    DirectChatList,
+    DirectChat
 }
 
 data class Colleague(
@@ -118,6 +120,11 @@ fun TurnoshospiApp(
     var isLinkingStaff by remember { mutableStateOf(false) }
     var plantError by remember { mutableStateOf<String?>(null) }
     var selectedPlantForDetail by remember { mutableStateOf<Plant?>(null) }
+
+    // Estados para el chat directo
+    var selectedDirectChatUserId by remember { mutableStateOf("") }
+    var selectedDirectChatUserName by remember { mutableStateOf("") }
+
     val coroutineScope = rememberCoroutineScope()
 
     val todayMillis = remember {
@@ -306,7 +313,13 @@ fun TurnoshospiApp(
                         refreshUserPlant()
                     },
                     onOpenSettings = { currentScreen = AppScreen.Settings },
-                    onSignOut = onSignOut
+                    onSignOut = onSignOut,
+                    onOpenDirectChats = {
+                        if (userPlant != null) {
+                            selectedPlantForDetail = userPlant
+                            currentScreen = AppScreen.DirectChatList
+                        }
+                    }
                 )
 
                 AppScreen.CreatePlant -> PlantCreationScreen(
@@ -436,6 +449,25 @@ fun TurnoshospiApp(
                     currentUser = existingProfile,
                     currentUserId = user?.uid ?: "",
                     onBack = { currentScreen = AppScreen.PlantDetail }
+                )
+
+                AppScreen.DirectChatList -> DirectChatListScreen(
+                    plantId = selectedPlantForDetail?.id ?: userPlant?.id ?: "",
+                    currentUserId = user?.uid ?: "",
+                    onBack = { currentScreen = AppScreen.MainMenu },
+                    onNavigateToChat = { otherId, otherName ->
+                        selectedDirectChatUserId = otherId
+                        selectedDirectChatUserName = otherName
+                        currentScreen = AppScreen.DirectChat
+                    }
+                )
+
+                AppScreen.DirectChat -> DirectChatScreen(
+                    plantId = selectedPlantForDetail?.id ?: userPlant?.id ?: "",
+                    currentUserId = user?.uid ?: "",
+                    otherUserId = selectedDirectChatUserId,
+                    otherUserName = selectedDirectChatUserName,
+                    onBack = { currentScreen = AppScreen.DirectChatList }
                 )
             }
         }

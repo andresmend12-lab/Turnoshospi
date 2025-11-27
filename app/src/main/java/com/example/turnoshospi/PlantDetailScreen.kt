@@ -100,7 +100,6 @@ import java.time.format.TextStyle
 import java.util.Locale
 import java.util.UUID
 
-// CLASE CORREGIDA: Usa mutableStateOf para que Compose detecte los cambios
 private class SlotAssignment(
     primaryName: String = "",
     secondaryName: String = "",
@@ -725,7 +724,7 @@ fun PlantCalendar(selectedDate: LocalDate?, onDateSelected: (LocalDate) -> Unit)
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Anterior", tint = Color.White)
             }
             Text(
-                text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale("es", "ES")).uppercase()} ${currentMonth.year}",
+                text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es-ES")).uppercase()} ${currentMonth.year}",
                 color = Color.White,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
@@ -1004,4 +1003,4 @@ private fun StaffDropdownField(modifier: Modifier = Modifier, label: String, sel
             menuOptions.forEach { op -> DropdownMenuItem(text = { Text(op, color = Color.White) }, onClick = { onOptionSelected(if (op == unassigned) "" else op); expanded = false }) }
         }
     }
-}   
+}
