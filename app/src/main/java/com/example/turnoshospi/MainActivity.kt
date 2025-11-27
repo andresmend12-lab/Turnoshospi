@@ -68,7 +68,8 @@ class MainActivity : ComponentActivity() {
                         registerPlantStaff(plantId, staffMember, onResult)
                     },
                     onSignOut = { signOut() },
-                    onDeleteAccount = { deleteAccount() }
+                    onDeleteAccount = { deleteAccount() },
+                    onDeletePlant = { plantId -> deletePlant(plantId) }
                 )
             }
         }
@@ -409,6 +410,14 @@ class MainActivity : ComponentActivity() {
             }
     }
 
+    private fun deletePlant(plantId: String) {
+        // Borra la planta de la base de datos
+        realtimeDatabase.getReference("plants").child(plantId).removeValue()
+            .addOnFailureListener {
+                authErrorMessage.value = "No se pudo borrar la planta. Inténtalo de nuevo."
+            }
+    }
+
     private fun formatAuthError(exception: Exception): String {
         return when (exception) {
             is FirebaseAuthWeakPasswordException -> "La contraseña es demasiado débil; debe tener al menos 6 caracteres"
@@ -519,7 +528,8 @@ fun MainActivityPreview() {
             onLinkUserToStaff = { _, _, _ -> },
             onRegisterPlantStaff = { _, _, _ -> },
             onSignOut = {},
-            onDeleteAccount = {}
+            onDeleteAccount = {},
+            onDeletePlant = {}
         )
     }
 }

@@ -67,7 +67,8 @@ enum class AppScreen {
     PlantCreated,
     MyPlant,
     PlantDetail,
-    Settings
+    Settings,
+    PlantSettings
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -87,7 +88,8 @@ fun TurnoshospiApp(
     onLinkUserToStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
     onRegisterPlantStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
     onSignOut: () -> Unit,
-    onDeleteAccount: () -> Unit
+    onDeleteAccount: () -> Unit,
+    onDeletePlant: (String) -> Unit
 ) {
     var showLogin by remember { mutableStateOf(true) }
     var showRegistration by remember { mutableStateOf(false) }
@@ -322,6 +324,7 @@ fun TurnoshospiApp(
                         selectedPlantForDetail = plant
                         currentScreen = AppScreen.PlantDetail
                     },
+                    onOpenPlantSettings = { currentScreen = AppScreen.PlantSettings },
                     onJoinPlant = { plantId, invitationCode, onResult ->
                         onJoinPlant(plantId, invitationCode, existingProfile) { success, message ->
                             if (!success && message != null) {
@@ -374,6 +377,17 @@ fun TurnoshospiApp(
                 AppScreen.Settings -> SettingsScreen(
                     onBack = { currentScreen = AppScreen.MainMenu },
                     onDeleteAccount = onDeleteAccount
+                )
+
+                AppScreen.PlantSettings -> PlantSettingsScreen(
+                    plant = userPlant,
+                    onBack = { currentScreen = AppScreen.MyPlant },
+                    onDeletePlant = {
+                        plantId ->
+                        onDeletePlant(plantId)
+                        refreshUserPlant()
+                        currentScreen = AppScreen.MyPlant
+                    }
                 )
             }
         }
@@ -565,6 +579,106 @@ fun SettingsScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PlantSettingsScreen(
+    plant: Plant?,
+    onBack: () -> Unit,
+    onDeletePlant: (String) -> Unit
+) {
+    var showConfirmDeleteDialog by remember { mutableStateOf(false) }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Configuración de planta", color = Color.White) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver",
+                            tint = Color.White
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent
+                )
+            )
+        },
+        containerColor = Color.Transparent
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
+            if (plant != null) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0x22FFFFFF)),
+                    border = BorderStroke(1.dp, Color(0x33FFFFFF))
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Text(
+                            plant.name,
+                            style = MaterialTheme.typography.titleLarge,
+                            color = Color.White
+                        )
+
+                        Button(
+                            onClick = { showConfirmDeleteDialog = true },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                        ) {
+                            Text("Borrar planta")
+                        }
+
+                        Text(
+                            "Esta acción es permanente y no se puede deshacer. Se borrarán todos los datos de la planta y se desvincularán todos los usuarios asociados.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.Gray,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    if (showConfirmDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showConfirmDeleteDialog = false },
+            title = { Text("¿Estás seguro?") },
+            text = { Text("Estás a punto de borrar la planta \"${plant?.name}\". Esta acción es irreversible y afectará a todos los usuarios asociados a ella. ¿Deseas continuar?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showConfirmDeleteDialog = false
+                        plant?.id?.let { onDeletePlant(it) }
+                    }
+                ) {
+                    Text("Borrar", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showConfirmDeleteDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+}
+
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
@@ -585,7 +699,8 @@ fun SplashLoginPreview() {
             onLinkUserToStaff = { _, _, _ -> },
             onRegisterPlantStaff = { _, _, _ -> },
             onSignOut = {},
-            onDeleteAccount = {}
+            onDeleteAccount = {},
+            onDeletePlant = {}
         )
     }
 }

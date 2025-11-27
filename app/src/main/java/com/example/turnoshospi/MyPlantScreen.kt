@@ -1,5 +1,6 @@
 package com.example.turnoshospi
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -26,7 +29,6 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -35,8 +37,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -48,10 +50,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,6 +71,7 @@ fun MyPlantScreen(
     onBack: () -> Unit,
     onRefresh: () -> Unit,
     onOpenPlantDetail: (Plant) -> Unit,
+    onOpenPlantSettings: () -> Unit,
     onJoinPlant: (String, String, (Boolean, String?) -> Unit) -> Unit,
     onLinkUserToStaff: (RegisteredUser) -> Unit
 ) {
@@ -76,6 +80,8 @@ fun MyPlantScreen(
     var joinError by remember { mutableStateOf<String?>(null) }
     var joinSuccess by remember { mutableStateOf(false) }
     var isJoining by remember { mutableStateOf(false) }
+    var showMenu by remember { mutableStateOf(false) }
+
     val supervisorRoles = listOf(
         stringResource(id = R.string.role_supervisor_male),
         stringResource(id = R.string.role_supervisor_female)
@@ -155,6 +161,29 @@ fun MyPlantScreen(
                             contentDescription = stringResource(id = R.string.refresh_plant_action),
                             tint = if (isLoading) Color(0x88FFFFFF) else Color.White
                         )
+                    }
+                    if (isSupervisor && plant != null) {
+                        Box {
+                            IconButton(onClick = { showMenu = true }) {
+                                Image(
+                                    painter = painterResource(id = R.mipmap.ic_logo_hospi_foreground),
+                                    contentDescription = "Más opciones",
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = showMenu,
+                                onDismissRequest = { showMenu = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("Configuración de planta") },
+                                    onClick = {
+                                        showMenu = false
+                                        onOpenPlantSettings()
+                                    }
+                                )
+                            }
+                        }
                     }
                 },
                 colors = androidx.compose.material3.TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -595,13 +624,14 @@ private fun MyPlantScreenPreview() {
         plant = samplePlant,
         isLoading = false,
         isLoadingMembership = false,
-        currentUserProfile = UserProfile(firstName = "Elena", role = "Enfermera"),
+        currentUserProfile = UserProfile(firstName = "Elena", role = "Supervisora"),
         plantMembership = null,
         isLinkingStaff = false,
         errorMessage = null,
         onBack = {},
         onRefresh = {},
         onOpenPlantDetail = {},
+        onOpenPlantSettings = {},
         onJoinPlant = { _, _, callback -> callback(true, null) },
         onLinkUserToStaff = {}
     )
