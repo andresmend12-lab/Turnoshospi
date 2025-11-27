@@ -1004,4 +1004,4 @@ private fun StaffDropdownField(modifier: Modifier = Modifier, label: String, sel
             menuOptions.forEach { op -> DropdownMenuItem(text = { Text(op, color = Color.White) }, onClick = { onOptionSelected(if (op == unassigned) "" else op); expanded = false }) }
         }
     }
-}
+}   
