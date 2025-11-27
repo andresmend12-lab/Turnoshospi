@@ -1,5 +1,6 @@
 package com.example.turnoshospi
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -38,6 +39,7 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -111,7 +113,11 @@ fun TurnoshospiApp(
     var saveCompleted by remember { mutableStateOf(false) }
     var emailForReset by remember { mutableStateOf("") }
     var showProfileEditor by remember { mutableStateOf(false) }
+
+    // NAVEGACIÓN: Estado y Pila
     var currentScreen by remember { mutableStateOf(AppScreen.MainMenu) }
+    val backStack = remember { mutableStateListOf<AppScreen>() }
+
     var lastCreatedPlantCredentials by remember { mutableStateOf<PlantCredentials?>(null) }
     var userPlant by remember { mutableStateOf<Plant?>(null) }
     var plantMembership by remember { mutableStateOf<PlantMembership?>(null) }
@@ -131,6 +137,29 @@ fun TurnoshospiApp(
         LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
     }
     val sharedDatePickerState = rememberDatePickerState(initialSelectedDateMillis = todayMillis)
+
+    // --- Helpers de Navegación ---
+    fun navigateTo(screen: AppScreen) {
+        backStack.add(currentScreen)
+        currentScreen = screen
+    }
+
+    fun navigateBack() {
+        if (backStack.isNotEmpty()) {
+            currentScreen = backStack.removeLast()
+        }
+    }
+
+    // --- Manejo del botón atrás físico ---
+    // 1. Si estamos en registro (login), volver al login.
+    // 2. Si estamos dentro de la app y hay historial, volver atrás.
+    BackHandler(enabled = (user == null && showRegistration) || (user != null && backStack.isNotEmpty())) {
+        if (user == null && showRegistration) {
+            showRegistration = false
+        } else if (user != null) {
+            navigateBack()
+        }
+    }
 
     val refreshUserPlant: () -> Unit = {
         plantError = null
@@ -165,7 +194,11 @@ fun TurnoshospiApp(
             isLoadingProfile = true
             existingProfile = null
             userPlant = null
+
+            // Resetear navegación al loguearse
             currentScreen = AppScreen.MainMenu
+            backStack.clear()
+
             onLoadProfile { profile ->
                 existingProfile = profile
                 isLoadingProfile = false
@@ -181,6 +214,7 @@ fun TurnoshospiApp(
             isLoadingPlant = false
             isLoadingMembership = false
             currentScreen = AppScreen.MainMenu
+            backStack.clear()
         }
     }
 
@@ -306,27 +340,29 @@ fun TurnoshospiApp(
                     datePickerState = sharedDatePickerState,
                     onListenToShifts = onListenToShifts,
                     onFetchColleagues = onFetchColleagues,
-                    onCreatePlant = { currentScreen = AppScreen.CreatePlant },
+                    onCreatePlant = { navigateTo(AppScreen.CreatePlant) },
                     onEditProfile = { showProfileEditor = true },
                     onOpenPlant = {
-                        currentScreen = AppScreen.MyPlant
+                        navigateTo(AppScreen.MyPlant)
                         refreshUserPlant()
                     },
-                    onOpenSettings = { currentScreen = AppScreen.Settings },
+                    onOpenSettings = { navigateTo(AppScreen.Settings) },
                     onSignOut = onSignOut,
                     onOpenDirectChats = {
                         if (userPlant != null) {
                             selectedPlantForDetail = userPlant
-                            currentScreen = AppScreen.DirectChatList
+                            navigateTo(AppScreen.DirectChatList)
                         }
                     }
                 )
 
                 AppScreen.CreatePlant -> PlantCreationScreen(
-                    onBack = { currentScreen = AppScreen.MainMenu },
+                    onBack = { navigateBack() },
                     onPlantCreated = { credentials ->
                         lastCreatedPlantCredentials = credentials
-                        currentScreen = AppScreen.PlantCreated
+                        // Al ir a la pantalla de éxito, no queremos volver al formulario
+                        // Así que usamos navigateTo, pero luego gestionamos la salida
+                        navigateTo(AppScreen.PlantCreated)
                     },
                     currentUserId = user?.uid,
                     currentUserProfile = existingProfile
@@ -334,7 +370,11 @@ fun TurnoshospiApp(
 
                 AppScreen.PlantCreated -> PlantCreatedScreen(
                     credentials = lastCreatedPlantCredentials,
-                    onBackToMenu = { currentScreen = AppScreen.MainMenu }
+                    onBackToMenu = {
+                        // Limpiar pila hasta el inicio
+                        backStack.clear()
+                        currentScreen = AppScreen.MainMenu
+                    }
                 )
 
                 AppScreen.MyPlant -> MyPlantScreen(
@@ -346,11 +386,11 @@ fun TurnoshospiApp(
                     plantMembership = plantMembership,
                     errorMessage = plantError,
                     isLinkingStaff = isLinkingStaff,
-                    onBack = { currentScreen = AppScreen.MainMenu },
+                    onBack = { navigateBack() },
                     onRefresh = { refreshUserPlant() },
                     onOpenPlantDetail = { plant ->
                         selectedPlantForDetail = plant
-                        currentScreen = AppScreen.PlantDetail
+                        navigateTo(AppScreen.PlantDetail)
                     },
                     onJoinPlant = { plantId, invitationCode, onResult ->
                         onJoinPlant(plantId, invitationCode, existingProfile) { success, message ->
@@ -388,7 +428,7 @@ fun TurnoshospiApp(
                     datePickerState = sharedDatePickerState,
                     currentUserProfile = existingProfile,
                     currentMembership = plantMembership,
-                    onBack = { currentScreen = AppScreen.MyPlant },
+                    onBack = { navigateBack() },
                     onAddStaff = { plantId, staffMember, onResult ->
                         onRegisterPlantStaff(plantId, staffMember) { success ->
                             if (success) {
@@ -411,54 +451,59 @@ fun TurnoshospiApp(
                             onResult(success)
                         }
                     },
-                    onOpenPlantSettings = { currentScreen = AppScreen.PlantSettings },
-                    onOpenImportShifts = { currentScreen = AppScreen.ImportShifts },
-                    onOpenChat = { currentScreen = AppScreen.GroupChat },
-                    onOpenShiftChange = { currentScreen = AppScreen.ShiftChange }
+                    onOpenPlantSettings = { navigateTo(AppScreen.PlantSettings) },
+                    onOpenImportShifts = { navigateTo(AppScreen.ImportShifts) },
+                    onOpenChat = { navigateTo(AppScreen.GroupChat) },
+                    onOpenShiftChange = { navigateTo(AppScreen.ShiftChange) }
                 )
                 AppScreen.Settings -> SettingsScreen(
-                    onBack = { currentScreen = AppScreen.MainMenu },
+                    onBack = { navigateBack() },
                     onDeleteAccount = onDeleteAccount
                 )
 
                 AppScreen.PlantSettings -> PlantSettingsScreen(
                     plant = userPlant,
-                    onBack = { currentScreen = AppScreen.MyPlant },
-                    onDeletePlant = {
-                            plantId ->
+                    onBack = { navigateBack() },
+                    onDeletePlant = { plantId ->
                         onDeletePlant(plantId)
                         refreshUserPlant()
-                        currentScreen = AppScreen.MyPlant
+                        // Al borrar, volvemos a la pantalla de "Mi Planta" (o MainMenu si se prefiere)
+                        // Limpiamos la pila de detalles
+                        while(backStack.isNotEmpty() && backStack.last() != AppScreen.MyPlant && backStack.last() != AppScreen.MainMenu) {
+                            backStack.removeLast()
+                        }
+                        if (backStack.isNotEmpty()) currentScreen = backStack.removeLast()
+                        else currentScreen = AppScreen.MainMenu
                     }
                 )
 
                 AppScreen.ImportShifts -> ImportShiftsScreen(
                     plant = selectedPlantForDetail,
-                    onBack = { currentScreen = AppScreen.PlantDetail }
+                    onBack = { navigateBack() }
                 )
 
                 AppScreen.GroupChat -> GroupChatScreen(
                     plantId = selectedPlantForDetail?.id ?: "",
                     currentUser = existingProfile,
                     currentUserId = user?.uid ?: "",
-                    onBack = { currentScreen = AppScreen.PlantDetail }
+                    onBack = { navigateBack() }
                 )
 
                 AppScreen.ShiftChange -> ShiftChangeScreen(
                     plantId = selectedPlantForDetail?.id ?: "",
                     currentUser = existingProfile,
                     currentUserId = user?.uid ?: "",
-                    onBack = { currentScreen = AppScreen.PlantDetail }
+                    onBack = { navigateBack() }
                 )
 
                 AppScreen.DirectChatList -> DirectChatListScreen(
                     plantId = selectedPlantForDetail?.id ?: userPlant?.id ?: "",
                     currentUserId = user?.uid ?: "",
-                    onBack = { currentScreen = AppScreen.MainMenu },
+                    onBack = { navigateBack() },
                     onNavigateToChat = { otherId, otherName ->
                         selectedDirectChatUserId = otherId
                         selectedDirectChatUserName = otherName
-                        currentScreen = AppScreen.DirectChat
+                        navigateTo(AppScreen.DirectChat)
                     }
                 )
 
@@ -467,7 +512,7 @@ fun TurnoshospiApp(
                     currentUserId = user?.uid ?: "",
                     otherUserId = selectedDirectChatUserId,
                     otherUserName = selectedDirectChatUserName,
-                    onBack = { currentScreen = AppScreen.DirectChatList }
+                    onBack = { navigateBack() }
                 )
             }
         }
