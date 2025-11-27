@@ -105,7 +105,8 @@ fun PlantDetailScreen(
     currentUserProfile: UserProfile?,
     currentMembership: PlantMembership?,
     onBack: () -> Unit,
-    onAddStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit
+    onAddStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
+    onOpenPlantSettings: () -> Unit
 ) {
     var isMenuOpen by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -437,6 +438,19 @@ fun PlantDetailScreen(
                                 unselectedTextColor = Color.White
                             )
                         )
+                        NavigationDrawerItem(
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            label = { Text("Configuración de planta") },
+                            selected = false,
+                            onClick = {
+                                isMenuOpen = false
+                                onOpenPlantSettings()
+                            },
+                            colors = NavigationDrawerItemDefaults.colors(
+                                unselectedContainerColor = Color.Transparent,
+                                unselectedTextColor = Color.White
+                            )
+                        )
                     }
                     NavigationDrawerItem(
                         modifier = Modifier.padding(horizontal = 12.dp),
@@ -609,7 +623,8 @@ private fun PlantDetailScreenPreview() {
         ),
         currentMembership = null,
         onBack = {},
-        onAddStaff = { _, _, callback -> callback(true) }
+        onAddStaff = { _, _, callback -> callback(true) },
+        onOpenPlantSettings = {}
     )
 }
 

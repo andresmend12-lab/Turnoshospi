@@ -324,7 +324,6 @@ fun TurnoshospiApp(
                         selectedPlantForDetail = plant
                         currentScreen = AppScreen.PlantDetail
                     },
-                    onOpenPlantSettings = { currentScreen = AppScreen.PlantSettings },
                     onJoinPlant = { plantId, invitationCode, onResult ->
                         onJoinPlant(plantId, invitationCode, existingProfile) { success, message ->
                             if (!success && message != null) {
@@ -372,7 +371,8 @@ fun TurnoshospiApp(
                             }
                             onResult(success)
                         }
-                    }
+                    },
+                    onOpenPlantSettings = { currentScreen = AppScreen.PlantSettings }
                 )
                 AppScreen.Settings -> SettingsScreen(
                     onBack = { currentScreen = AppScreen.MainMenu },

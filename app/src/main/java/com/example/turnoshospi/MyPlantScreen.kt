@@ -71,7 +71,6 @@ fun MyPlantScreen(
     onBack: () -> Unit,
     onRefresh: () -> Unit,
     onOpenPlantDetail: (Plant) -> Unit,
-    onOpenPlantSettings: () -> Unit,
     onJoinPlant: (String, String, (Boolean, String?) -> Unit) -> Unit,
     onLinkUserToStaff: (RegisteredUser) -> Unit
 ) {
@@ -161,29 +160,6 @@ fun MyPlantScreen(
                             contentDescription = stringResource(id = R.string.refresh_plant_action),
                             tint = if (isLoading) Color(0x88FFFFFF) else Color.White
                         )
-                    }
-                    if (isSupervisor && plant != null) {
-                        Box {
-                            IconButton(onClick = { showMenu = true }) {
-                                Image(
-                                    painter = painterResource(id = R.mipmap.ic_logo_hospi_foreground),
-                                    contentDescription = "Más opciones",
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
-                            DropdownMenu(
-                                expanded = showMenu,
-                                onDismissRequest = { showMenu = false }
-                            ) {
-                                DropdownMenuItem(
-                                    text = { Text("Configuración de planta") },
-                                    onClick = {
-                                        showMenu = false
-                                        onOpenPlantSettings()
-                                    }
-                                )
-                            }
-                        }
                     }
                 },
                 colors = androidx.compose.material3.TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -631,7 +607,6 @@ private fun MyPlantScreenPreview() {
         onBack = {},
         onRefresh = {},
         onOpenPlantDetail = {},
-        onOpenPlantSettings = {},
         onJoinPlant = { _, _, callback -> callback(true, null) },
         onLinkUserToStaff = {}
     )
