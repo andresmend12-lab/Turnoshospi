@@ -4,105 +4,704 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
+import com.google.firebase.FirebaseApp
+import com.google.firebase.FirebaseNetworkException
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseException
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.database.ValueEventListener
+import java.util.Date
 
 class MainActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
-    private lateinit var database: FirebaseDatabase
-    private lateinit var storage: FirebaseStorage
+    private lateinit var realtimeDatabase: FirebaseDatabase
+    private val currentUserState = mutableStateOf<FirebaseUser?>(null)
+    private val authErrorMessage = mutableStateOf<String?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
+        FirebaseApp.initializeApp(this)
         auth = FirebaseAuth.getInstance()
-        database = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
-        try {
-            storage = FirebaseStorage.getInstance("gs://turnoshospi-f4870.firebasestorage.app")
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        realtimeDatabase = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
+        currentUserState.value = auth.currentUser
 
         setContent {
             TurnoshospiTheme {
-                val currentUser = auth.currentUser
-                var errorMessage by remember { mutableStateOf<String?>(null) }
-
                 TurnoshospiApp(
-                    user = currentUser,
-                    errorMessage = errorMessage,
-                    onErrorDismiss = { errorMessage = null },
-                    onLogin = { e, p, cb ->
-                        auth.signInWithEmailAndPassword(e, p).addOnCompleteListener {
-                            cb(it.isSuccessful)
-                        }
+                    user = currentUserState.value,
+                    errorMessage = authErrorMessage.value,
+                    onErrorDismiss = { authErrorMessage.value = null },
+                    onLogin = { email, password, onResult ->
+                        signInWithEmail(email, password, onResult)
                     },
-                    onCreateAccount = { p, pw, cb ->
-                        auth.createUserWithEmailAndPassword(p.email, pw).addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                val uid = task.result!!.user!!.uid
-                                val newProfile = p.copy(id = uid) // Aseguramos que el perfil tenga el ID
-                                database.reference.child("users").child(uid).setValue(newProfile)
-                                    .addOnCompleteListener { dbTask -> cb(dbTask.isSuccessful) }
-                            } else {
-                                cb(false)
-                            }
-                        }
+                    onCreateAccount = { profile, password, onResult ->
+                        createAccountWithEmail(profile, password, onResult)
                     },
-                    onForgotPassword = { e, cb ->
-                        auth.sendPasswordResetEmail(e).addOnCompleteListener { cb(it.isSuccessful) }
+                    onForgotPassword = { email, onResult -> sendPasswordReset(email, onResult) },
+                    onLoadProfile = { loadUserProfile(it) },
+                    onSaveProfile = { profile, callback -> saveUserProfile(profile, callback) },
+                    onLoadPlant = { loadUserPlant(it) },
+                    onJoinPlant = { plantId, code, profile, onResult ->
+                        joinPlantWithCode(plantId, code, profile, onResult)
                     },
-                    onLoadProfile = { cb ->
-                        if (auth.uid != null) {
-                            database.reference.child("users").child(auth.uid!!).get()
-                                .addOnSuccessListener { cb(it.getValue(UserProfile::class.java)) }
-                                .addOnFailureListener { cb(null) }
-                        } else {
-                            cb(null)
-                        }
+                    onLoadPlantMembership = { plantId, userId, onResult ->
+                        loadPlantMembership(plantId, userId, onResult)
                     },
-                    onSaveProfile = { p, cb ->
-                        if (auth.uid != null) {
-                            val updatedProfile = p.copy(id = auth.uid!!)
-                            database.reference.child("users").child(auth.uid!!).setValue(updatedProfile)
-                                .addOnCompleteListener { cb(it.isSuccessful) }
-                        } else {
-                            cb(false)
-                        }
+                    onLinkUserToStaff = { plantId, staff, onResult ->
+                        linkUserToPlantStaff(plantId, staff, onResult)
                     },
-                    onLoadPlant = { cb ->
-                        database.reference.child("plants").limitToFirst(1).get()
-                            .addOnSuccessListener {
-                                cb(it.children.firstOrNull()?.getValue(Plant::class.java), null)
-                            }
-                            .addOnFailureListener { cb(null, it.message) }
+                    onRegisterPlantStaff = { plantId, staffMember, onResult ->
+                        registerPlantStaff(plantId, staffMember, onResult)
                     },
-                    onJoinPlant = { _, _, _, cb -> cb(true, null) },
-                    onLoadPlantMembership = { _, _, cb -> cb(null) },
-                    onLinkUserToStaff = { _, _, cb -> cb(true) },
-                    onRegisterPlantStaff = { pid, s, cb ->
-                        database.reference.child("plants/$pid/personal_de_planta/${s.id}").setValue(s)
-                            .addOnSuccessListener { cb(true) }
-                            .addOnFailureListener { cb(false) }
+                    onEditPlantStaff = { plantId, staffMember, onResult ->
+                        editPlantStaff(plantId, staffMember, onResult)
                     },
-                    onEditPlantStaff = { pid, s, cb ->
-                        database.reference.child("plants/$pid/personal_de_planta/${s.id}").setValue(s)
-                            .addOnSuccessListener { cb(true) }
-                            .addOnFailureListener { cb(false) }
+                    onListenToShifts = { plantId, staffId, onResult ->
+                        listenToUserShifts(plantId, staffId, onResult)
                     },
-                    onListenToShifts = { _, _, _ -> },
-                    onFetchColleagues = { _, _, _, cb -> cb(emptyList()) },
-                    onSignOut = { auth.signOut() },
-                    onDeleteAccount = { auth.currentUser?.delete() },
-                    onDeletePlant = { pid ->
-                        database.reference.child("plants").child(pid).removeValue()
-                    }
+                    onFetchColleagues = { plantId, date, shiftName, onResult ->
+                        fetchColleaguesForShift(plantId, date, shiftName, onResult)
+                    },
+                    onSignOut = { signOut() },
+                    onDeleteAccount = { deleteAccount() },
+                    onDeletePlant = { plantId -> deletePlant(plantId) }
                 )
             }
         }
+    }
+
+    private fun signInWithEmail(email: String, password: String, onResult: (Boolean) -> Unit) {
+        authErrorMessage.value = null
+        auth.signInWithEmailAndPassword(email.trim(), password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    currentUserState.value = auth.currentUser
+                    onResult(true)
+                } else {
+                    val errorMessage = task.exception?.let { formatAuthError(it) }
+                        ?: "No se pudo iniciar sesión con ese correo"
+                    authErrorMessage.value = errorMessage
+                    onResult(false)
+                }
+            }
+    }
+
+    private fun createAccountWithEmail(
+        profile: UserProfile,
+        password: String,
+        onResult: (Boolean) -> Unit
+    ) {
+        authErrorMessage.value = null
+        auth.createUserWithEmailAndPassword(profile.email.trim(), password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    currentUserState.value = auth.currentUser
+                    saveUserProfile(profile) { success ->
+                        onResult(success)
+                    }
+                } else {
+                    val errorMessage = task.exception?.let { formatAuthError(it) }
+                        ?: "No se pudo crear la cuenta"
+                    authErrorMessage.value = errorMessage
+                    onResult(false)
+                }
+            }
+    }
+
+    private fun sendPasswordReset(email: String, onResult: (Boolean) -> Unit) {
+        authErrorMessage.value = null
+        auth.sendPasswordResetEmail(email.trim())
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    onResult(true)
+                } else {
+                    val errorMessage = task.exception?.let { formatAuthError(it) }
+                        ?: "No se pudo enviar el correo de recuperación"
+                    authErrorMessage.value = errorMessage
+                    onResult(false)
+                }
+            }
+    }
+
+    private fun loadUserProfile(onResult: (UserProfile?) -> Unit) {
+        val user = auth.currentUser ?: run {
+            onResult(null)
+            return
+        }
+
+        realtimeDatabase.getReference("users")
+            .child(user.uid)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val profile = snapshot.toUserProfile(user.email.orEmpty())
+                onResult(profile)
+            }
+            .addOnFailureListener { databaseError ->
+                authErrorMessage.value = databaseError.message
+                onResult(null)
+            }
+    }
+
+    private fun saveUserProfile(profile: UserProfile, onResult: (Boolean) -> Unit) {
+        val user = auth.currentUser ?: run {
+            authErrorMessage.value = "Debes iniciar sesión para continuar"
+            onResult(false)
+            return
+        }
+
+        val resolvedEmail = profile.email.ifEmpty { user.email.orEmpty() }
+
+        saveRealtimeUser(user.uid, profile.copy(email = resolvedEmail)) { success ->
+            if (!success && authErrorMessage.value == null) {
+                authErrorMessage.value = "No se pudo guardar el perfil en tiempo real"
+            }
+            onResult(success)
+        }
+    }
+
+    private fun saveRealtimeUser(
+        userId: String,
+        profile: UserProfile,
+        onResult: (Boolean) -> Unit
+    ) {
+        val currentTime = System.currentTimeMillis()
+        val userRef = realtimeDatabase.getReference("users").child(userId)
+
+        userRef.get()
+            .addOnSuccessListener { snapshot ->
+                val persistedCreatedAt = snapshot.child("createdAt").getValue(Long::class.java)
+                val persistedPlantId = snapshot.child("plantId").getValue(String::class.java)
+                val resolvedPlantId = profile.plantId ?: persistedPlantId
+                val realtimePayload = mutableMapOf<String, Any?>().apply {
+                    put("firstName", profile.firstName)
+                    put("lastName", profile.lastName)
+                    put("role", profile.role)
+                    put("gender", profile.gender)
+                    put("email", profile.email)
+                    put("createdAt", persistedCreatedAt ?: profile.createdAt?.toDate()?.time ?: currentTime)
+                    put("updatedAt", currentTime)
+                    resolvedPlantId?.let { put("plantId", it) }
+                }
+
+                userRef.setValue(realtimePayload)
+                    .addOnSuccessListener { onResult(true) }
+                    .addOnFailureListener {
+                        val message = if (it is DatabaseException) {
+                            "Revisa las reglas de Realtime Database y los permisos de escritura"
+                        } else {
+                            "No se pudo guardar el perfil en tiempo real"
+                        }
+                        authErrorMessage.value = message
+                        onResult(false)
+                    }
+            }
+            .addOnFailureListener {
+                val message = if (it is DatabaseException) {
+                    "Revisa las reglas de Realtime Database y los permisos de escritura"
+                } else {
+                    "No se pudo guardar el perfil en tiempo real"
+                }
+                authErrorMessage.value = message
+                onResult(false)
+            }
+    }
+
+    private fun loadUserPlant(onResult: (Plant?, String?) -> Unit) {
+        val user = auth.currentUser ?: run {
+            onResult(null, getString(R.string.plant_auth_error))
+            return
+        }
+
+        realtimeDatabase.getReference("users")
+            .child(user.uid)
+            .child("plantId")
+            .get()
+            .addOnSuccessListener { mappingSnapshot ->
+                val plantId = mappingSnapshot.getValue(String::class.java)
+                if (plantId.isNullOrBlank()) {
+                    onResult(null, null)
+                    return@addOnSuccessListener
+                }
+
+                realtimeDatabase.getReference("plants")
+                    .child(plantId)
+                    .get()
+                    .addOnSuccessListener { plantSnapshot ->
+                        val plant = plantSnapshot.toPlant()
+                        if (plant != null) {
+                            onResult(plant, null)
+                        } else {
+                            onResult(null, getString(R.string.plant_load_error))
+                        }
+                    }
+                    .addOnFailureListener {
+                        onResult(null, getString(R.string.plant_load_error))
+                    }
+            }
+            .addOnFailureListener {
+                onResult(null, getString(R.string.plant_load_error))
+            }
+    }
+
+    private fun loadPlantMembership(
+        plantId: String,
+        userId: String,
+        onResult: (PlantMembership?) -> Unit
+    ) {
+        realtimeDatabase.reference
+            .child("plants")
+            .child(plantId)
+            .child("userPlants")
+            .child(userId)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                if (!snapshot.exists()) {
+                    onResult(null)
+                    return@addOnSuccessListener
+                }
+
+                if (snapshot.hasChildren()) {
+                    val membership = PlantMembership(
+                        plantId = snapshot.child("plantId").getValue(String::class.java) ?: plantId,
+                        userId = userId,
+                        staffId = snapshot.child("staffId").getValue(String::class.java),
+                        staffName = snapshot.child("staffName").getValue(String::class.java),
+                        staffRole = snapshot.child("staffRole").getValue(String::class.java)
+                    )
+                    onResult(membership)
+                } else {
+                    onResult(
+                        PlantMembership(
+                            plantId = plantId,
+                            userId = userId,
+                            staffId = null,
+                            staffName = null,
+                            staffRole = null
+                        )
+                    )
+                }
+            }
+            .addOnFailureListener { onResult(null) }
+    }
+
+    private fun joinPlantWithCode(
+        plantId: String,
+        invitationCode: String,
+        profile: UserProfile?,
+        onResult: (Boolean, String?) -> Unit
+    ) {
+        val user = auth.currentUser ?: run {
+            onResult(false, getString(R.string.plant_auth_error))
+            return
+        }
+
+        val cleanPlantId = plantId.trim()
+        val cleanInvitationCode = invitationCode.trim()
+
+        realtimeDatabase.getReference("plants")
+            .child(cleanPlantId)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                if (!snapshot.exists()) {
+                    onResult(false, getString(R.string.join_plant_not_found))
+                    return@addOnSuccessListener
+                }
+
+                val storedCode = snapshot.child("accessPassword").getValue(String::class.java)
+                if (storedCode.isNullOrEmpty() || storedCode != cleanInvitationCode) {
+                    onResult(false, getString(R.string.invalid_invitation_code))
+                    return@addOnSuccessListener
+                }
+
+                val updates = mapOf(
+                    "plants/$cleanPlantId/userPlants/${user.uid}/plantId" to cleanPlantId,
+                    "users/${user.uid}/plantId" to cleanPlantId
+                )
+
+                realtimeDatabase.reference
+                    .updateChildren(updates)
+                    .addOnSuccessListener { onResult(true, null) }
+                    .addOnFailureListener {
+                        onResult(false, getString(R.string.join_plant_error))
+                    }
+            }
+            .addOnFailureListener {
+                onResult(false, getString(R.string.join_plant_error))
+            }
+    }
+
+    private fun registerPlantStaff(
+        plantId: String,
+        staffMember: RegisteredUser,
+        onResult: (Boolean) -> Unit
+    ) {
+        val cleanPlantId = plantId.trim()
+
+        if (cleanPlantId.isEmpty()) {
+            onResult(false)
+            return
+        }
+
+        realtimeDatabase.reference
+            .child("plants")
+            .child(cleanPlantId)
+            .child("personal_de_planta")
+            .child(staffMember.id)
+            .setValue(staffMember)
+            .addOnSuccessListener { onResult(true) }
+            .addOnFailureListener { onResult(false) }
+    }
+
+    private fun editPlantStaff(
+        plantId: String,
+        staffMember: RegisteredUser,
+        onResult: (Boolean) -> Unit
+    ) {
+        val cleanPlantId = plantId.trim()
+        if (cleanPlantId.isEmpty() || staffMember.id.isEmpty()) {
+            onResult(false)
+            return
+        }
+
+        realtimeDatabase.reference
+            .child("plants")
+            .child(cleanPlantId)
+            .child("personal_de_planta")
+            .child(staffMember.id)
+            .setValue(staffMember)
+            .addOnSuccessListener { onResult(true) }
+            .addOnFailureListener { onResult(false) }
+    }
+
+    private fun listenToUserShifts(
+        plantId: String,
+        staffId: String,
+        onResult: (Map<String, UserShift>) -> Unit
+    ) {
+        // 1. Obtener el nombre
+        realtimeDatabase.reference
+            .child("plants")
+            .child(plantId)
+            .child("personal_de_planta")
+            .child(staffId)
+            .child("name")
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(nameSnapshot: DataSnapshot) {
+                    val staffName = nameSnapshot.getValue(String::class.java)
+
+                    if (staffName.isNullOrBlank()) {
+                        onResult(emptyMap())
+                        return
+                    }
+
+                    // 2. Escuchar turnos usando el nombre
+                    realtimeDatabase.reference
+                        .child("plants")
+                        .child(plantId)
+                        .child("turnos")
+                        .addValueEventListener(object : ValueEventListener {
+                            override fun onDataChange(snapshot: DataSnapshot) {
+                                val userShifts = mutableMapOf<String, UserShift>()
+
+                                for (dateSnapshot in snapshot.children) {
+                                    val dateKey = dateSnapshot.key?.removePrefix("turnos-") ?: continue
+
+                                    for (shiftSnapshot in dateSnapshot.children) {
+                                        val shiftName = shiftSnapshot.key ?: continue
+                                        var found = false
+                                        var isHalf = false
+
+                                        // Nurses
+                                        for (slot in shiftSnapshot.child("nurses").children) {
+                                            val primary = slot.child("primary").getValue(String::class.java)
+                                            val secondary = slot.child("secondary").getValue(String::class.java)
+                                            val halfDay = slot.child("halfDay").getValue(Boolean::class.java) ?: false
+
+                                            if (primary == staffName) {
+                                                found = true
+                                                isHalf = halfDay
+                                                break
+                                            }
+                                            if (secondary == staffName) {
+                                                found = true
+                                                isHalf = true
+                                                break
+                                            }
+                                        }
+
+                                        if (!found) {
+                                            // Auxiliaries
+                                            for (slot in shiftSnapshot.child("auxiliaries").children) {
+                                                val primary = slot.child("primary").getValue(String::class.java)
+                                                val secondary = slot.child("secondary").getValue(String::class.java)
+                                                val halfDay = slot.child("halfDay").getValue(Boolean::class.java) ?: false
+
+                                                if (primary == staffName) {
+                                                    found = true
+                                                    isHalf = halfDay
+                                                    break
+                                                }
+                                                if (secondary == staffName) {
+                                                    found = true
+                                                    isHalf = true
+                                                    break
+                                                }
+                                            }
+                                        }
+
+                                        if (found) {
+                                            userShifts[dateKey] = UserShift(shiftName, isHalf)
+                                            break
+                                        }
+                                    }
+                                }
+                                onResult(userShifts)
+                            }
+
+                            override fun onCancelled(error: DatabaseError) {
+                            }
+                        })
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    onResult(emptyMap())
+                }
+            })
+    }
+
+    private fun fetchColleaguesForShift(
+        plantId: String,
+        date: String,
+        shiftName: String,
+        onResult: (List<Colleague>) -> Unit // AHORA DEVUELVE UNA LISTA DE COLLEAGUE
+    ) {
+        realtimeDatabase.reference
+            .child("plants")
+            .child(plantId)
+            .child("turnos")
+            .child("turnos-$date")
+            .child(shiftName)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val colleagues = mutableListOf<Colleague>()
+
+                    // Helper para extraer nombres y asignar rol
+                    fun collectNames(category: String, roleLabel: String) {
+                        for (slot in snapshot.child(category).children) {
+                            val primary = slot.child("primary").getValue(String::class.java)
+                            val secondary = slot.child("secondary").getValue(String::class.java)
+
+                            if (!primary.isNullOrBlank()) colleagues.add(Colleague(primary, roleLabel))
+                            if (!secondary.isNullOrBlank()) colleagues.add(Colleague(secondary, roleLabel))
+                        }
+                    }
+
+                    collectNames("nurses", "Enfermero/a")
+                    collectNames("auxiliaries", "Auxiliar")
+
+                    // Eliminar duplicados por nombre si existieran
+                    onResult(colleagues.distinctBy { it.name })
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    onResult(emptyList())
+                }
+            })
+    }
+
+    private fun linkUserToPlantStaff(
+        plantId: String,
+        staffMember: RegisteredUser,
+        onResult: (Boolean) -> Unit
+    ) {
+        val user = auth.currentUser ?: run {
+            onResult(false)
+            return
+        }
+
+        val updates = mapOf(
+            "plants/$plantId/userPlants/${user.uid}/plantId" to plantId,
+            "plants/$plantId/userPlants/${user.uid}/staffId" to staffMember.id,
+            "plants/$plantId/userPlants/${user.uid}/staffName" to staffMember.name,
+            "plants/$plantId/userPlants/${user.uid}/staffRole" to staffMember.role,
+            "users/${user.uid}/plantId" to plantId,
+            "users/${user.uid}/plantStaffId" to staffMember.id,
+            "users/${user.uid}/role" to staffMember.role,
+            "users/${user.uid}/linkedStaffName" to staffMember.name
+        )
+
+        realtimeDatabase.reference
+            .updateChildren(updates)
+            .addOnSuccessListener { onResult(true) }
+            .addOnFailureListener { onResult(false) }
+    }
+
+    private fun signOut() {
+        auth.signOut()
+        currentUserState.value = null
+    }
+
+    private fun deleteAccount() {
+        val user = auth.currentUser ?: return
+        realtimeDatabase.getReference("users").child(user.uid).removeValue()
+            .addOnSuccessListener {
+                user.delete()
+                    .addOnSuccessListener {
+                        auth.signOut()
+                        currentUserState.value = null
+                    }
+                    .addOnFailureListener {
+                        authErrorMessage.value = formatAuthError(it)
+                    }
+            }
+            .addOnFailureListener {
+                authErrorMessage.value = formatAuthError(it)
+            }
+    }
+
+    private fun deletePlant(plantId: String) {
+        realtimeDatabase.getReference("plants").child(plantId).removeValue()
+            .addOnFailureListener {
+                authErrorMessage.value = "No se pudo borrar la planta. Inténtalo de nuevo."
+            }
+    }
+
+    private fun formatAuthError(exception: Exception): String {
+        return when (exception) {
+            is FirebaseAuthWeakPasswordException -> "La contraseña es demasiado débil; debe tener al menos 6 caracteres"
+            is FirebaseAuthUserCollisionException -> "Ya existe una cuenta registrada con este correo"
+            is FirebaseAuthInvalidCredentialsException -> "El correo o la contraseña no son válidos"
+            is FirebaseAuthInvalidUserException -> "Esta cuenta no existe o fue deshabilitada"
+            is FirebaseAuthException -> when (exception.errorCode) {
+                "ERROR_OPERATION_NOT_ALLOWED" -> "Habilita el proveedor de Email/Contraseña en la consola de Firebase"
+                else -> "Error de autenticación: ${exception.localizedMessage ?: "intenta de nuevo"}"
+            }
+            is FirebaseNetworkException -> "No hay conexión con el servidor. Revisa tu conexión a internet"
+            else -> "No se pudo completar la operación. Inténtalo de nuevo"
+        }
+    }
+}
+
+data class UserShift(
+    val shiftName: String,
+    val isHalfDay: Boolean
+)
+
+data class UserProfile(
+    val firstName: String = "",
+    val lastName: String = "",
+    val role: String = "",
+    val gender: String = "",
+    val email: String = "",
+    val plantId: String? = null,
+    val createdAt: Timestamp? = null,
+    val updatedAt: Timestamp? = null
+)
+
+fun DataSnapshot.toUserProfile(fallbackEmail: String): UserProfile? {
+    if (!exists()) return null
+    val createdAtMillis = child("createdAt").getValue(Long::class.java)
+    val updatedAtMillis = child("updatedAt").getValue(Long::class.java)
+
+    return UserProfile(
+        firstName = child("firstName").getValue(String::class.java) ?: "",
+        lastName = child("lastName").getValue(String::class.java) ?: "",
+        role = child("role").getValue(String::class.java) ?: "",
+        gender = child("gender").getValue(String::class.java) ?: "",
+        email = child("email").getValue(String::class.java) ?: fallbackEmail,
+        plantId = child("plantId").getValue(String::class.java),
+        createdAt = createdAtMillis?.let { Timestamp(Date(it)) },
+        updatedAt = updatedAtMillis?.let { Timestamp(Date(it)) }
+    )
+}
+
+fun DataSnapshot.toPlant(): Plant? {
+    if (!exists()) return null
+
+    val shiftTimes = child("shiftTimes").children.mapNotNull { shiftSnapshot ->
+        val label = shiftSnapshot.key ?: return@mapNotNull null
+        val start = shiftSnapshot.child("start").getValue(String::class.java) ?: ""
+        val end = shiftSnapshot.child("end").getValue(String::class.java) ?: ""
+        label to ShiftTime(start, end)
+    }.toMap()
+
+    val staffRequirements = child("staffRequirements").children.mapNotNull { requirementSnapshot ->
+        val label = requirementSnapshot.key ?: return@mapNotNull null
+        val value = requirementSnapshot.getValue(Int::class.java)
+            ?: requirementSnapshot.getValue(Long::class.java)?.toInt()
+            ?: 0
+        label to value
+    }.toMap()
+
+    val personalDePlanta = child("personal_de_planta").children.mapNotNull { userSnapshot ->
+        val userId = userSnapshot.key ?: return@mapNotNull null
+        val registeredUser = userSnapshot.getValue(RegisteredUser::class.java)
+            ?: RegisteredUser(
+                id = userId,
+                name = userSnapshot.child("name").getValue(String::class.java).orEmpty(),
+                role = userSnapshot.child("role").getValue(String::class.java).orEmpty(),
+                email = userSnapshot.child("email").getValue(String::class.java).orEmpty(),
+                profileType = userSnapshot.child("profileType").getValue(String::class.java).orEmpty()
+            )
+        userId to registeredUser
+    }.toMap()
+
+    return Plant(
+        id = child("id").getValue(String::class.java) ?: key.orEmpty(),
+        name = child("name").getValue(String::class.java) ?: "",
+        unitType = child("unitType").getValue(String::class.java) ?: "",
+        hospitalName = child("hospitalName").getValue(String::class.java) ?: "",
+        shiftDuration = child("shiftDuration").getValue(String::class.java) ?: "",
+        allowHalfDay = child("allowHalfDay").getValue(Boolean::class.java) ?: false,
+        staffScope = child("staffScope").getValue(String::class.java) ?: "",
+        shiftTimes = shiftTimes,
+        staffRequirements = staffRequirements,
+        createdAt = child("createdAt").getValue(Long::class.java) ?: 0L,
+        accessPassword = child("accessPassword").getValue(String::class.java) ?: "",
+        personal_de_planta = personalDePlanta
+    )
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun MainActivityPreview() {
+    TurnoshospiTheme {
+        TurnoshospiApp(
+            user = null,
+            errorMessage = null,
+            onErrorDismiss = {},
+            onLogin = { _, _, _ -> },
+            onCreateAccount = { _, _, _ -> },
+            onForgotPassword = { _, _ -> },
+            onLoadProfile = { onResult -> onResult(null) },
+            onSaveProfile = { _, _ -> },
+            onLoadPlant = { onResult -> onResult(null, null) },
+            onJoinPlant = { _, _, _, _ -> },
+            onLoadPlantMembership = { _, _, _ -> },
+            onLinkUserToStaff = { _, _, _ -> },
+            onRegisterPlantStaff = { _, _, _ -> },
+            onEditPlantStaff = { _, _, _ -> },
+            onListenToShifts = { _, _, _ -> },
+            onFetchColleagues = { _, _, _, _ -> },
+            onSignOut = {},
+            onDeleteAccount = {},
+            onDeletePlant = {}
+        )
     }
 }
