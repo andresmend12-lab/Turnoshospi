@@ -100,11 +100,16 @@ import java.time.format.TextStyle
 import java.util.Locale
 import java.util.UUID
 
-private data class SlotAssignment(
-    var primaryName: String = "",
-    var secondaryName: String = "",
-    var hasHalfDay: Boolean = false
-)
+// CLASE CORREGIDA: Usa mutableStateOf para que Compose detecte los cambios
+private class SlotAssignment(
+    primaryName: String = "",
+    secondaryName: String = "",
+    hasHalfDay: Boolean = false
+) {
+    var primaryName by mutableStateOf(primaryName)
+    var secondaryName by mutableStateOf(secondaryName)
+    var hasHalfDay by mutableStateOf(hasHalfDay)
+}
 
 private data class ShiftAssignmentState(
     val nurseSlots: MutableList<SlotAssignment>,
