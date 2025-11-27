@@ -69,6 +69,7 @@ fun MainMenuScreen(
     onCreatePlant: () -> Unit,
     onEditProfile: () -> Unit,
     onOpenPlant: () -> Unit,
+    onOpenSettings: () -> Unit, // Nuevo parámetro
     onSignOut: () -> Unit
 ) {
     var isMenuOpen by remember { mutableStateOf(false) }
@@ -201,6 +202,7 @@ fun MainMenuScreen(
                         description = stringResource(id = R.string.menu_settings_desc),
                         onClick = {
                             isMenuOpen = false
+                            onOpenSettings() // Acción para abrir la configuración
                         }
                     )
 
@@ -381,6 +383,7 @@ fun MainMenuScreenPreview() {
             onCreatePlant = {},
             onEditProfile = {},
             onOpenPlant = {},
+            onOpenSettings = {},
             onSignOut = {}
         )
     }

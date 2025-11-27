@@ -4,10 +4,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseNetworkException
@@ -19,8 +19,8 @@ import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.database.DatabaseException
 import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseException
 import com.google.firebase.database.FirebaseDatabase
 import java.util.Date
 
@@ -67,7 +67,8 @@ class MainActivity : ComponentActivity() {
                     onRegisterPlantStaff = { plantId, staffMember, onResult ->
                         registerPlantStaff(plantId, staffMember, onResult)
                     },
-                    onSignOut = { signOut() }
+                    onSignOut = { signOut() },
+                    onDeleteAccount = { deleteAccount() }
                 )
             }
         }
@@ -387,6 +388,27 @@ class MainActivity : ComponentActivity() {
         currentUserState.value = null
     }
 
+    private fun deleteAccount() {
+        val user = auth.currentUser ?: return
+
+        // Primero, borra los datos del usuario de Realtime Database
+        realtimeDatabase.getReference("users").child(user.uid).removeValue()
+            .addOnSuccessListener {
+                // Una vez borrados los datos, borra el usuario de Authentication
+                user.delete()
+                    .addOnSuccessListener {
+                        auth.signOut()
+                        currentUserState.value = null
+                    }
+                    .addOnFailureListener {
+                        authErrorMessage.value = formatAuthError(it)
+                    }
+            }
+            .addOnFailureListener {
+                authErrorMessage.value = formatAuthError(it)
+            }
+    }
+
     private fun formatAuthError(exception: Exception): String {
         return when (exception) {
             is FirebaseAuthWeakPasswordException -> "La contraseña es demasiado débil; debe tener al menos 6 caracteres"
@@ -496,7 +518,8 @@ fun MainActivityPreview() {
             onLoadPlantMembership = { _, _, _ -> },
             onLinkUserToStaff = { _, _, _ -> },
             onRegisterPlantStaff = { _, _, _ -> },
-            onSignOut = {}
+            onSignOut = {},
+            onDeleteAccount = {}
         )
     }
 }

@@ -17,14 +17,24 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -40,24 +50,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.turnoshospi.R
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
-import androidx.compose.material3.rememberDatePickerState
-import java.time.LocalDate
-import java.time.ZoneId
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.ZoneId
 
 enum class AppScreen {
     MainMenu,
     CreatePlant,
     PlantCreated,
     MyPlant,
-    PlantDetail
+    PlantDetail,
+    Settings
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,7 +86,8 @@ fun TurnoshospiApp(
     onLoadPlantMembership: (String, String, (PlantMembership?) -> Unit) -> Unit,
     onLinkUserToStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
     onRegisterPlantStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
-    onSignOut: () -> Unit
+    onSignOut: () -> Unit,
+    onDeleteAccount: () -> Unit
 ) {
     var showLogin by remember { mutableStateOf(true) }
     var showRegistration by remember { mutableStateOf(false) }
@@ -277,6 +288,7 @@ fun TurnoshospiApp(
                         currentScreen = AppScreen.MyPlant
                         refreshUserPlant()
                     },
+                    onOpenSettings = { currentScreen = AppScreen.Settings },
                     onSignOut = onSignOut
                 )
 
@@ -358,6 +370,10 @@ fun TurnoshospiApp(
                             onResult(success)
                         }
                     }
+                )
+                AppScreen.Settings -> SettingsScreen(
+                    onBack = { currentScreen = AppScreen.MainMenu },
+                    onDeleteAccount = onDeleteAccount
                 )
             }
         }
@@ -452,6 +468,104 @@ fun ProfileLoadingScreen(message: String) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsScreen(
+    onBack: () -> Unit,
+    onDeleteAccount: () -> Unit
+) {
+    var showConfirmDialog by remember { mutableStateOf(false) }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Configuración", color = Color.White) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver",
+                            tint = Color.White
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent
+                )
+            )
+        },
+        containerColor = Color.Transparent
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0x22FFFFFF)),
+                border = BorderStroke(1.dp, Color(0x33FFFFFF))
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        "Gestionar cuenta",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.White
+                    )
+
+                    Button(
+                        onClick = { showConfirmDialog = true },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Borrar mi cuenta")
+                    }
+
+                    Text(
+                        "Esta acción es permanente y no se puede deshacer. Se borrarán todos tus datos asociados a la aplicación.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                }
+            }
+        }
+    }
+
+    if (showConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showConfirmDialog = false },
+            title = { Text("¿Estás seguro?") },
+            text = { Text("Esta acción es irreversible. Se borrará tu cuenta y todos tus datos. ¿Deseas continuar?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showConfirmDialog = false
+                        onDeleteAccount()
+                    }
+                ) {
+                    Text("Borrar", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showConfirmDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+}
+
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun SplashLoginPreview() {
@@ -470,7 +584,8 @@ fun SplashLoginPreview() {
             onLoadPlantMembership = { _, _, _ -> },
             onLinkUserToStaff = { _, _, _ -> },
             onRegisterPlantStaff = { _, _, _ -> },
-            onSignOut = {}
+            onSignOut = {},
+            onDeleteAccount = {}
         )
     }
 }
