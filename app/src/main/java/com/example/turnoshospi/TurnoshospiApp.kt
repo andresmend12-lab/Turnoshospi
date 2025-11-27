@@ -68,10 +68,11 @@ enum class AppScreen {
     PlantDetail,
     Settings,
     PlantSettings,
-    ImportShifts // [NUEVO]
+    ImportShifts,
+    GroupChat,
+    ShiftChange
 }
 
-// Clase de datos para los compañeros (Nombre y Rol)
 data class Colleague(
     val name: String,
     val role: String
@@ -398,7 +399,9 @@ fun TurnoshospiApp(
                         }
                     },
                     onOpenPlantSettings = { currentScreen = AppScreen.PlantSettings },
-                    onOpenImportShifts = { currentScreen = AppScreen.ImportShifts } // [NUEVO]
+                    onOpenImportShifts = { currentScreen = AppScreen.ImportShifts },
+                    onOpenChat = { currentScreen = AppScreen.GroupChat },
+                    onOpenShiftChange = { currentScreen = AppScreen.ShiftChange }
                 )
                 AppScreen.Settings -> SettingsScreen(
                     onBack = { currentScreen = AppScreen.MainMenu },
@@ -416,8 +419,22 @@ fun TurnoshospiApp(
                     }
                 )
 
-                // [NUEVO]
                 AppScreen.ImportShifts -> ImportShiftsScreen(
+                    plant = selectedPlantForDetail,
+                    onBack = { currentScreen = AppScreen.PlantDetail }
+                )
+
+                AppScreen.GroupChat -> GroupChatScreen(
+                    plantId = selectedPlantForDetail?.id ?: "",
+                    currentUser = existingProfile,
+                    currentUserId = user?.uid ?: "",
+                    onBack = { currentScreen = AppScreen.PlantDetail }
+                )
+
+                AppScreen.ShiftChange -> ShiftChangeScreen(
+                    plantId = selectedPlantForDetail?.id ?: "",
+                    currentUser = existingProfile,
+                    currentUserId = user?.uid ?: "",
                     onBack = { currentScreen = AppScreen.PlantDetail }
                 )
             }
