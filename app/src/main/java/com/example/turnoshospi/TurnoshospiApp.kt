@@ -87,6 +87,7 @@ fun TurnoshospiApp(
     onLoadPlantMembership: (String, String, (PlantMembership?) -> Unit) -> Unit,
     onLinkUserToStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
     onRegisterPlantStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
+    onEditPlantStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit, // NUEVO PARÁMETRO AÑADIDO
     onSignOut: () -> Unit,
     onDeleteAccount: () -> Unit,
     onDeletePlant: (String) -> Unit
@@ -366,7 +367,18 @@ fun TurnoshospiApp(
                             if (success) {
                                 selectedPlantForDetail = selectedPlantForDetail?.copy(
                                     personal_de_planta = selectedPlantForDetail?.personal_de_planta.orEmpty() +
-                                        (staffMember.id to staffMember)
+                                            (staffMember.id to staffMember)
+                                )
+                            }
+                            onResult(success)
+                        }
+                    },
+                    onEditStaff = { plantId, staffMember, onResult -> // AÑADIDO Y CONECTADO
+                        onEditPlantStaff(plantId, staffMember) { success ->
+                            if (success) {
+                                selectedPlantForDetail = selectedPlantForDetail?.copy(
+                                    personal_de_planta = selectedPlantForDetail?.personal_de_planta.orEmpty() +
+                                            (staffMember.id to staffMember)
                                 )
                             }
                             onResult(success)
@@ -383,7 +395,7 @@ fun TurnoshospiApp(
                     plant = userPlant,
                     onBack = { currentScreen = AppScreen.MyPlant },
                     onDeletePlant = {
-                        plantId ->
+                            plantId ->
                         onDeletePlant(plantId)
                         refreshUserPlant()
                         currentScreen = AppScreen.MyPlant
@@ -698,6 +710,7 @@ fun SplashLoginPreview() {
             onLoadPlantMembership = { _, _, _ -> },
             onLinkUserToStaff = { _, _, _ -> },
             onRegisterPlantStaff = { _, _, _ -> },
+            onEditPlantStaff = { _, _, _ -> }, // Parámetro añadido en preview
             onSignOut = {},
             onDeleteAccount = {},
             onDeletePlant = {}

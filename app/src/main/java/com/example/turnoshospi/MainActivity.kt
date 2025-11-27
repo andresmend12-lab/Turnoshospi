@@ -67,6 +67,10 @@ class MainActivity : ComponentActivity() {
                     onRegisterPlantStaff = { plantId, staffMember, onResult ->
                         registerPlantStaff(plantId, staffMember, onResult)
                     },
+                    // AQUI ESTA LA CORRECCION: Pasamos la función editPlantStaff
+                    onEditPlantStaff = { plantId, staffMember, onResult ->
+                        editPlantStaff(plantId, staffMember, onResult)
+                    },
                     onSignOut = { signOut() },
                     onDeleteAccount = { deleteAccount() },
                     onDeletePlant = { plantId -> deletePlant(plantId) }
@@ -357,6 +361,28 @@ class MainActivity : ComponentActivity() {
             .addOnFailureListener { onResult(false) }
     }
 
+    // AÑADIDA: Función para editar personal en Firebase
+    private fun editPlantStaff(
+        plantId: String,
+        staffMember: RegisteredUser,
+        onResult: (Boolean) -> Unit
+    ) {
+        val cleanPlantId = plantId.trim()
+        if (cleanPlantId.isEmpty() || staffMember.id.isEmpty()) {
+            onResult(false)
+            return
+        }
+
+        realtimeDatabase.reference
+            .child("plants")
+            .child(cleanPlantId)
+            .child("personal_de_planta")
+            .child(staffMember.id)
+            .setValue(staffMember)
+            .addOnSuccessListener { onResult(true) }
+            .addOnFailureListener { onResult(false) }
+    }
+
     private fun linkUserToPlantStaff(
         plantId: String,
         staffMember: RegisteredUser,
@@ -527,6 +553,7 @@ fun MainActivityPreview() {
             onLoadPlantMembership = { _, _, _ -> },
             onLinkUserToStaff = { _, _, _ -> },
             onRegisterPlantStaff = { _, _, _ -> },
+            onEditPlantStaff = { _, _, _ -> }, // Parámetro añadido en preview
             onSignOut = {},
             onDeleteAccount = {},
             onDeletePlant = {}

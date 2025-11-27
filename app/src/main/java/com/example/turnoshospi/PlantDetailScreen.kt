@@ -28,6 +28,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -106,6 +107,7 @@ fun PlantDetailScreen(
     currentMembership: PlantMembership?,
     onBack: () -> Unit,
     onAddStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
+    onEditStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
     onOpenPlantSettings: () -> Unit
 ) {
     var isMenuOpen by remember { mutableStateOf(false) }
@@ -219,9 +221,7 @@ fun PlantDetailScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .background(Color.Transparent
-
-                    )
+                    .background(Color.Transparent)
             ) {
                 Column(
                     modifier = Modifier
@@ -236,7 +236,6 @@ fun PlantDetailScreen(
                         shape = RoundedCornerShape(24.dp),
                         colors = CardDefaults.cardColors(Color.Transparent),
                         border = BorderStroke(5.dp, Color(0x22FFFFFF))
-                       // border = androidx.compose.foundation.BorderStroke(1.dp, Color(0x22FFFFFF))
                     ) {
                         Column(
                             modifier = Modifier
@@ -531,12 +530,16 @@ fun PlantDetailScreen(
         )
     }
 
-    // Diálogo lista de personal
+    // Diálogo lista de personal (Actualizado con edición)
     if (showStaffListDialog && plant != null) {
         StaffListDialog(
             plantName = plant.name,
             staff = plantStaff.toList(),
-            onDismiss = { showStaffListDialog = false }
+            isSupervisor = isSupervisor,
+            onDismiss = { showStaffListDialog = false },
+            onSaveEdit = { editedMember, callback ->
+                onEditStaff(plant.id, editedMember, callback)
+            }
         )
     }
 }
@@ -624,6 +627,7 @@ private fun PlantDetailScreenPreview() {
         currentMembership = null,
         onBack = {},
         onAddStaff = { _, _, callback -> callback(true) },
+        onEditStaff = { _, _, callback -> callback(true) },
         onOpenPlantSettings = {}
     )
 }
@@ -632,65 +636,131 @@ private fun PlantDetailScreenPreview() {
 private fun StaffListDialog(
     plantName: String,
     staff: List<RegisteredUser>,
-    onDismiss: () -> Unit
+    isSupervisor: Boolean,
+    onDismiss: () -> Unit,
+    onSaveEdit: (RegisteredUser, (Boolean) -> Unit) -> Unit
 ) {
     val sortedStaff = remember(staff) {
         staff.sortedBy { it.name.lowercase() }
     }
 
+    var memberInEdition by remember { mutableStateOf<RegisteredUser?>(null) }
+
     val dialogShape = RoundedCornerShape(20.dp)
     val glassSurface = Color(0xEE0B1021)
     val glassStroke = Color(0x33FFFFFF)
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(
-                onClick = onDismiss,
-                colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF54C7EC))
-            ) {
-                Text(text = stringResource(id = R.string.close_label))
-            }
-        },
-        title = {
-            Text(
-                text = stringResource(id = R.string.staff_list_dialog_title, plantName),
-                color = Color.White
-            )
-        },
-        text = {
-            if (sortedStaff.isEmpty()) {
-                Text(
-                    text = stringResource(id = R.string.staff_list_dialog_empty),
-                    color = Color.White
-                )
-            } else {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    sortedStaff.forEach { member ->
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text(
-                                text = member.name,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = Color.White
-                            )
-                            Text(
-                                text = member.role,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.White.copy(alpha = 0.7f)
-                            )
-                        }
-                        HorizontalDivider(color = Color.White.copy(alpha = 0.2f))
+    if (memberInEdition != null) {
+        val member = memberInEdition!!
+        var editName by remember { mutableStateOf(member.name) }
+        var editRole by remember { mutableStateOf(member.role) }
+        var isSaving by remember { mutableStateOf(false) }
+        var editError by remember { mutableStateOf<String?>(null) }
+
+        AddStaffDialog(
+            staffName = editName,
+            onStaffNameChange = { editName = it },
+            staffRole = editRole,
+            onStaffRoleChange = { editRole = it },
+            isSaving = isSaving,
+            errorMessage = editError,
+            title = stringResource(id = R.string.edit_profile),
+            confirmButtonText = stringResource(id = R.string.register_button),
+            onDismiss = { memberInEdition = null },
+            onConfirm = {
+                if (editName.isBlank()) {
+                    editError = "El nombre es obligatorio"
+                    return@AddStaffDialog
+                }
+                isSaving = true
+                val updatedMember = member.copy(name = editName, role = editRole)
+                onSaveEdit(updatedMember) { success ->
+                    isSaving = false
+                    if (success) {
+                        memberInEdition = null
+                    } else {
+                        editError = "Error al guardar cambios"
                     }
                 }
             }
-        },
-        shape = dialogShape,
-        modifier = Modifier.border(1.dp, glassStroke, dialogShape),
-        containerColor = glassSurface,
-        tonalElevation = 0.dp,
-        textContentColor = Color.White,
-        titleContentColor = Color.White
-    )
+        )
+    } else {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            confirmButton = {
+                TextButton(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF54C7EC))
+                ) {
+                    Text(text = stringResource(id = R.string.close_label))
+                }
+            },
+            title = {
+                Text(
+                    text = stringResource(id = R.string.staff_list_dialog_title, plantName),
+                    color = Color.White
+                )
+            },
+            text = {
+                if (sortedStaff.isEmpty()) {
+                    Text(
+                        text = stringResource(id = R.string.staff_list_dialog_empty),
+                        color = Color.White
+                    )
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(350.dp)
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        sortedStaff.forEach { member ->
+                            Column {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(
+                                        modifier = Modifier.weight(1f),
+                                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                                    ) {
+                                        Text(
+                                            text = member.name,
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = Color.White
+                                        )
+                                        Text(
+                                            text = member.role,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = Color.White.copy(alpha = 0.7f)
+                                        )
+                                    }
+                                    if (isSupervisor) {
+                                        IconButton(onClick = { memberInEdition = member }) {
+                                            Icon(
+                                                imageVector = Icons.Default.Edit,
+                                                contentDescription = stringResource(id = R.string.edit_profile),
+                                                tint = Color(0xFF54C7EC)
+                                            )
+                                        }
+                                    }
+                                }
+                                HorizontalDivider(color = Color.White.copy(alpha = 0.2f))
+                            }
+                        }
+                    }
+                }
+            },
+            shape = dialogShape,
+            modifier = Modifier.border(1.dp, glassStroke, dialogShape),
+            containerColor = glassSurface,
+            tonalElevation = 0.dp,
+            textContentColor = Color.White,
+            titleContentColor = Color.White
+        )
+    }
 }
 
 @Composable
@@ -1093,6 +1163,8 @@ private fun AddStaffDialog(
     onStaffRoleChange: (String) -> Unit,
     isSaving: Boolean,
     errorMessage: String?,
+    title: String = stringResource(id = R.string.staff_dialog_title),
+    confirmButtonText: String = stringResource(id = R.string.staff_dialog_save_action),
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
@@ -1132,7 +1204,7 @@ private fun AddStaffDialog(
                 )
             ) {
                 Text(
-                    text = stringResource(id = R.string.staff_dialog_save_action),
+                    text = confirmButtonText,
                     color = Color.White
                 )
             }
@@ -1146,7 +1218,7 @@ private fun AddStaffDialog(
                 Text(text = stringResource(id = R.string.cancel_label))
             }
         },
-        title = { Text(text = stringResource(id = R.string.staff_dialog_title)) },
+        title = { Text(text = title) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
