@@ -32,6 +32,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -112,7 +113,8 @@ fun PlantDetailScreen(
     onBack: () -> Unit,
     onAddStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
     onEditStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
-    onOpenPlantSettings: () -> Unit
+    onOpenPlantSettings: () -> Unit,
+    onOpenImportShifts: () -> Unit // Nuevo Callback
 ) {
     var isMenuOpen by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -120,7 +122,6 @@ fun PlantDetailScreen(
         FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
     }
 
-    // Convertir millis del DatePickerState a LocalDate para usarlo en la lógica
     val selectedDate = datePickerState.selectedDateMillis?.let { millis ->
         Instant.ofEpochMilli(millis).atZone(ZoneId.of("UTC")).toLocalDate()
     }
@@ -181,7 +182,6 @@ fun PlantDetailScreen(
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        // CONTENIDO PRINCIPAL + APP BAR
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
@@ -232,7 +232,6 @@ fun PlantDetailScreen(
                         .padding(vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Tarjeta Calendario Personalizado
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(24.dp),
@@ -242,7 +241,6 @@ fun PlantDetailScreen(
                         PlantCalendar(
                             selectedDate = selectedDate,
                             onDateSelected = { newDate ->
-                                // Actualizamos el estado del DatePicker compartido
                                 datePickerState.selectedDateMillis = newDate
                                     .atStartOfDay(ZoneOffset.UTC)
                                     .toInstant()
@@ -337,7 +335,6 @@ fun PlantDetailScreen(
             }
         }
 
-        // DRAWER (Igual que antes)
         AnimatedVisibility(
             visible = isMenuOpen,
             enter = slideInHorizontally { -it } + fadeIn(),
@@ -397,6 +394,33 @@ fun PlantDetailScreen(
                                 unselectedTextColor = Color.White
                             )
                         )
+
+                        // OPCIÓN DE IMPORTAR HOJA DE TURNOS (NUEVO)
+                        NavigationDrawerItem(
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            label = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.UploadFile,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text("Importar hoja de turnos", color = Color.White)
+                                }
+                            },
+                            selected = false,
+                            onClick = {
+                                isMenuOpen = false
+                                onOpenImportShifts()
+                            },
+                            colors = NavigationDrawerItemDefaults.colors(
+                                unselectedContainerColor = Color.Transparent,
+                                unselectedTextColor = Color.White
+                            )
+                        )
+
                         NavigationDrawerItem(
                             modifier = Modifier.padding(horizontal = 12.dp),
                             label = { Text("Configuración de planta") },
@@ -443,7 +467,6 @@ fun PlantDetailScreen(
         }
     }
 
-    // Diálogos (sin cambios)
     if (showAddStaffDialog && plant != null) {
         AddStaffDialog(
             staffName = staffName,
@@ -499,7 +522,6 @@ fun PlantDetailScreen(
     }
 }
 
-// --- NUEVO CALENDARIO PARA PLANT DETAIL ---
 @Composable
 fun PlantCalendar(
     selectedDate: LocalDate?,
@@ -514,7 +536,6 @@ fun PlantCalendar(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Cabecera Mes
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -536,7 +557,6 @@ fun PlantCalendar(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Días semana
         Row(modifier = Modifier.fillMaxWidth()) {
             val daysOfWeek = listOf("L", "M", "X", "J", "V", "S", "D")
             daysOfWeek.forEach { day ->
@@ -552,7 +572,6 @@ fun PlantCalendar(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Grid
         val firstDayOfMonth = currentMonth.atDay(1)
         val daysInMonth = currentMonth.lengthOfMonth()
         val dayOfWeekOffset = firstDayOfMonth.dayOfWeek.value - 1
@@ -601,8 +620,6 @@ fun PlantCalendar(
     }
 }
 
-// ... (El resto de funciones auxiliares y componentes como InfoMessage, ShiftAssignmentsSection, etc. se mantienen igual)
-
 @Composable
 private fun InfoMessage(message: String) {
     Card(
@@ -630,7 +647,6 @@ fun formatPlantDate(date: LocalDate): String {
     return date.format(formatter)
 }
 
-// ... (Resto de funciones: StaffListDialog, ShiftAssignmentsSection, ensureSlotSize, saveShiftAssignments, etc. copiadas tal cual estaban para que compile)
 @Composable
 private fun StaffListDialog(
     plantName: String,
@@ -1432,6 +1448,7 @@ private fun PlantDetailScreenPreview() {
         onBack = {},
         onAddStaff = { _, _, callback -> callback(true) },
         onEditStaff = { _, _, callback -> callback(true) },
-        onOpenPlantSettings = {}
+        onOpenPlantSettings = {},
+        onOpenImportShifts = {} // Preview callback
     )
 }

@@ -4,7 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke // IMPORTANTE: Agregado
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -67,10 +67,10 @@ enum class AppScreen {
     MyPlant,
     PlantDetail,
     Settings,
-    PlantSettings
+    PlantSettings,
+    ImportShifts // New screen
 }
 
-// Clase de datos para los compañeros (Nombre y Rol)
 data class Colleague(
     val name: String,
     val role: String
@@ -95,6 +95,7 @@ fun TurnoshospiApp(
     onEditPlantStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
     onListenToShifts: (String, String, (Map<String, UserShift>) -> Unit) -> Unit,
     onFetchColleagues: (String, String, String, (List<Colleague>) -> Unit) -> Unit,
+    onImportShiftsFromCsv: (String, String, (Boolean) -> Unit) -> Unit, // Callback para importar
     onSignOut: () -> Unit,
     onDeleteAccount: () -> Unit,
     onDeletePlant: (String) -> Unit
@@ -396,8 +397,24 @@ fun TurnoshospiApp(
                             onResult(success)
                         }
                     },
-                    onOpenPlantSettings = { currentScreen = AppScreen.PlantSettings }
+                    onOpenPlantSettings = { currentScreen = AppScreen.PlantSettings },
+                    onOpenImportShifts = { currentScreen = AppScreen.ImportShifts }
                 )
+
+                AppScreen.ImportShifts -> ImportShiftsScreen(
+                    onBack = { currentScreen = AppScreen.PlantDetail },
+                    onImport = { csvData ->
+                        if (selectedPlantForDetail != null) {
+                            onImportShiftsFromCsv(selectedPlantForDetail!!.id, csvData) { success ->
+                                // Optional: handle success feedback
+                                if (success) {
+                                    currentScreen = AppScreen.PlantDetail
+                                }
+                            }
+                        }
+                    }
+                )
+
                 AppScreen.Settings -> SettingsScreen(
                     onBack = { currentScreen = AppScreen.MainMenu },
                     onDeleteAccount = onDeleteAccount
@@ -476,6 +493,7 @@ fun TurnoshospiApp(
     }
 }
 
+// ... (Resto de funciones auxiliares)
 @Composable
 fun ProfileLoadingScreen(message: String) {
     Box(
@@ -725,6 +743,7 @@ fun SplashLoginPreview() {
             onEditPlantStaff = { _, _, _ -> },
             onListenToShifts = { _, _, _ -> },
             onFetchColleagues = { _, _, _, _ -> },
+            onImportShiftsFromCsv = { _, _, _ -> },
             onSignOut = {},
             onDeleteAccount = {},
             onDeletePlant = {}
