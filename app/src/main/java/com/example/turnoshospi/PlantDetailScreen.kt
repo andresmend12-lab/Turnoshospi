@@ -56,6 +56,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
@@ -112,7 +113,8 @@ fun PlantDetailScreen(
     onBack: () -> Unit,
     onAddStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
     onEditStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
-    onOpenPlantSettings: () -> Unit
+    onOpenPlantSettings: () -> Unit,
+    onOpenImportShifts: () -> Unit // [NUEVO]
 ) {
     var isMenuOpen by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -337,7 +339,7 @@ fun PlantDetailScreen(
             }
         }
 
-        // DRAWER (Igual que antes)
+        // DRAWER
         AnimatedVisibility(
             visible = isMenuOpen,
             enter = slideInHorizontally { -it } + fadeIn(),
@@ -410,6 +412,20 @@ fun PlantDetailScreen(
                                 unselectedTextColor = Color.White
                             )
                         )
+                        // [NUEVO BOTÓN EN EL MENÚ LATERAL]
+                        NavigationDrawerItem(
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            label = { Text("Importar Turnos") },
+                            selected = false,
+                            onClick = {
+                                isMenuOpen = false
+                                onOpenImportShifts()
+                            },
+                            colors = NavigationDrawerItemDefaults.colors(
+                                unselectedContainerColor = Color.Transparent,
+                                unselectedTextColor = Color.White
+                            )
+                        )
                     }
                     NavigationDrawerItem(
                         modifier = Modifier.padding(horizontal = 12.dp),
@@ -443,7 +459,7 @@ fun PlantDetailScreen(
         }
     }
 
-    // Diálogos (sin cambios)
+    // Diálogos
     if (showAddStaffDialog && plant != null) {
         AddStaffDialog(
             staffName = staffName,
@@ -499,7 +515,78 @@ fun PlantDetailScreen(
     }
 }
 
-// --- NUEVO CALENDARIO PARA PLANT DETAIL ---
+// [NUEVA PANTALLA]
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ImportShiftsScreen(onBack: () -> Unit) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Importar Turnos", color = Color.White) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver",
+                            tint = Color.White
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent
+                )
+            )
+        },
+        containerColor = Color.Transparent
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0x22FFFFFF)),
+                border = BorderStroke(1.dp, Color(0x33FFFFFF))
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        "Opciones de importación",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White
+                    )
+
+                    Button(
+                        onClick = { /* No action yet */ },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC), contentColor = Color.Black)
+                    ) {
+                        // Usamos un icono por defecto o texto si no está disponible el icono específico
+                        Text("Descargar plantilla")
+                    }
+
+                    Button(
+                        onClick = { /* No action yet */ },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC), contentColor = Color.Black)
+                    ) {
+                        Text("Importar turnos")
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ... (Resto de funciones: PlantCalendar, InfoMessage, StaffListDialog, etc. permanecen igual)
+
 @Composable
 fun PlantCalendar(
     selectedDate: LocalDate?,
@@ -601,8 +688,6 @@ fun PlantCalendar(
     }
 }
 
-// ... (El resto de funciones auxiliares y componentes como InfoMessage, ShiftAssignmentsSection, etc. se mantienen igual)
-
 @Composable
 private fun InfoMessage(message: String) {
     Card(
@@ -630,7 +715,6 @@ fun formatPlantDate(date: LocalDate): String {
     return date.format(formatter)
 }
 
-// ... (Resto de funciones: StaffListDialog, ShiftAssignmentsSection, ensureSlotSize, saveShiftAssignments, etc. copiadas tal cual estaban para que compile)
 @Composable
 private fun StaffListDialog(
     plantName: String,
@@ -1432,6 +1516,7 @@ private fun PlantDetailScreenPreview() {
         onBack = {},
         onAddStaff = { _, _, callback -> callback(true) },
         onEditStaff = { _, _, callback -> callback(true) },
-        onOpenPlantSettings = {}
+        onOpenPlantSettings = {},
+        onOpenImportShifts = {}
     )
 }

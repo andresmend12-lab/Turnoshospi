@@ -4,7 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke // IMPORTANTE: Agregado
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -67,7 +67,8 @@ enum class AppScreen {
     MyPlant,
     PlantDetail,
     Settings,
-    PlantSettings
+    PlantSettings,
+    ImportShifts // [NUEVO]
 }
 
 // Clase de datos para los compañeros (Nombre y Rol)
@@ -396,7 +397,8 @@ fun TurnoshospiApp(
                             onResult(success)
                         }
                     },
-                    onOpenPlantSettings = { currentScreen = AppScreen.PlantSettings }
+                    onOpenPlantSettings = { currentScreen = AppScreen.PlantSettings },
+                    onOpenImportShifts = { currentScreen = AppScreen.ImportShifts } // [NUEVO]
                 )
                 AppScreen.Settings -> SettingsScreen(
                     onBack = { currentScreen = AppScreen.MainMenu },
@@ -412,6 +414,11 @@ fun TurnoshospiApp(
                         refreshUserPlant()
                         currentScreen = AppScreen.MyPlant
                     }
+                )
+
+                // [NUEVO]
+                AppScreen.ImportShifts -> ImportShiftsScreen(
+                    onBack = { currentScreen = AppScreen.PlantDetail }
                 )
             }
         }
