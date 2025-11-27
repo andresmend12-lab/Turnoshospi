@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -27,14 +28,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DropdownMenu
@@ -67,7 +70,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -82,8 +84,12 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import java.time.Instant
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.Locale
 import java.util.UUID
 
 private data class SlotAssignment(
@@ -106,7 +112,9 @@ fun PlantDetailScreen(
     currentMembership: PlantMembership?,
     onBack: () -> Unit,
     onAddStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
-    onOpenPlantSettings: () -> Unit
+    onEditStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
+    onOpenPlantSettings: () -> Unit,
+    onOpenImportShifts: () -> Unit // Nuevo Callback
 ) {
     var isMenuOpen by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -115,7 +123,7 @@ fun PlantDetailScreen(
     }
 
     val selectedDate = datePickerState.selectedDateMillis?.let { millis ->
-        Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
+        Instant.ofEpochMilli(millis).atZone(ZoneId.of("UTC")).toLocalDate()
     }
 
     val supervisorRoles = listOf(
@@ -145,8 +153,6 @@ fun PlantDetailScreen(
     val savedAssignmentsByDate = remember(plant?.id) {
         mutableStateMapOf<String, Boolean>()
     }
-    val allowAuxStaffScope = plant?.staffScope == stringResource(id = R.string.staff_scope_with_aux)
-
     val plantStaff = plant?.personal_de_planta?.values.orEmpty()
     val nurseStaff = remember(plantStaff, normalizedNurseRoles) {
         plantStaff.filter { member -> member.isNurseRole(normalizedNurseRoles) }
@@ -174,10 +180,8 @@ fun PlantDetailScreen(
     var addStaffError by remember { mutableStateOf<String?>(null) }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = Modifier.fillMaxSize()
     ) {
-        // CONTENIDO PRINCIPAL + APP BAR
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
@@ -219,9 +223,7 @@ fun PlantDetailScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .background(Color.Transparent
-
-                    )
+                    .background(Color.Transparent)
             ) {
                 Column(
                     modifier = Modifier
@@ -230,65 +232,21 @@ fun PlantDetailScreen(
                         .padding(vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Tarjeta calendario
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(24.dp),
-                        colors = CardDefaults.cardColors(Color.Transparent),
-                        border = BorderStroke(5.dp, Color(0x22FFFFFF))
-                       // border = androidx.compose.foundation.BorderStroke(1.dp, Color(0x22FFFFFF))
+                        colors = CardDefaults.cardColors(containerColor = Color(0x11FFFFFF)),
+                        border = BorderStroke(1.dp, Color(0x22FFFFFF))
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color(0xFF0F172A), RoundedCornerShape(22.dp))
-                                .padding(vertical = 12.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = stringResource(id = R.string.plant_calendar_title),
-                                color = Color.White,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            DatePicker(
-                                state = datePickerState,
-                                title = null,
-                                headline = null,
-                                showModeToggle = false,
-                                colors = DatePickerDefaults.colors(
-                                    containerColor = Color(0xFF0F172A),
-                                    titleContentColor = Color.White,
-                                    headlineContentColor = Color.White,
-                                    weekdayContentColor = Color.White,
-                                    subheadContentColor = Color.White,
-                                    yearContentColor = Color.White,
-                                    currentYearContentColor = Color.White,
-                                    selectedYearContentColor = Color.White,
-                                    selectedYearContainerColor = Color(0xFF1E293B),
-                                    disabledSelectedYearContainerColor = Color(0x661E293B),
-                                    selectedDayContentColor = Color.White,
-                                    disabledSelectedDayContentColor = Color(0x80FFFFFF),
-                                    selectedDayContainerColor = Color(0xFF1E293B),
-                                    disabledSelectedDayContainerColor = Color(0x661E293B),
-                                    dayContentColor = Color.White,
-                                    disabledDayContentColor = Color(0x80FFFFFF),
-                                    dayInSelectionRangeContentColor = Color.White,
-                                    dayInSelectionRangeContainerColor = Color(0x331E293B),
-                                    todayContentColor = Color.White,
-                                    todayDateBorderColor = Color(0x66FFFFFF)
-                                )
-                            )
-                            Text(
-                                text = selectedDate?.let { formatPlantDate(it) }
-                                    ?: stringResource(id = R.string.select_date_prompt),
-                                color = Color.White,
-                                style = MaterialTheme.typography.bodyLarge,
-                                textAlign = TextAlign.Start,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
+                        PlantCalendar(
+                            selectedDate = selectedDate,
+                            onDateSelected = { newDate ->
+                                datePickerState.selectedDateMillis = newDate
+                                    .atStartOfDay(ZoneOffset.UTC)
+                                    .toInstant()
+                                    .toEpochMilli()
+                            }
+                        )
                     }
 
                     if (plant != null && selectedDate != null) {
@@ -377,7 +335,6 @@ fun PlantDetailScreen(
             }
         }
 
-        // DRAWER PERSONALIZADO
         AnimatedVisibility(
             visible = isMenuOpen,
             enter = slideInHorizontally { -it } + fadeIn(),
@@ -386,7 +343,6 @@ fun PlantDetailScreen(
             Row(
                 modifier = Modifier.fillMaxSize()
             ) {
-                // Panel lateral
                 Column(
                     modifier = Modifier
                         .width(280.dp)
@@ -438,6 +394,33 @@ fun PlantDetailScreen(
                                 unselectedTextColor = Color.White
                             )
                         )
+
+                        // OPCIÓN DE IMPORTAR HOJA DE TURNOS (NUEVO)
+                        NavigationDrawerItem(
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            label = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.UploadFile,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text("Importar hoja de turnos", color = Color.White)
+                                }
+                            },
+                            selected = false,
+                            onClick = {
+                                isMenuOpen = false
+                                onOpenImportShifts()
+                            },
+                            colors = NavigationDrawerItemDefaults.colors(
+                                unselectedContainerColor = Color.Transparent,
+                                unselectedTextColor = Color.White
+                            )
+                        )
+
                         NavigationDrawerItem(
                             modifier = Modifier.padding(horizontal = 12.dp),
                             label = { Text("Configuración de planta") },
@@ -473,7 +456,6 @@ fun PlantDetailScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                // Scrim clicable para cerrar
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -485,7 +467,6 @@ fun PlantDetailScreen(
         }
     }
 
-    // Diálogo añadir personal
     if (showAddStaffDialog && plant != null) {
         AddStaffDialog(
             staffName = staffName,
@@ -505,10 +486,8 @@ fun PlantDetailScreen(
                     addStaffError = context.getString(R.string.staff_dialog_error)
                     return@AddStaffDialog
                 }
-
                 isSavingStaff = true
                 addStaffError = null
-
                 val newStaff = RegisteredUser(
                     id = UUID.randomUUID().toString(),
                     name = staffName,
@@ -516,7 +495,6 @@ fun PlantDetailScreen(
                     email = "",
                     profileType = "plant_staff"
                 )
-
                 onAddStaff(plant.id, newStaff) { success ->
                     isSavingStaff = false
                     if (success) {
@@ -531,13 +509,114 @@ fun PlantDetailScreen(
         )
     }
 
-    // Diálogo lista de personal
     if (showStaffListDialog && plant != null) {
         StaffListDialog(
             plantName = plant.name,
             staff = plantStaff.toList(),
-            onDismiss = { showStaffListDialog = false }
+            isSupervisor = isSupervisor,
+            onDismiss = { showStaffListDialog = false },
+            onSaveEdit = { editedMember, callback ->
+                onEditStaff(plant.id, editedMember, callback)
+            }
         )
+    }
+}
+
+@Composable
+fun PlantCalendar(
+    selectedDate: LocalDate?,
+    onDateSelected: (LocalDate) -> Unit
+) {
+    var currentMonth by remember { mutableStateOf(YearMonth.now()) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFF0F172A), RoundedCornerShape(24.dp))
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = { currentMonth = currentMonth.minusMonths(1) }) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Anterior", tint = Color.White)
+            }
+            Text(
+                text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale("es", "ES")).uppercase()} ${currentMonth.year}",
+                color = Color.White,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            IconButton(onClick = { currentMonth = currentMonth.plusMonths(1) }) {
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Siguiente", tint = Color.White)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(modifier = Modifier.fillMaxWidth()) {
+            val daysOfWeek = listOf("L", "M", "X", "J", "V", "S", "D")
+            daysOfWeek.forEach { day ->
+                Text(
+                    text = day,
+                    modifier = Modifier.weight(1f),
+                    color = Color.Gray,
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        val firstDayOfMonth = currentMonth.atDay(1)
+        val daysInMonth = currentMonth.lengthOfMonth()
+        val dayOfWeekOffset = firstDayOfMonth.dayOfWeek.value - 1
+        val totalCells = (daysInMonth + dayOfWeekOffset + 6) / 7 * 7
+
+        Column {
+            for (i in 0 until totalCells step 7) {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    for (j in 0 until 7) {
+                        val dayIndex = i + j - dayOfWeekOffset + 1
+                        if (dayIndex in 1..daysInMonth) {
+                            val date = currentMonth.atDay(dayIndex)
+                            val isSelected = date == selectedDate
+
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp)
+                                    .padding(2.dp)
+                                    .background(
+                                        color = if (isSelected) Color(0xFF54C7EC) else Color.Transparent,
+                                        shape = CircleShape
+                                    )
+                                    .border(
+                                        width = if (isSelected) 0.dp else 1.dp,
+                                        color = if (isSelected) Color.Transparent else Color.White.copy(alpha = 0.1f),
+                                        shape = CircleShape
+                                    )
+                                    .clickable { onDateSelected(date) },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = dayIndex.toString(),
+                                    color = if (isSelected) Color.Black else Color.White,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                )
+                            }
+                        } else {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+            }
+        }
     }
 }
 
@@ -547,7 +626,7 @@ private fun InfoMessage(message: String) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0x22000000)),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0x22FFFFFF))
+        border = BorderStroke(1.dp, Color(0x22FFFFFF))
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -568,129 +647,135 @@ fun formatPlantDate(date: LocalDate): String {
     return date.format(formatter)
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun PlantDetailScreenPreview() {
-    val nurseRole = stringResource(id = R.string.role_nurse_generic)
-    val auxRole = stringResource(id = R.string.role_aux_generic)
-    val staffScopeWithAux = stringResource(id = R.string.staff_scope_with_aux)
-    val dayShift = stringResource(id = R.string.shift_day)
-    val nightShift = stringResource(id = R.string.shift_night)
-
-    val samplePlant = Plant(
-        id = "plant-123",
-        name = "Planta Norte",
-        unitType = "UCI",
-        hospitalName = "Hospital Central",
-        shiftDuration = stringResource(id = R.string.shift_duration_12h),
-        allowHalfDay = false,
-        staffScope = staffScopeWithAux,
-        shiftTimes = mapOf(
-            dayShift to ShiftTime(start = "08:00", end = "20:00"),
-            nightShift to ShiftTime(start = "20:00", end = "08:00")
-        ),
-        staffRequirements = mapOf(dayShift to 2, nightShift to 2),
-        personal_de_planta = mapOf(
-            "n1" to RegisteredUser(
-                id = "n1",
-                name = "María Pérez",
-                role = nurseRole,
-                profileType = "plant_staff"
-            ),
-            "n2" to RegisteredUser(
-                id = "n2",
-                name = "Lucía Gómez",
-                role = nurseRole,
-                profileType = "plant_staff"
-            ),
-            "a1" to RegisteredUser(
-                id = "a1",
-                name = "Carlos Ruiz",
-                role = auxRole,
-                profileType = "plant_staff"
-            )
-        )
-    )
-
-    PlantDetailScreen(
-        plant = samplePlant,
-        datePickerState = rememberDatePickerState(initialSelectedDateMillis = System.currentTimeMillis()),
-        currentUserProfile = UserProfile(
-            firstName = "Ana",
-            lastName = "Supervisor",
-            role = stringResource(id = R.string.role_supervisor_female)
-        ),
-        currentMembership = null,
-        onBack = {},
-        onAddStaff = { _, _, callback -> callback(true) },
-        onOpenPlantSettings = {}
-    )
-}
-
 @Composable
 private fun StaffListDialog(
     plantName: String,
     staff: List<RegisteredUser>,
-    onDismiss: () -> Unit
+    isSupervisor: Boolean,
+    onDismiss: () -> Unit,
+    onSaveEdit: (RegisteredUser, (Boolean) -> Unit) -> Unit
 ) {
     val sortedStaff = remember(staff) {
         staff.sortedBy { it.name.lowercase() }
     }
 
+    var memberInEdition by remember { mutableStateOf<RegisteredUser?>(null) }
+
     val dialogShape = RoundedCornerShape(20.dp)
     val glassSurface = Color(0xEE0B1021)
     val glassStroke = Color(0x33FFFFFF)
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(
-                onClick = onDismiss,
-                colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF54C7EC))
-            ) {
-                Text(text = stringResource(id = R.string.close_label))
-            }
-        },
-        title = {
-            Text(
-                text = stringResource(id = R.string.staff_list_dialog_title, plantName),
-                color = Color.White
-            )
-        },
-        text = {
-            if (sortedStaff.isEmpty()) {
-                Text(
-                    text = stringResource(id = R.string.staff_list_dialog_empty),
-                    color = Color.White
-                )
-            } else {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    sortedStaff.forEach { member ->
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text(
-                                text = member.name,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = Color.White
-                            )
-                            Text(
-                                text = member.role,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.White.copy(alpha = 0.7f)
-                            )
-                        }
-                        HorizontalDivider(color = Color.White.copy(alpha = 0.2f))
+    if (memberInEdition != null) {
+        val member = memberInEdition!!
+        var editName by remember { mutableStateOf(member.name) }
+        var editRole by remember { mutableStateOf(member.role) }
+        var isSaving by remember { mutableStateOf(false) }
+        var editError by remember { mutableStateOf<String?>(null) }
+
+        AddStaffDialog(
+            staffName = editName,
+            onStaffNameChange = { editName = it },
+            staffRole = editRole,
+            onStaffRoleChange = { editRole = it },
+            isSaving = isSaving,
+            errorMessage = editError,
+            title = stringResource(id = R.string.edit_profile),
+            confirmButtonText = stringResource(id = R.string.register_button),
+            onDismiss = { memberInEdition = null },
+            onConfirm = {
+                if (editName.isBlank()) {
+                    editError = "El nombre es obligatorio"
+                    return@AddStaffDialog
+                }
+                isSaving = true
+                val updatedMember = member.copy(name = editName, role = editRole)
+                onSaveEdit(updatedMember) { success ->
+                    isSaving = false
+                    if (success) {
+                        memberInEdition = null
+                    } else {
+                        editError = "Error al guardar cambios"
                     }
                 }
             }
-        },
-        shape = dialogShape,
-        modifier = Modifier.border(1.dp, glassStroke, dialogShape),
-        containerColor = glassSurface,
-        tonalElevation = 0.dp,
-        textContentColor = Color.White,
-        titleContentColor = Color.White
-    )
+        )
+    } else {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            confirmButton = {
+                TextButton(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF54C7EC))
+                ) {
+                    Text(text = stringResource(id = R.string.close_label))
+                }
+            },
+            title = {
+                Text(
+                    text = stringResource(id = R.string.staff_list_dialog_title, plantName),
+                    color = Color.White
+                )
+            },
+            text = {
+                if (sortedStaff.isEmpty()) {
+                    Text(
+                        text = stringResource(id = R.string.staff_list_dialog_empty),
+                        color = Color.White
+                    )
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(350.dp)
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        sortedStaff.forEach { member ->
+                            Column {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(
+                                        modifier = Modifier.weight(1f),
+                                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                                    ) {
+                                        Text(
+                                            text = member.name,
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = Color.White
+                                        )
+                                        Text(
+                                            text = member.role,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = Color.White.copy(alpha = 0.7f)
+                                        )
+                                    }
+                                    if (isSupervisor) {
+                                        IconButton(onClick = { memberInEdition = member }) {
+                                            Icon(
+                                                imageVector = Icons.Default.Edit,
+                                                contentDescription = stringResource(id = R.string.edit_profile),
+                                                tint = Color(0xFF54C7EC)
+                                            )
+                                        }
+                                    }
+                                }
+                                HorizontalDivider(color = Color.White.copy(alpha = 0.2f))
+                            }
+                        }
+                    }
+                }
+            },
+            shape = dialogShape,
+            modifier = Modifier.border(1.dp, glassStroke, dialogShape),
+            containerColor = glassSurface,
+            tonalElevation = 0.dp,
+            textContentColor = Color.White,
+            titleContentColor = Color.White
+        )
+    }
 }
 
 @Composable
@@ -767,7 +852,7 @@ private fun ShiftAssignmentsSection(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(18.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0x22000000)),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0x22FFFFFF))
+                border = BorderStroke(1.dp, Color(0x22FFFFFF))
             ) {
                 Column(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -1093,6 +1178,8 @@ private fun AddStaffDialog(
     onStaffRoleChange: (String) -> Unit,
     isSaving: Boolean,
     errorMessage: String?,
+    title: String = stringResource(id = R.string.staff_dialog_title),
+    confirmButtonText: String = stringResource(id = R.string.staff_dialog_save_action),
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
@@ -1132,7 +1219,7 @@ private fun AddStaffDialog(
                 )
             ) {
                 Text(
-                    text = stringResource(id = R.string.staff_dialog_save_action),
+                    text = confirmButtonText,
                     color = Color.White
                 )
             }
@@ -1146,7 +1233,7 @@ private fun AddStaffDialog(
                 Text(text = stringResource(id = R.string.cancel_label))
             }
         },
-        title = { Text(text = stringResource(id = R.string.staff_dialog_title)) },
+        title = { Text(text = title) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
@@ -1302,4 +1389,66 @@ private fun StaffDropdownField(
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun PlantDetailScreenPreview() {
+    val nurseRole = stringResource(id = R.string.role_nurse_generic)
+    val auxRole = stringResource(id = R.string.role_aux_generic)
+    val staffScopeWithAux = stringResource(id = R.string.staff_scope_with_aux)
+    val dayShift = stringResource(id = R.string.shift_day)
+    val nightShift = stringResource(id = R.string.shift_night)
+
+    val samplePlant = Plant(
+        id = "plant-123",
+        name = "Planta Norte",
+        unitType = "UCI",
+        hospitalName = "Hospital Central",
+        shiftDuration = stringResource(id = R.string.shift_duration_12h),
+        allowHalfDay = false,
+        staffScope = staffScopeWithAux,
+        shiftTimes = mapOf(
+            dayShift to ShiftTime(start = "08:00", end = "20:00"),
+            nightShift to ShiftTime(start = "20:00", end = "08:00")
+        ),
+        staffRequirements = mapOf(dayShift to 2, nightShift to 2),
+        personal_de_planta = mapOf(
+            "n1" to RegisteredUser(
+                id = "n1",
+                name = "María Pérez",
+                role = nurseRole,
+                profileType = "plant_staff"
+            ),
+            "n2" to RegisteredUser(
+                id = "n2",
+                name = "Lucía Gómez",
+                role = nurseRole,
+                profileType = "plant_staff"
+            ),
+            "a1" to RegisteredUser(
+                id = "a1",
+                name = "Carlos Ruiz",
+                role = auxRole,
+                profileType = "plant_staff"
+            )
+        )
+    )
+
+    PlantDetailScreen(
+        plant = samplePlant,
+        datePickerState = rememberDatePickerState(initialSelectedDateMillis = System.currentTimeMillis()),
+        currentUserProfile = UserProfile(
+            firstName = "Ana",
+            lastName = "Supervisor",
+            role = stringResource(id = R.string.role_supervisor_female)
+        ),
+        currentMembership = null,
+        onBack = {},
+        onAddStaff = { _, _, callback -> callback(true) },
+        onEditStaff = { _, _, callback -> callback(true) },
+        onOpenPlantSettings = {},
+        onOpenImportShifts = {} // Preview callback
+    )
 }

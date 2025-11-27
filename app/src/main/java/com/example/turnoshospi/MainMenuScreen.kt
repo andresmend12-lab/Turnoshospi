@@ -15,6 +15,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -24,24 +26,36 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePickerState
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,10 +70,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
+import java.time.YearMonth
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,17 +83,35 @@ fun MainMenuScreen(
     userEmail: String,
     profile: UserProfile?,
     isLoadingProfile: Boolean,
+    userPlant: Plant?,
+    plantMembership: PlantMembership?,
     datePickerState: DatePickerState,
     onCreatePlant: () -> Unit,
     onEditProfile: () -> Unit,
     onOpenPlant: () -> Unit,
-    onOpenSettings: () -> Unit, // Nuevo parámetro
+    onOpenSettings: () -> Unit,
+    onListenToShifts: (String, String, (Map<String, UserShift>) -> Unit) -> Unit,
+    // ACTUALIZADO: Lista de Colleague
+    onFetchColleagues: (String, String, String, (List<Colleague>) -> Unit) -> Unit,
     onSignOut: () -> Unit
 ) {
     var isMenuOpen by remember { mutableStateOf(false) }
+    var userShifts by remember { mutableStateOf<Map<String, UserShift>>(emptyMap()) }
+
+    var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
+    var selectedShift by remember { mutableStateOf<UserShift?>(null) }
+    var colleaguesList by remember { mutableStateOf<List<Colleague>>(emptyList()) }
+    var isLoadingColleagues by remember { mutableStateOf(false) }
+
+    LaunchedEffect(userPlant, plantMembership) {
+        if (userPlant != null && plantMembership?.staffId != null) {
+            onListenToShifts(userPlant.id, plantMembership.staffId) { shifts ->
+                userShifts = shifts
+            }
+        }
+    }
 
     val loadingName = stringResource(id = R.string.loading_profile)
-
     val displayName = when {
         !profile?.firstName.isNullOrBlank() -> profile?.firstName.orEmpty()
         isLoadingProfile -> loadingName
@@ -99,7 +132,6 @@ fun MainMenuScreen(
             .fillMaxSize()
             .background(Color.Transparent)
     ) {
-        // CONTENIDO PRINCIPAL
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -113,9 +145,7 @@ fun MainMenuScreen(
             ) {
                 IconButton(
                     modifier = Modifier.align(Alignment.CenterStart),
-                    onClick = {
-                        isMenuOpen = true
-                    }
+                    onClick = { isMenuOpen = true }
                 ) {
                     Icon(
                         imageVector = Icons.Default.Menu,
@@ -124,10 +154,7 @@ fun MainMenuScreen(
                     )
                 }
 
-                Crossfade(
-                    targetState = displayName,
-                    animationSpec = tween(durationMillis = 600)
-                ) { name ->
+                Crossfade(targetState = displayName, animationSpec = tween(durationMillis = 600)) { name ->
                     Text(
                         text = stringResource(id = welcomeStringId, name),
                         modifier = Modifier.padding(horizontal = 56.dp),
@@ -140,176 +167,372 @@ fun MainMenuScreen(
             }
 
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(bottom = 16.dp),
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0x11FFFFFF)),
-                border = BorderStroke(5.dp, Color(0x22FFFFFF))
+                border = BorderStroke(1.dp, Color(0x22FFFFFF))
             ) {
-                CalendarSection(state = datePickerState)
+                CustomCalendar(
+                    shifts = userShifts,
+                    plantId = userPlant?.id,
+                    selectedDate = selectedDate,
+                    selectedShift = selectedShift,
+                    colleagues = colleaguesList,
+                    isLoadingColleagues = isLoadingColleagues,
+                    onDayClick = { date, shift ->
+                        if (userPlant != null && shift != null) {
+                            selectedDate = date
+                            selectedShift = shift
+                            isLoadingColleagues = true
+                            colleaguesList = emptyList()
+
+                            onFetchColleagues(userPlant.id, date.toString(), shift.shiftName) { colleagues ->
+                                colleaguesList = colleagues
+                                isLoadingColleagues = false
+                            }
+                        } else {
+                            selectedDate = date
+                            selectedShift = null
+                            colleaguesList = emptyList()
+                            isLoadingColleagues = false
+                        }
+                    }
+                )
             }
         }
 
-        // DRAWER PERSONALIZADO
         AnimatedVisibility(
             visible = isMenuOpen,
             enter = slideInHorizontally { -it } + fadeIn(),
             exit = slideOutHorizontally { -it } + fadeOut()
         ) {
-            Row(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                // Panel lateral
+            Row(modifier = Modifier.fillMaxSize()) {
                 Column(
                     modifier = Modifier
                         .width(280.dp)
                         .fillMaxHeight()
-                        .background(
-                            color = Color(0xFF0F172A),
-                            shape = RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp)
-                        )
+                        .background(Color(0xFF0F172A), RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp))
                         .padding(vertical = 16.dp)
                 ) {
                     DrawerHeader(displayName = displayName, welcomeStringId = welcomeStringId)
-
                     if (showCreatePlant) {
                         DrawerMenuItem(
                             label = stringResource(id = R.string.menu_create_plant),
                             description = stringResource(id = R.string.menu_create_plant_desc),
-                            onClick = {
-                                isMenuOpen = false
-                                onCreatePlant()
-                            }
+                            onClick = { isMenuOpen = false; onCreatePlant() }
                         )
                     }
-
                     DrawerMenuItem(
                         label = stringResource(id = R.string.menu_my_plants),
                         description = stringResource(id = R.string.menu_my_plants_desc),
-                        onClick = {
-                            isMenuOpen = false
-                            onOpenPlant()
-                        }
+                        onClick = { isMenuOpen = false; onOpenPlant() }
                     )
-
                     DrawerMenuItem(
                         label = stringResource(id = R.string.edit_profile),
-                        description = stringResource(id = R.string.menu_settings_desc),
-                        onClick = {
-                            isMenuOpen = false
-                            onEditProfile()
-                        }
+                        description = stringResource(id = R.string.edit_profile),
+                        onClick = { isMenuOpen = false; onEditProfile() }
                     )
-
                     DrawerMenuItem(
                         label = stringResource(id = R.string.menu_settings),
                         description = stringResource(id = R.string.menu_settings_desc),
-                        onClick = {
-                            isMenuOpen = false
-                            onOpenSettings() // Acción para abrir la configuración
-                        }
+                        onClick = { isMenuOpen = false; onOpenSettings() }
                     )
-
                     NavigationDrawerItem(
                         modifier = Modifier.padding(horizontal = 12.dp),
-                        label = {
-                            Text(
-                                text = stringResource(id = R.string.sign_out),
-                                color = Color(0xFFFFB4AB)
-                            )
-                        },
+                        label = { Text(text = stringResource(id = R.string.sign_out), color = Color(0xFFFFB4AB)) },
                         selected = false,
-                        onClick = {
-                            isMenuOpen = false
-                            onSignOut()
-                        },
+                        onClick = { isMenuOpen = false; onSignOut() },
                         colors = NavigationDrawerItemDefaults.colors(
                             unselectedContainerColor = Color.Transparent,
                             unselectedTextColor = Color(0xFFFFB4AB)
                         )
                     )
-
                     Spacer(modifier = Modifier.height(16.dp))
                 }
-
-                // Scrim clicable para cerrar
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
                         .background(Color(0x80000000))
-                        .clickable {
-                            isMenuOpen = false
-                        }
+                        .clickable { isMenuOpen = false }
                 )
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun CalendarSection(state: DatePickerState) {
-    val selectedDate = state.selectedDateMillis?.let { millis ->
-        Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
-    }
+fun CustomCalendar(
+    shifts: Map<String, UserShift>,
+    plantId: String?,
+    selectedDate: LocalDate?,
+    selectedShift: UserShift?,
+    colleagues: List<Colleague>, // Recibe lista de objetos Colleague
+    isLoadingColleagues: Boolean,
+    onDayClick: (LocalDate, UserShift?) -> Unit
+) {
+    var currentMonth by remember { mutableStateOf(YearMonth.now()) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A), RoundedCornerShape(22.dp))
-            .padding(vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+            .background(Color(0xFF0F172A))
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "Mi Calendario",
-            color = Color.White,
-            style = MaterialTheme.typography.titleLarge,
-            textAlign = TextAlign.Center,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-        )
-
-        DatePicker(
-            state = state,
-            title = null,
-            headline = null,
-            showModeToggle = false,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            colors = DatePickerDefaults.colors(
-                containerColor = Color(0xFF0F172A),
-                titleContentColor = Color.White,
-                headlineContentColor = Color.White,
-                weekdayContentColor = Color.White,
-                subheadContentColor = Color.White,
-                yearContentColor = Color.White,
-                currentYearContentColor = Color.White,
-                selectedYearContentColor = Color.White,
-                selectedYearContainerColor = Color(0xFF1E293B),
-                disabledSelectedYearContainerColor = Color(0x661E293B),
-                selectedDayContentColor = Color.White,
-                disabledSelectedDayContentColor = Color(0x80FFFFFF),
-                selectedDayContainerColor = Color(0xFF1E293B),
-                disabledSelectedDayContainerColor = Color(0x661E293B),
-                dayContentColor = Color.White,
-                disabledDayContentColor = Color(0x80FFFFFF),
-                dayInSelectionRangeContentColor = Color.White,
-                dayInSelectionRangeContainerColor = Color(0x331E293B),
-                todayContentColor = Color.White,
-                todayDateBorderColor = Color(0x66FFFFFF)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = { currentMonth = currentMonth.minusMonths(1) }) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Mes anterior", tint = Color.White)
+            }
+            Text(
+                text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale("es", "ES")).uppercase()} ${currentMonth.year}",
+                color = Color.White,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
             )
-        )
+            IconButton(onClick = { currentMonth = currentMonth.plusMonths(1) }) {
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Mes siguiente", tint = Color.White)
+            }
+        }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(modifier = Modifier.fillMaxWidth()) {
+            val daysOfWeek = listOf("L", "M", "X", "J", "V", "S", "D")
+            daysOfWeek.forEach { day ->
+                Text(
+                    text = day,
+                    modifier = Modifier.weight(1f),
+                    color = Color.Gray,
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        val firstDayOfMonth = currentMonth.atDay(1)
+        val daysInMonth = currentMonth.lengthOfMonth()
+        val dayOfWeekOffset = firstDayOfMonth.dayOfWeek.value - 1
+        val totalCells = (daysInMonth + dayOfWeekOffset + 6) / 7 * 7
+
+        Column {
+            for (i in 0 until totalCells step 7) {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    for (j in 0 until 7) {
+                        val dayIndex = i + j - dayOfWeekOffset + 1
+                        if (dayIndex in 1..daysInMonth) {
+                            val date = currentMonth.atDay(dayIndex)
+                            val dateKey = date.toString()
+                            val shift = shifts[dateKey]
+                            val color = getDayColor(date, shifts)
+
+                            val isSelected = date == selectedDate
+
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp)
+                                    .padding(2.dp)
+                                    .background(
+                                        color = color,
+                                        shape = CircleShape
+                                    )
+                                    .border(
+                                        width = if(isSelected) 2.dp else 0.dp,
+                                        color = if(isSelected) Color.White else Color.Transparent,
+                                        shape = CircleShape
+                                    )
+                                    .clickable {
+                                        onDayClick(date, shift)
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = dayIndex.toString(),
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        } else {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+            }
+        }
+
+        if (plantId != null) {
+            Spacer(modifier = Modifier.height(20.dp))
+            HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                maxItemsInEachRow = 4
+            ) {
+                val legendItems = listOf(
+                    Triple(Color(0xFF4CAF50), "Libre", null),
+                    Triple(Color(0xFFFFA500), "Mañana", null),
+                    Triple(Color(0xFFFFCC80), "M. Mañana", null),
+                    Triple(Color(0xFF2196F3), "Tarde", null),
+                    Triple(Color(0xFF40E0D0), "M. Tarde", null),
+                    Triple(Color(0xFF9C27B0), "Noche", null),
+                    Triple(Color(0xFF1A237E), "Saliente", null),
+                    Triple(Color(0xFFE91E63), "Vacaciones", null)
+                )
+
+                legendItems.forEach { (color, text, _) ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 6.dp)
+                    ) {
+                        Box(modifier = Modifier.size(10.dp).background(color, CircleShape))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(text = text, color = Color(0xFFCCCCCC), style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
+        }
+
+        if (selectedDate != null) {
+            Spacer(modifier = Modifier.height(24.dp))
+            HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            val formatter = DateTimeFormatter.ofPattern("d 'de' MMMM", Locale("es", "ES"))
+            val dateStr = selectedDate.format(formatter)
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Turno: ${selectedShift?.shiftName ?: "Libre"}",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = dateStr,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFF54C7EC)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                if (selectedShift == null) {
+                    Text(
+                        text = "No tienes turno asignado este día.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray
+                    )
+                } else if (isLoadingColleagues) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(32.dp),
+                        color = Color(0xFF54C7EC)
+                    )
+                } else {
+                    if (colleagues.isEmpty()) {
+                        Text(
+                            text = "No se encontraron compañeros para este turno.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray
+                        )
+                    } else {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "Compañeros en servicio:",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = Color.Gray,
+                                modifier = Modifier.align(Alignment.Start)
+                            )
+
+                            colleagues.forEach { colleague ->
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(Color(0x22FFFFFF), RoundedCornerShape(8.dp))
+                                        .padding(12.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Person,
+                                        contentDescription = null,
+                                        tint = Color(0xFF54C7EC),
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Column {
+                                        Text(
+                                            text = colleague.name,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = Color.White,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                        Text(
+                                            text = colleague.role,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = Color.Gray
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
-fun formatDate(date: LocalDate): String {
-    val formatter = DateTimeFormatter.ofPattern("d 'de' MMMM yyyy")
-    return date.format(formatter)
+fun getDayColor(date: LocalDate, shifts: Map<String, UserShift>): Color {
+    val dateKey = date.toString()
+    val shift = shifts[dateKey]
+
+    val colorGreen = Color(0xFF4CAF50)
+    val colorViolet = Color(0xFF9C27B0)
+    val colorDarkBlue = Color(0xFF1A237E)
+    val colorOrange = Color(0xFFFFA500)
+    val colorLightOrange = Color(0xFFFFCC80)
+    val colorTurquoise = Color(0xFF40E0D0)
+    val colorBlue = Color(0xFF2196F3)
+    val colorPink = Color(0xFFE91E63)
+
+    if (shift != null) {
+        val type = shift.shiftName.lowercase()
+        return when {
+            type.contains("vacaciones") -> colorPink
+            type.contains("noche") -> colorViolet
+            type.contains("mañana") || type.contains("día") -> if (shift.isHalfDay) colorLightOrange else colorOrange
+            type.contains("tarde") -> if (shift.isHalfDay) colorTurquoise else colorBlue
+            else -> colorOrange
+        }
+    }
+
+    val yesterdayKey = date.minusDays(1).toString()
+    val yesterdayShift = shifts[yesterdayKey]
+    if (yesterdayShift != null && yesterdayShift.shiftName.lowercase().contains("noche")) {
+        return colorDarkBlue
+    }
+
+    return colorGreen
 }
 
 @Composable
@@ -336,7 +559,7 @@ fun DrawerHeader(displayName: String, welcomeStringId: Int) {
             )
         }
     }
-    Divider(color = Color(0x22FFFFFF))
+    HorizontalDivider(color = Color(0x22FFFFFF))
 }
 
 @Composable
@@ -367,8 +590,7 @@ fun DrawerMenuItem(label: String, description: String, onClick: () -> Unit) {
 @Composable
 fun MainMenuScreenPreview() {
     TurnoshospiTheme {
-        val previewDateState =
-            rememberDatePickerState(initialSelectedDateMillis = System.currentTimeMillis())
+        val previewDateState = rememberDatePickerState(initialSelectedDateMillis = System.currentTimeMillis())
         MainMenuScreen(
             modifier = Modifier
                 .fillMaxSize()
@@ -381,11 +603,15 @@ fun MainMenuScreenPreview() {
                 email = "demo@example.com"
             ),
             isLoadingProfile = false,
+            userPlant = null,
+            plantMembership = null,
             datePickerState = previewDateState,
             onCreatePlant = {},
             onEditProfile = {},
             onOpenPlant = {},
             onOpenSettings = {},
+            onListenToShifts = { _, _, _ -> },
+            onFetchColleagues = { _, _, _, _ -> },
             onSignOut = {}
         )
     }

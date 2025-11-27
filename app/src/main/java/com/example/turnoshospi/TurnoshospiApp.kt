@@ -4,9 +4,9 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,7 +53,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.turnoshospi.R
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.delay
@@ -68,8 +67,14 @@ enum class AppScreen {
     MyPlant,
     PlantDetail,
     Settings,
-    PlantSettings
+    PlantSettings,
+    ImportShifts // New screen
 }
+
+data class Colleague(
+    val name: String,
+    val role: String
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,6 +92,10 @@ fun TurnoshospiApp(
     onLoadPlantMembership: (String, String, (PlantMembership?) -> Unit) -> Unit,
     onLinkUserToStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
     onRegisterPlantStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
+    onEditPlantStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
+    onListenToShifts: (String, String, (Map<String, UserShift>) -> Unit) -> Unit,
+    onFetchColleagues: (String, String, String, (List<Colleague>) -> Unit) -> Unit,
+    onImportShiftsFromCsv: (String, String, (Boolean) -> Unit) -> Unit, // Callback para importar
     onSignOut: () -> Unit,
     onDeleteAccount: () -> Unit,
     onDeletePlant: (String) -> Unit
@@ -153,6 +162,7 @@ fun TurnoshospiApp(
                 existingProfile = profile
                 isLoadingProfile = false
             }
+            refreshUserPlant()
         } else {
             existingProfile = null
             showRegistration = false
@@ -283,7 +293,11 @@ fun TurnoshospiApp(
                     userEmail = user.email.orEmpty(),
                     profile = existingProfile,
                     isLoadingProfile = isLoadingProfile,
+                    userPlant = userPlant,
+                    plantMembership = plantMembership,
                     datePickerState = sharedDatePickerState,
+                    onListenToShifts = onListenToShifts,
+                    onFetchColleagues = onFetchColleagues,
                     onCreatePlant = { currentScreen = AppScreen.CreatePlant },
                     onEditProfile = { showProfileEditor = true },
                     onOpenPlant = {
@@ -366,14 +380,41 @@ fun TurnoshospiApp(
                             if (success) {
                                 selectedPlantForDetail = selectedPlantForDetail?.copy(
                                     personal_de_planta = selectedPlantForDetail?.personal_de_planta.orEmpty() +
-                                        (staffMember.id to staffMember)
+                                            (staffMember.id to staffMember)
                                 )
                             }
                             onResult(success)
                         }
                     },
-                    onOpenPlantSettings = { currentScreen = AppScreen.PlantSettings }
+                    onEditStaff = { plantId, staffMember, onResult ->
+                        onEditPlantStaff(plantId, staffMember) { success ->
+                            if (success) {
+                                selectedPlantForDetail = selectedPlantForDetail?.copy(
+                                    personal_de_planta = selectedPlantForDetail?.personal_de_planta.orEmpty() +
+                                            (staffMember.id to staffMember)
+                                )
+                            }
+                            onResult(success)
+                        }
+                    },
+                    onOpenPlantSettings = { currentScreen = AppScreen.PlantSettings },
+                    onOpenImportShifts = { currentScreen = AppScreen.ImportShifts }
                 )
+
+                AppScreen.ImportShifts -> ImportShiftsScreen(
+                    onBack = { currentScreen = AppScreen.PlantDetail },
+                    onImport = { csvData ->
+                        if (selectedPlantForDetail != null) {
+                            onImportShiftsFromCsv(selectedPlantForDetail!!.id, csvData) { success ->
+                                // Optional: handle success feedback
+                                if (success) {
+                                    currentScreen = AppScreen.PlantDetail
+                                }
+                            }
+                        }
+                    }
+                )
+
                 AppScreen.Settings -> SettingsScreen(
                     onBack = { currentScreen = AppScreen.MainMenu },
                     onDeleteAccount = onDeleteAccount
@@ -383,7 +424,7 @@ fun TurnoshospiApp(
                     plant = userPlant,
                     onBack = { currentScreen = AppScreen.MyPlant },
                     onDeletePlant = {
-                        plantId ->
+                            plantId ->
                         onDeletePlant(plantId)
                         refreshUserPlant()
                         currentScreen = AppScreen.MyPlant
@@ -452,6 +493,7 @@ fun TurnoshospiApp(
     }
 }
 
+// ... (Resto de funciones auxiliares)
 @Composable
 fun ProfileLoadingScreen(message: String) {
     Box(
@@ -698,6 +740,10 @@ fun SplashLoginPreview() {
             onLoadPlantMembership = { _, _, _ -> },
             onLinkUserToStaff = { _, _, _ -> },
             onRegisterPlantStaff = { _, _, _ -> },
+            onEditPlantStaff = { _, _, _ -> },
+            onListenToShifts = { _, _, _ -> },
+            onFetchColleagues = { _, _, _, _ -> },
+            onImportShiftsFromCsv = { _, _, _ -> },
             onSignOut = {},
             onDeleteAccount = {},
             onDeletePlant = {}

@@ -136,4 +136,5 @@
     <string name="staff_identity_label">Selecciona tu nombre en la lista</string>
     <string name="staff_identity_hint">El supervisor gestiona esta lista de personal.</string>
     <string name="staff_identity_missing">Pídele al supervisor que añada el personal para poder asignarte.</string>
+    <string name="edit_staff_member">Editar personal</string>
 </resources>
