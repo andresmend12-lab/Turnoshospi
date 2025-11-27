@@ -1,5 +1,8 @@
 package com.example.turnoshospi
 
+import android.content.Context
+import android.os.Environment
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -82,6 +85,8 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import java.io.File
+import java.io.FileOutputStream
 import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
@@ -515,10 +520,11 @@ fun PlantDetailScreen(
     }
 }
 
-// [NUEVA PANTALLA]
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImportShiftsScreen(onBack: () -> Unit) {
+    val context = LocalContext.current
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -564,11 +570,10 @@ fun ImportShiftsScreen(onBack: () -> Unit) {
                     )
 
                     Button(
-                        onClick = { /* No action yet */ },
+                        onClick = { copyTemplateToDownloads(context) },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC), contentColor = Color.Black)
                     ) {
-                        // Usamos un icono por defecto o texto si no está disponible el icono específico
                         Text("Descargar plantilla")
                     }
 
@@ -584,8 +589,6 @@ fun ImportShiftsScreen(onBack: () -> Unit) {
         }
     }
 }
-
-// ... (Resto de funciones: PlantCalendar, InfoMessage, StaffListDialog, etc. permanecen igual)
 
 @Composable
 fun PlantCalendar(
@@ -1519,4 +1522,27 @@ private fun PlantDetailScreenPreview() {
         onOpenPlantSettings = {},
         onOpenImportShifts = {}
     )
+}
+
+// Función auxiliar para copiar el archivo desde assets a Descargas
+private fun copyTemplateToDownloads(context: Context) {
+    val fileName = "plantilla_importacion_turnos.csv"
+    try {
+        // 1. Abrir el archivo desde los assets de la app
+        val inputStream = context.assets.open(fileName)
+
+        // 2. Definir la ruta de destino (Carpeta de Descargas pública)
+        val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val outFile = File(downloadsDir, fileName)
+
+        // 3. Copiar el contenido
+        FileOutputStream(outFile).use { output ->
+            inputStream.copyTo(output)
+        }
+
+        Toast.makeText(context, "Plantilla guardada en Descargas", Toast.LENGTH_LONG).show()
+    } catch (e: Exception) {
+        e.printStackTrace()
+        Toast.makeText(context, "Error al guardar: ${e.message}", Toast.LENGTH_SHORT).show()
+    }
 }
