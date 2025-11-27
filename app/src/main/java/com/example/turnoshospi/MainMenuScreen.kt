@@ -1,13 +1,22 @@
 package com.example.turnoshospi
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,40 +25,34 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.Divider
-import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.turnoshospi.R
+import androidx.compose.ui.unit.dp
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
-import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -68,8 +71,7 @@ fun MainMenuScreen(
     onOpenPlant: () -> Unit,
     onSignOut: () -> Unit
 ) {
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
+    var isMenuOpen by remember { mutableStateOf(false) }
 
     val loadingName = stringResource(id = R.string.loading_profile)
 
@@ -88,80 +90,16 @@ fun MainMenuScreen(
     val supervisorFemale = stringResource(id = R.string.role_supervisor_female)
     val showCreatePlant = profile?.role == supervisorMale || profile?.role == supervisorFemale
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        gesturesEnabled = false, // <-- IMPORTANTE: desactiva abrir con gesto desde el borde
-        drawerContent = {
-            ModalDrawerSheet(
-                drawerContainerColor = Color(0xFF0F172A),
-                drawerContentColor = Color.White
-            ) {
-                DrawerHeader(displayName = displayName, welcomeStringId = welcomeStringId)
-
-                if (showCreatePlant) {
-                    DrawerMenuItem(
-                        label = stringResource(id = R.string.menu_create_plant),
-                        description = stringResource(id = R.string.menu_create_plant_desc),
-                        onClick = {
-                            scope.launch { drawerState.close() }
-                            onCreatePlant()
-                        }
-                    )
-                }
-
-                DrawerMenuItem(
-                    label = stringResource(id = R.string.menu_my_plants),
-                    description = stringResource(id = R.string.menu_my_plants_desc),
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        onOpenPlant()
-                    }
-                )
-
-                DrawerMenuItem(
-                    label = stringResource(id = R.string.edit_profile),
-                    description = stringResource(id = R.string.menu_settings_desc),
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        onEditProfile()
-                    }
-                )
-
-                DrawerMenuItem(
-                    label = stringResource(id = R.string.menu_settings),
-                    description = stringResource(id = R.string.menu_settings_desc),
-                    onClick = { scope.launch { drawerState.close() } }
-                )
-
-                NavigationDrawerItem(
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                    label = {
-                        Text(
-                            text = stringResource(id = R.string.sign_out),
-                            color = Color(0xFFFFB4AB)
-                        )
-                    },
-                    selected = false,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        onSignOut()
-                    },
-                    colors = NavigationDrawerItemDefaults.colors(
-                        unselectedContainerColor = Color.Transparent,
-                        unselectedTextColor = Color(0xFFFFB4AB)
-                    )
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-        }
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color.Transparent)
     ) {
-        // CONTENIDO DE LA PANTALLA (sin menú lateral fijo)
+        // CONTENIDO PRINCIPAL
         Column(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Transparent)
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .padding(vertical = 12.dp)
         ) {
             Box(
                 modifier = Modifier
@@ -172,8 +110,7 @@ fun MainMenuScreen(
                 IconButton(
                     modifier = Modifier.align(Alignment.CenterStart),
                     onClick = {
-                        // SOLO se abre al pulsar este icono
-                        scope.launch { drawerState.open() }
+                        isMenuOpen = true
                     }
                 ) {
                     Icon(
@@ -199,14 +136,106 @@ fun MainMenuScreen(
             }
 
             Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),    // <-- quito fillMaxSize() aquí
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0x11FFFFFF)),
-                border = BorderStroke(1.dp, Color(0x22FFFFFF))
+                border = BorderStroke(5.dp, Color(0x22FFFFFF))
             ) {
                 CalendarSection(state = datePickerState)
+            }
+        }
+
+        // DRAWER PERSONALIZADO
+        AnimatedVisibility(
+            visible = isMenuOpen,
+            enter = slideInHorizontally { -it } + fadeIn(),
+            exit = slideOutHorizontally { -it } + fadeOut()
+        ) {
+            Row(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                // Panel lateral
+                Column(
+                    modifier = Modifier
+                        .width(280.dp)
+                        .fillMaxHeight()
+                        .background(
+                            color = Color(0xFF0F172A),
+                            shape = RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp)
+                        )
+                        .padding(vertical = 16.dp)
+                ) {
+                    DrawerHeader(displayName = displayName, welcomeStringId = welcomeStringId)
+
+                    if (showCreatePlant) {
+                        DrawerMenuItem(
+                            label = stringResource(id = R.string.menu_create_plant),
+                            description = stringResource(id = R.string.menu_create_plant_desc),
+                            onClick = {
+                                isMenuOpen = false
+                                onCreatePlant()
+                            }
+                        )
+                    }
+
+                    DrawerMenuItem(
+                        label = stringResource(id = R.string.menu_my_plants),
+                        description = stringResource(id = R.string.menu_my_plants_desc),
+                        onClick = {
+                            isMenuOpen = false
+                            onOpenPlant()
+                        }
+                    )
+
+                    DrawerMenuItem(
+                        label = stringResource(id = R.string.edit_profile),
+                        description = stringResource(id = R.string.menu_settings_desc),
+                        onClick = {
+                            isMenuOpen = false
+                            onEditProfile()
+                        }
+                    )
+
+                    DrawerMenuItem(
+                        label = stringResource(id = R.string.menu_settings),
+                        description = stringResource(id = R.string.menu_settings_desc),
+                        onClick = {
+                            isMenuOpen = false
+                        }
+                    )
+
+                    NavigationDrawerItem(
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                        label = {
+                            Text(
+                                text = stringResource(id = R.string.sign_out),
+                                color = Color(0xFFFFB4AB)
+                            )
+                        },
+                        selected = false,
+                        onClick = {
+                            isMenuOpen = false
+                            onSignOut()
+                        },
+                        colors = NavigationDrawerItemDefaults.colors(
+                            unselectedContainerColor = Color.Transparent,
+                            unselectedTextColor = Color(0xFFFFB4AB)
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                // Scrim clicable para cerrar
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .background(Color(0x80000000))
+                        .clickable {
+                            isMenuOpen = false
+                        }
+                )
             }
         }
     }
@@ -222,18 +251,20 @@ private fun CalendarSection(state: DatePickerState) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 14.dp)
-            .background(Color(0x22000000), RoundedCornerShape(22.dp)),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+            .background(Color(0xFF0F172A), RoundedCornerShape(22.dp))
+            .padding(vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Calendario",
+            text = "Mi Calendario",
             color = Color.White,
             style = MaterialTheme.typography.titleLarge,
             textAlign = TextAlign.Center,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
         )
 
         DatePicker(
@@ -242,10 +273,10 @@ private fun CalendarSection(state: DatePickerState) {
             headline = null,
             showModeToggle = false,
             modifier = Modifier
-                .weight(1f)       // <-- se queda con todo el alto disponible
-                .fillMaxWidth(),  // <-- ocupa todo el ancho
+                .weight(1f)
+                .fillMaxWidth(),
             colors = DatePickerDefaults.colors(
-                containerColor = Color.Transparent,
+                containerColor = (MaterialTheme.colorScheme.background),
                 titleContentColor = Color.White,
                 headlineContentColor = Color.White,
                 weekdayContentColor = Color.White,
@@ -268,13 +299,6 @@ private fun CalendarSection(state: DatePickerState) {
             )
         )
 
-        Text(
-            text = selectedDate?.let { formatDate(it) } ?: "Selecciona una fecha",
-            color = Color.White,
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center,
-            fontWeight = FontWeight.Medium
-        )
     }
 }
 
@@ -339,7 +363,8 @@ fun DrawerMenuItem(label: String, description: String, onClick: () -> Unit) {
 @Composable
 fun MainMenuScreenPreview() {
     TurnoshospiTheme {
-        val previewDateState = rememberDatePickerState(initialSelectedDateMillis = System.currentTimeMillis())
+        val previewDateState =
+            rememberDatePickerState(initialSelectedDateMillis = System.currentTimeMillis())
         MainMenuScreen(
             modifier = Modifier
                 .fillMaxSize()

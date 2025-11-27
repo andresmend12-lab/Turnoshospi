@@ -1,14 +1,21 @@
 package com.example.turnoshospi
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,12 +25,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.ui.draw.rotate
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -31,14 +37,13 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerState
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.OutlinedTextField
@@ -50,10 +55,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.surfaceColorAtElevation
-import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -61,27 +63,28 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.material3.rememberDatePickerState
-import kotlinx.coroutines.launch
-import java.time.Instant
-import java.time.ZoneId
-import java.util.UUID
-import com.google.firebase.database.FirebaseDatabase
+import com.example.turnoshospi.ui.theme.TurnoshospiTheme
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 private data class SlotAssignment(
     var primaryName: String = "",
@@ -104,8 +107,7 @@ fun PlantDetailScreen(
     onBack: () -> Unit,
     onAddStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit
 ) {
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
+    var isMenuOpen by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val database = remember {
         FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
@@ -170,62 +172,11 @@ fun PlantDetailScreen(
     var staffRole by remember { mutableStateOf(nurseRole) }
     var addStaffError by remember { mutableStateOf<String?>(null) }
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet(
-                drawerContainerColor = Color(0xFF0F172A),
-                drawerContentColor = Color.White
-            ) {
-                DrawerHeader(
-                    displayName = plant?.name ?: "",
-                    welcomeStringId = R.string.side_menu_title
-                )
-                if (isSupervisor) {
-                    NavigationDrawerItem(
-                        modifier = Modifier.padding(horizontal = 12.dp),
-                        label = { Text(text = stringResource(id = R.string.plant_add_staff_option), color = Color.White) },
-                        selected = false,
-                        onClick = {
-                            scope.launch { drawerState.close() }
-                            showAddStaffDialog = true
-                        },
-                        colors = NavigationDrawerItemDefaults.colors(
-                            unselectedContainerColor = Color.Transparent,
-                            unselectedTextColor = Color.White
-                        )
-                    )
-                    NavigationDrawerItem(
-                        modifier = Modifier.padding(horizontal = 12.dp),
-                        label = { Text(text = stringResource(id = R.string.plant_staff_list_option), color = Color.White) },
-                        selected = false,
-                        onClick = {
-                            scope.launch { drawerState.close() }
-                            showStaffListDialog = true
-                        },
-                        colors = NavigationDrawerItemDefaults.colors(
-                            unselectedContainerColor = Color.Transparent,
-                            unselectedTextColor = Color.White
-                        )
-                    )
-                }
-                NavigationDrawerItem(
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                    label = { Text(text = stringResource(id = R.string.back_to_menu), color = Color.White) },
-                    selected = false,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        onBack()
-                    },
-                    colors = NavigationDrawerItemDefaults.colors(
-                        unselectedContainerColor = Color.Transparent,
-                        unselectedTextColor = Color.White
-                    )
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-        }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
     ) {
+        // CONTENIDO PRINCIPAL + APP BAR
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
@@ -239,7 +190,7 @@ fun PlantDetailScreen(
                     },
                     navigationIcon = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                            IconButton(onClick = { isMenuOpen = true }) {
                                 Icon(
                                     imageVector = Icons.Default.Menu,
                                     contentDescription = stringResource(id = R.string.side_menu_title),
@@ -267,30 +218,32 @@ fun PlantDetailScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color(0xFF0B1021), Color(0xFF0F172A))
-                        )
+                    .background(Color.Transparent
+
                     )
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                        .padding(vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    // Tarjeta calendario
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(18.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0x22000000)),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0x22FFFFFF))
+                        shape = RoundedCornerShape(24.dp),
+                        colors = CardDefaults.cardColors(Color.Transparent),
+                        border = BorderStroke(5.dp, Color(0x22FFFFFF))
+                       // border = androidx.compose.foundation.BorderStroke(1.dp, Color(0x22FFFFFF))
                     ) {
                         Column(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                                .fillMaxSize()
+                                .background(Color(0xFF0F172A), RoundedCornerShape(22.dp))
+                                .padding(vertical = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
                                 text = stringResource(id = R.string.plant_calendar_title),
@@ -304,7 +257,7 @@ fun PlantDetailScreen(
                                 headline = null,
                                 showModeToggle = false,
                                 colors = DatePickerDefaults.colors(
-                                    containerColor = Color.Transparent,
+                                    containerColor = (MaterialTheme.colorScheme.background),
                                     titleContentColor = Color.White,
                                     headlineContentColor = Color.White,
                                     weekdayContentColor = Color.White,
@@ -327,7 +280,7 @@ fun PlantDetailScreen(
                                 )
                             )
                             Text(
-                                text = selectedDate?.let { formatDate(it) }
+                                text = selectedDate?.let { formatPlantDate(it) }
                                     ?: stringResource(id = R.string.select_date_prompt),
                                 color = Color.White,
                                 style = MaterialTheme.typography.bodyLarge,
@@ -392,10 +345,11 @@ fun PlantDetailScreen(
                                     }
                                 )
                         }
+
                         ShiftAssignmentsSection(
                             plant = plant,
                             assignments = assignments,
-                            selectedDateLabel = formatDate(selectedDate),
+                            selectedDateLabel = formatPlantDate(selectedDate),
                             isSupervisor = isSupervisor,
                             isSavedForDate = savedAssignmentsByDate[dateKey] == true,
                             unassignedLabel = unassignedLabel,
@@ -421,8 +375,103 @@ fun PlantDetailScreen(
                 }
             }
         }
+
+        // DRAWER PERSONALIZADO
+        AnimatedVisibility(
+            visible = isMenuOpen,
+            enter = slideInHorizontally { -it } + fadeIn(),
+            exit = slideOutHorizontally { -it } + fadeOut()
+        ) {
+            Row(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                // Panel lateral
+                Column(
+                    modifier = Modifier
+                        .width(280.dp)
+                        .fillMaxHeight()
+                        .background(
+                            color = Color(0xFF0F172A),
+                            shape = RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp)
+                        )
+                        .padding(vertical = 16.dp)
+                ) {
+                    DrawerHeader(
+                        displayName = plant?.name ?: "",
+                        welcomeStringId = R.string.side_menu_title
+                    )
+                    if (isSupervisor) {
+                        NavigationDrawerItem(
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            label = {
+                                Text(
+                                    text = stringResource(id = R.string.plant_add_staff_option),
+                                    color = Color.White
+                                )
+                            },
+                            selected = false,
+                            onClick = {
+                                isMenuOpen = false
+                                showAddStaffDialog = true
+                            },
+                            colors = NavigationDrawerItemDefaults.colors(
+                                unselectedContainerColor = Color.Transparent,
+                                unselectedTextColor = Color.White
+                            )
+                        )
+                        NavigationDrawerItem(
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            label = {
+                                Text(
+                                    text = stringResource(id = R.string.plant_staff_list_option),
+                                    color = Color.White
+                                )
+                            },
+                            selected = false,
+                            onClick = {
+                                isMenuOpen = false
+                                showStaffListDialog = true
+                            },
+                            colors = NavigationDrawerItemDefaults.colors(
+                                unselectedContainerColor = Color.Transparent,
+                                unselectedTextColor = Color.White
+                            )
+                        )
+                    }
+                    NavigationDrawerItem(
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                        label = {
+                            Text(
+                                text = stringResource(id = R.string.back_to_menu),
+                                color = Color.White
+                            )
+                        },
+                        selected = false,
+                        onClick = {
+                            isMenuOpen = false
+                            onBack()
+                        },
+                        colors = NavigationDrawerItemDefaults.colors(
+                            unselectedContainerColor = Color.Transparent,
+                            unselectedTextColor = Color.White
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                // Scrim clicable para cerrar
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .background(Color(0x80000000))
+                        .clickable { isMenuOpen = false }
+                )
+            }
+        }
     }
 
+    // Diálogo añadir personal
     if (showAddStaffDialog && plant != null) {
         AddStaffDialog(
             staffName = staffName,
@@ -468,6 +517,7 @@ fun PlantDetailScreen(
         )
     }
 
+    // Diálogo lista de personal
     if (showStaffListDialog && plant != null) {
         StaffListDialog(
             plantName = plant.name,
@@ -497,6 +547,11 @@ private fun InfoMessage(message: String) {
             )
         }
     }
+}
+
+fun formatPlantDate(date: LocalDate): String {
+    val formatter = DateTimeFormatter.ofPattern("d 'de' MMMM yyyy")
+    return date.format(formatter)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -636,9 +691,9 @@ private fun ShiftAssignmentsSection(
     onSaveAssignments: (Map<String, ShiftAssignmentState>) -> Unit
 ) {
     val allowAux = plant.staffScope.normalizedRole() ==
-        stringResource(id = R.string.staff_scope_with_aux).normalizedRole() ||
-        plant.staffScope.contains("aux", ignoreCase = true) ||
-        auxOptions.isNotEmpty()
+            stringResource(id = R.string.staff_scope_with_aux).normalizedRole() ||
+            plant.staffScope.contains("aux", ignoreCase = true) ||
+            auxOptions.isNotEmpty()
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -880,7 +935,7 @@ private fun ShiftAssignmentsSection(
                         Button(
                             modifier = Modifier.fillMaxWidth(),
                             onClick = { onSaveAssignments(assignments) },
-                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                            colors = ButtonDefaults.buttonColors(
                                 containerColor = Color(0xFF54C7EC),
                                 contentColor = Color.Black
                             )
@@ -1037,13 +1092,17 @@ private fun AddStaffDialog(
     val fieldColors = OutlinedTextFieldDefaults.colors(
         focusedTextColor = Color.White,
         unfocusedTextColor = Color.White,
-        cursorColor = Color.White,
+        disabledTextColor = Color(0xCCFFFFFF),
         focusedBorderColor = Color(0xFF54C7EC),
         unfocusedBorderColor = Color(0x66FFFFFF),
+        disabledBorderColor = Color(0x33FFFFFF),
+        cursorColor = Color.White,
         focusedLabelColor = Color.White,
         unfocusedLabelColor = Color(0xCCFFFFFF),
+        disabledLabelColor = Color(0x80FFFFFF),
         focusedContainerColor = Color(0x22FFFFFF),
-        unfocusedContainerColor = Color(0x11FFFFFF)
+        unfocusedContainerColor = Color(0x11FFFFFF),
+        disabledContainerColor = Color(0x11FFFFFF)
     )
 
     AlertDialog(
@@ -1136,7 +1195,6 @@ private fun StaffDropdownField(
     onOptionSelected: (String) -> Unit,
     includeUnassigned: Boolean = false
 ) {
-    // expanded toggles the dropdown visibility; keep state local for easier manual inspection
     var expanded by remember { mutableStateOf(false) }
     val unassignedLabel = stringResource(id = R.string.staff_unassigned_option)
     val displayValue = selectedValue.takeIf { it.isNotBlank() } ?: if (includeUnassigned) unassignedLabel else ""
@@ -1193,7 +1251,6 @@ private fun StaffDropdownField(
                 ) {
                     Icon(
                         imageVector = Icons.Filled.ArrowDropDown,
-                        // rotate to indicate the expanded state without needing ArrowDropUp
                         modifier = Modifier.rotate(if (expanded) 180f else 0f),
                         contentDescription = null
                     )
@@ -1203,31 +1260,31 @@ private fun StaffDropdownField(
             singleLine = true
         )
 
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier.fillMaxWidth(),
-                containerColor = Color(0xF00B1021),
-                tonalElevation = 0.dp,
-                shadowElevation = 10.dp,
-                shape = RoundedCornerShape(14.dp)
-            ) {
-                menuOptions.forEach { option ->
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = option,
-                                color = Color.White,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        },
-                        onClick = {
-                            val resolvedSelection = if (option == unassignedLabel) "" else option
-                            onOptionSelected(resolvedSelection)
-                            expanded = false
-                        }
-                    )
-                }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.fillMaxWidth(),
+            containerColor = Color(0xF00B1021),
+            tonalElevation = 0.dp,
+            shadowElevation = 10.dp,
+            shape = RoundedCornerShape(14.dp)
+        ) {
+            menuOptions.forEach { option ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = option,
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    },
+                    onClick = {
+                        val resolvedSelection = if (option == unassignedLabel) "" else option
+                        onOptionSelected(resolvedSelection)
+                        expanded = false
+                    }
+                )
             }
+        }
     }
 }
