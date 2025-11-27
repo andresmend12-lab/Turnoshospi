@@ -78,9 +78,6 @@ class MainActivity : ComponentActivity() {
                     onFetchColleagues = { plantId, date, shiftName, onResult ->
                         fetchColleaguesForShift(plantId, date, shiftName, onResult)
                     },
-                    onImportShiftsFromCsv = { plantId, csvData, onResult ->
-                        processCsvImport(plantId, csvData, onResult)
-                    },
                     onSignOut = { signOut() },
                     onDeleteAccount = { deleteAccount() },
                     onDeletePlant = { plantId -> deletePlant(plantId) }
@@ -528,61 +525,6 @@ class MainActivity : ComponentActivity() {
             })
     }
 
-    private fun processCsvImport(
-        plantId: String,
-        csvData: String,
-        onResult: (Boolean) -> Unit
-    ) {
-        val lines = csvData.lines()
-        if (lines.size < 2) {
-            onResult(false)
-            return
-        }
-
-        // Estructura esperada: fecha,turno,rol,nombre,es_media_jornada
-        val updates = mutableMapOf<String, Any>()
-
-        for (i in 1 until lines.size) { // Saltar cabecera
-            val line = lines[i].trim()
-            if (line.isEmpty()) continue
-
-            val parts = line.split(",") // Asumiendo separador coma
-            if (parts.size >= 4) {
-                val date = parts[0].trim() // yyyy-MM-dd
-                val shift = parts[1].trim() // Mañana
-                val role = parts[2].trim() // Enfermero
-                val name = parts[3].trim()
-                val isHalfDay = if (parts.size > 4) parts[4].trim().toBoolean() else false
-
-                val roleCategory = if (role.equals("Enfermero", ignoreCase = true)) "nurses" else "auxiliaries"
-                val baseLabel = if (roleCategory == "nurses") "enfermero" else "auxiliar"
-
-                // Lógica simplificada: Añadimos a la lista.
-                // En un caso real necesitaríamos saber el índice exacto o buscar el primer slot libre.
-                // Aquí, asumiremos un push con ID aleatorio o basado en timestamp para no sobrescribir ciegamente.
-                // Sin embargo, Firebase `push()` no se mapea directo a un mapa de updates con path predecible facilmente.
-                // Asumiremos slots fijos "0", "1", "2" por simplicidad de ejemplo o usaremos push key.
-
-                // NOTA: Para una implementación real robusta, deberíamos leer el estado actual antes de escribir.
-                // Como esto es una demo, generaremos una key única para evitar colisiones.
-                val uniqueKey = System.currentTimeMillis().toString() + i
-
-                val basePath = "plants/$plantId/turnos/turnos-$date/$shift/$roleCategory/$uniqueKey"
-                updates["$basePath/primary"] = name
-                updates["$basePath/halfDay"] = isHalfDay
-                updates["$basePath/primaryLabel"] = "$baseLabel importado"
-            }
-        }
-
-        if (updates.isNotEmpty()) {
-            realtimeDatabase.reference.updateChildren(updates)
-                .addOnSuccessListener { onResult(true) }
-                .addOnFailureListener { onResult(false) }
-        } else {
-            onResult(false)
-        }
-    }
-
     private fun linkUserToPlantStaff(
         plantId: String,
         staffMember: RegisteredUser,
@@ -757,7 +699,6 @@ fun MainActivityPreview() {
             onEditPlantStaff = { _, _, _ -> },
             onListenToShifts = { _, _, _ -> },
             onFetchColleagues = { _, _, _, _ -> },
-            onImportShiftsFromCsv = { _, _, _ -> },
             onSignOut = {},
             onDeleteAccount = {},
             onDeletePlant = {}
