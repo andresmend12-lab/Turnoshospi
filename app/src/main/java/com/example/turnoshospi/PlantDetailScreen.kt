@@ -1,5 +1,8 @@
 package com.example.turnoshospi
 
+import android.content.Context
+import android.os.Environment
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -36,6 +39,8 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import java.io.File
+import java.io.FileOutputStream
 import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
@@ -147,6 +152,7 @@ fun PlantDetailScreen(
     if (showStaffListDialog && plant != null) StaffListDialog(plant.name, plantStaff.toList(), isSupervisor, { showStaffListDialog = false }) { m, cb -> onEditStaff(plant.id, m, cb) }
 }
 
+<<<<<<< HEAD
 private fun saveShiftAssignments(db: FirebaseDatabase, pid: String, date: String, assign: Map<String, ShiftAssignmentState>, cb: (Boolean) -> Unit) {
     val data = assign.mapValues { (_, s) -> mapOf("nurses" to s.nurseSlots.map { it.toMap() }, "auxiliaries" to s.auxSlots.map { it.toMap() }) }
     db.reference.child("plants/$pid/turnos/turnos-$date").setValue(data).addOnSuccessListener {
@@ -162,12 +168,79 @@ private fun notifyAssignedUsers(db: FirebaseDatabase, pid: String, date: String,
             (state.nurseSlots + state.auxSlots).forEach { slot ->
                 listOf(slot.primaryName, slot.secondaryName).filter { it.isNotBlank() }.forEach { name ->
                     staff[name]?.let { user -> NotificationHelper.sendNotification(user.id, "Turno Asignado", "Tienes turno de $shift el $date", "SHIFT_ADDED") }
+=======
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ImportShiftsScreen(onBack: () -> Unit) {
+    val context = LocalContext.current
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Importar Turnos", color = Color.White) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver",
+                            tint = Color.White
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent
+                )
+            )
+        },
+        containerColor = Color.Transparent
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0x22FFFFFF)),
+                border = BorderStroke(1.dp, Color(0x33FFFFFF))
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        "Opciones de importación",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White
+                    )
+
+                    Button(
+                        onClick = { copyTemplateToDownloads(context) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC), contentColor = Color.Black)
+                    ) {
+                        Text("Descargar plantilla")
+                    }
+
+                    Button(
+                        onClick = { /* No action yet */ },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC), contentColor = Color.Black)
+                    ) {
+                        Text("Importar turnos")
+                    }
+>>>>>>> 6ee37c7cae193aa582f6f2b545944f9a8dc39d28
                 }
             }
         }
     }
 }
 
+<<<<<<< HEAD
 private fun SlotAssignment.toMap() = mapOf("primary" to primaryName, "secondary" to secondaryName, "halfDay" to hasHalfDay)
 private fun DataSnapshot.toSlotAssignment(def: String) = SlotAssignment((child("primary").value as? String).orEmpty(), (child("secondary").value as? String).orEmpty(), child("halfDay").value as? Boolean ?: false)
 
@@ -177,6 +250,106 @@ private fun DataSnapshot.toSlotAssignment(def: String) = SlotAssignment((child("
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { IconButton({ month = month.minusMonths(1) }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White) }; Text("${month.month.name} ${month.year}", color = Color.White); IconButton({ month = month.plusMonths(1) }) { Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Color.White) } }
         val days = month.lengthOfMonth(); val offset = month.atDay(1).dayOfWeek.value - 1
         Column { for (i in 0 until (days + offset + 6) / 7 * 7 step 7) { Row { for (j in 0 until 7) { val d = i + j - offset + 1; if (d in 1..days) { val date = month.atDay(d); Box(Modifier.weight(1f).padding(2.dp).background(if (date == selected) Color(0xFF54C7EC) else Color.Transparent, CircleShape).clickable { onSelect(date) }, contentAlignment = Alignment.Center) { Text("$d", color = Color.White) } } else Spacer(Modifier.weight(1f)) } } } }
+=======
+@Composable
+fun PlantCalendar(
+    selectedDate: LocalDate?,
+    onDateSelected: (LocalDate) -> Unit
+) {
+    var currentMonth by remember { mutableStateOf(YearMonth.now()) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFF0F172A), RoundedCornerShape(24.dp))
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Cabecera Mes
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = { currentMonth = currentMonth.minusMonths(1) }) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Anterior", tint = Color.White)
+            }
+            Text(
+                text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale("es", "ES")).uppercase()} ${currentMonth.year}",
+                color = Color.White,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            IconButton(onClick = { currentMonth = currentMonth.plusMonths(1) }) {
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Siguiente", tint = Color.White)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Días semana
+        Row(modifier = Modifier.fillMaxWidth()) {
+            val daysOfWeek = listOf("L", "M", "X", "J", "V", "S", "D")
+            daysOfWeek.forEach { day ->
+                Text(
+                    text = day,
+                    modifier = Modifier.weight(1f),
+                    color = Color.Gray,
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Grid
+        val firstDayOfMonth = currentMonth.atDay(1)
+        val daysInMonth = currentMonth.lengthOfMonth()
+        val dayOfWeekOffset = firstDayOfMonth.dayOfWeek.value - 1
+        val totalCells = (daysInMonth + dayOfWeekOffset + 6) / 7 * 7
+
+        Column {
+            for (i in 0 until totalCells step 7) {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    for (j in 0 until 7) {
+                        val dayIndex = i + j - dayOfWeekOffset + 1
+                        if (dayIndex in 1..daysInMonth) {
+                            val date = currentMonth.atDay(dayIndex)
+                            val isSelected = date == selectedDate
+
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp)
+                                    .padding(2.dp)
+                                    .background(
+                                        color = if (isSelected) Color(0xFF54C7EC) else Color.Transparent,
+                                        shape = CircleShape
+                                    )
+                                    .border(
+                                        width = if (isSelected) 0.dp else 1.dp,
+                                        color = if (isSelected) Color.Transparent else Color.White.copy(alpha = 0.1f),
+                                        shape = CircleShape
+                                    )
+                                    .clickable { onDateSelected(date) },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = dayIndex.toString(),
+                                    color = if (isSelected) Color.Black else Color.White,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                )
+                            }
+                        } else {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+            }
+        }
+>>>>>>> 6ee37c7cae193aa582f6f2b545944f9a8dc39d28
     }
 }
 
@@ -220,6 +393,425 @@ fun formatPlantDate(d: LocalDate): String = d.format(DateTimeFormatter.ofPattern
     }
 }
 
+<<<<<<< HEAD
 @Composable fun AddStaffDialog(name: String, onName: (String) -> Unit, role: String, onRole: (String) -> Unit, loading: Boolean, error: String?, title: String, btn: String, onDismiss: () -> Unit, onConfirm: () -> Unit) {
     AlertDialog(onDismiss, { Button(onConfirm) { Text(btn) } }, dismissButton = { TextButton(onDismiss) { Text("Cancelar") } }, title = { Text(title) }, text = { Column { OutlinedTextField(name, onName); Text("Rol"); RadioButton(role == "Enfermero", { onRole("Enfermero") }); Text("Enfermero"); RadioButton(role == "Auxiliar", { onRole("Auxiliar") }); Text("Auxiliar"); if (error != null) Text(error, color = Color.Red) } })
+=======
+private fun saveShiftAssignments(
+    database: FirebaseDatabase,
+    plantId: String,
+    dateKey: String,
+    assignments: Map<String, ShiftAssignmentState>,
+    unassignedLabel: String,
+    onComplete: (Boolean) -> Unit
+) {
+    val payload = assignments.mapValues { (_, state) ->
+        mapOf(
+            "nurses" to state.nurseSlots.mapIndexed { index, slot ->
+                val baseLabel = "enfermero${index + 1}"
+                slot.toFirebaseMap(unassignedLabel, baseLabel)
+            },
+            "auxiliaries" to state.auxSlots.mapIndexed { index, slot ->
+                val baseLabel = "auxiliar${index + 1}"
+                slot.toFirebaseMap(unassignedLabel, baseLabel)
+            }
+        )
+    }
+
+    database.reference
+        .child("plants")
+        .child(plantId)
+        .child("turnos")
+        .child("turnos-$dateKey")
+        .setValue(payload)
+        .addOnSuccessListener { onComplete(true) }
+        .addOnFailureListener { onComplete(false) }
+}
+
+private fun SlotAssignment.toFirebaseMap(
+    unassignedLabel: String,
+    baseLabel: String
+): Map<String, Any> {
+    return mapOf(
+        "halfDay" to hasHalfDay,
+        "primary" to primaryName.ifBlank { unassignedLabel },
+        "secondary" to if (hasHalfDay) secondaryName.ifBlank { unassignedLabel } else "",
+        "primaryLabel" to baseLabel,
+        "secondaryLabel" to if (hasHalfDay) "$baseLabel media jornada" else ""
+    )
+}
+
+private fun DataSnapshot.toSlotAssignment(unassignedLabel: String): SlotAssignment {
+    val halfDay = child("halfDay").value as? Boolean ?: false
+    val primary = (child("primary").value as? String).orEmpty()
+    val secondary = (child("secondary").value as? String).orEmpty()
+
+    return SlotAssignment(
+        primaryName = primary.takeUnless { it == unassignedLabel } ?: "",
+        secondaryName = secondary.takeUnless { it == unassignedLabel } ?: "",
+        hasHalfDay = halfDay
+    )
+}
+
+private fun String.normalizedRole(): String = trim().lowercase()
+
+private fun RegisteredUser.displayName(defaultRoleLabel: String): String {
+    if (name.isNotBlank()) return name
+    if (email.isNotBlank()) return email
+    return role.ifBlank { defaultRoleLabel }
+}
+
+private fun RegisteredUser.isNurseRole(normalizedRoles: List<String>): Boolean {
+    val normalizedRole = role.normalizedRole()
+    return normalizedRoles.any { normalizedRole == it } || normalizedRole.contains("enfermer")
+}
+
+private fun RegisteredUser.isAuxRole(normalizedRoles: List<String>): Boolean {
+    val normalizedRole = role.normalizedRole()
+    return normalizedRoles.any { normalizedRole == it } || normalizedRole.contains("auxiliar")
+}
+
+@Composable
+private fun ReadOnlyAssignmentRow(
+    label: String,
+    halfDayLabel: String,
+    slot: SlotAssignment,
+    unassignedLabel: String
+) {
+    val primaryDisplay = slot.primaryName.ifBlank { unassignedLabel }
+    val secondaryDisplay = if (slot.hasHalfDay) slot.secondaryName.ifBlank { unassignedLabel } else null
+
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color(0xCCFFFFFF),
+            fontWeight = FontWeight.SemiBold
+        )
+        Text(
+            text = primaryDisplay,
+            style = MaterialTheme.typography.bodyLarge,
+            color = Color.White
+        )
+        if (secondaryDisplay != null) {
+            Text(
+                text = halfDayLabel,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xCCFFFFFF),
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = secondaryDisplay,
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.White
+            )
+        }
+    }
+}
+
+@Composable
+private fun AddStaffDialog(
+    staffName: String,
+    onStaffNameChange: (String) -> Unit,
+    staffRole: String,
+    onStaffRoleChange: (String) -> Unit,
+    isSaving: Boolean,
+    errorMessage: String?,
+    title: String = stringResource(id = R.string.staff_dialog_title),
+    confirmButtonText: String = stringResource(id = R.string.staff_dialog_save_action),
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    val roleOptions = listOf(
+        stringResource(id = R.string.role_nurse_generic),
+        stringResource(id = R.string.role_aux_generic)
+    )
+
+    val dialogShape = RoundedCornerShape(20.dp)
+    val glassSurface = Color(0xEE0B1021)
+    val glassStroke = Color(0x33FFFFFF)
+    val fieldColors = OutlinedTextFieldDefaults.colors(
+        focusedTextColor = Color.White,
+        unfocusedTextColor = Color.White,
+        disabledTextColor = Color(0xCCFFFFFF),
+        focusedBorderColor = Color(0xFF54C7EC),
+        unfocusedBorderColor = Color(0x66FFFFFF),
+        disabledBorderColor = Color(0x33FFFFFF),
+        cursorColor = Color.White,
+        focusedLabelColor = Color.White,
+        unfocusedLabelColor = Color(0xCCFFFFFF),
+        disabledLabelColor = Color(0x80FFFFFF),
+        focusedContainerColor = Color(0x22FFFFFF),
+        unfocusedContainerColor = Color(0x11FFFFFF),
+        disabledContainerColor = Color(0x11FFFFFF)
+    )
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                enabled = !isSaving,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF1E293B),
+                    contentColor = Color.White
+                )
+            ) {
+                Text(
+                    text = confirmButtonText,
+                    color = Color.White
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                enabled = !isSaving,
+                colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF54C7EC))
+            ) {
+                Text(text = stringResource(id = R.string.cancel_label))
+            }
+        },
+        title = { Text(text = title) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedTextField(
+                    value = staffName,
+                    onValueChange = onStaffNameChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(id = R.string.staff_dialog_name_label)) },
+                    colors = fieldColors,
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.White)
+                )
+
+                Text(
+                    text = stringResource(id = R.string.staff_dialog_role_label),
+                    color = Color.White,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                roleOptions.forEach { option ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        RadioButton(
+                            selected = staffRole == option,
+                            onClick = { onStaffRoleChange(option) },
+                            colors = RadioButtonDefaults.colors(
+                                selectedColor = Color(0xFF54C7EC),
+                                unselectedColor = Color.White
+                            )
+                        )
+                        Text(
+                            text = option,
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+
+                if (errorMessage != null) {
+                    Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
+                }
+            }
+        },
+        shape = dialogShape,
+        modifier = Modifier.border(1.dp, glassStroke, dialogShape),
+        containerColor = glassSurface,
+        tonalElevation = 0.dp,
+        textContentColor = Color.White,
+        titleContentColor = Color.White
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun StaffDropdownField(
+    modifier: Modifier = Modifier,
+    label: String,
+    selectedValue: String,
+    options: List<String>,
+    enabled: Boolean,
+    onOptionSelected: (String) -> Unit,
+    includeUnassigned: Boolean = false
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val unassignedLabel = stringResource(id = R.string.staff_unassigned_option)
+    val displayValue = selectedValue.takeIf { it.isNotBlank() } ?: if (includeUnassigned) unassignedLabel else ""
+    val menuOptions = remember(options, unassignedLabel, includeUnassigned) {
+        if (includeUnassigned) listOf(unassignedLabel) + options else options
+    }
+    val activeColors = OutlinedTextFieldDefaults.colors(
+        focusedTextColor = Color.White,
+        unfocusedTextColor = Color.White,
+        disabledTextColor = Color(0xCCFFFFFF),
+        focusedBorderColor = Color(0xFF54C7EC),
+        unfocusedBorderColor = Color(0x66FFFFFF),
+        disabledBorderColor = Color(0x33FFFFFF),
+        cursorColor = Color.White,
+        focusedLabelColor = Color.White,
+        unfocusedLabelColor = Color(0xCCFFFFFF),
+        disabledLabelColor = Color(0x80FFFFFF),
+        focusedContainerColor = Color(0x22FFFFFF),
+        unfocusedContainerColor = Color(0x11FFFFFF),
+        disabledContainerColor = Color(0x11FFFFFF)
+    )
+    val inactiveColors = OutlinedTextFieldDefaults.colors(
+        focusedTextColor = Color(0xCCFFFFFF),
+        unfocusedTextColor = Color(0xCCFFFFFF),
+        disabledTextColor = Color(0xCCFFFFFF),
+        focusedBorderColor = Color(0x33FFFFFF),
+        unfocusedBorderColor = Color(0x33FFFFFF),
+        disabledBorderColor = Color(0x33FFFFFF),
+        cursorColor = Color(0xCCFFFFFF),
+        focusedLabelColor = Color(0x99FFFFFF),
+        unfocusedLabelColor = Color(0x99FFFFFF),
+        disabledLabelColor = Color(0x99FFFFFF),
+        focusedContainerColor = Color(0x11FFFFFF),
+        unfocusedContainerColor = Color(0x11FFFFFF),
+        disabledContainerColor = Color(0x11FFFFFF)
+    )
+    Box(modifier = modifier.fillMaxWidth()) {
+        OutlinedTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(
+                    enabled = enabled,
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }
+                ) { expanded = !expanded },
+            value = displayValue,
+            onValueChange = {},
+            readOnly = true,
+            enabled = enabled,
+            label = { Text(text = label) },
+            trailingIcon = {
+                IconButton(
+                    onClick = { if (enabled) expanded = !expanded }
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowDropDown,
+                        modifier = Modifier.rotate(if (expanded) 180f else 0f),
+                        contentDescription = null
+                    )
+                }
+            },
+            colors = if (enabled) activeColors else inactiveColors,
+            singleLine = true
+        )
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.fillMaxWidth(),
+            containerColor = Color(0xF00B1021),
+            tonalElevation = 0.dp,
+            shadowElevation = 10.dp,
+            shape = RoundedCornerShape(14.dp)
+        ) {
+            menuOptions.forEach { option ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = option,
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    },
+                    onClick = {
+                        val resolvedSelection = if (option == unassignedLabel) "" else option
+                        onOptionSelected(resolvedSelection)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun PlantDetailScreenPreview() {
+    val nurseRole = stringResource(id = R.string.role_nurse_generic)
+    val auxRole = stringResource(id = R.string.role_aux_generic)
+    val staffScopeWithAux = stringResource(id = R.string.staff_scope_with_aux)
+    val dayShift = stringResource(id = R.string.shift_day)
+    val nightShift = stringResource(id = R.string.shift_night)
+
+    val samplePlant = Plant(
+        id = "plant-123",
+        name = "Planta Norte",
+        unitType = "UCI",
+        hospitalName = "Hospital Central",
+        shiftDuration = stringResource(id = R.string.shift_duration_12h),
+        allowHalfDay = false,
+        staffScope = staffScopeWithAux,
+        shiftTimes = mapOf(
+            dayShift to ShiftTime(start = "08:00", end = "20:00"),
+            nightShift to ShiftTime(start = "20:00", end = "08:00")
+        ),
+        staffRequirements = mapOf(dayShift to 2, nightShift to 2),
+        personal_de_planta = mapOf(
+            "n1" to RegisteredUser(
+                id = "n1",
+                name = "María Pérez",
+                role = nurseRole,
+                profileType = "plant_staff"
+            ),
+            "n2" to RegisteredUser(
+                id = "n2",
+                name = "Lucía Gómez",
+                role = nurseRole,
+                profileType = "plant_staff"
+            ),
+            "a1" to RegisteredUser(
+                id = "a1",
+                name = "Carlos Ruiz",
+                role = auxRole,
+                profileType = "plant_staff"
+            )
+        )
+    )
+
+    PlantDetailScreen(
+        plant = samplePlant,
+        datePickerState = rememberDatePickerState(initialSelectedDateMillis = System.currentTimeMillis()),
+        currentUserProfile = UserProfile(
+            firstName = "Ana",
+            lastName = "Supervisor",
+            role = stringResource(id = R.string.role_supervisor_female)
+        ),
+        currentMembership = null,
+        onBack = {},
+        onAddStaff = { _, _, callback -> callback(true) },
+        onEditStaff = { _, _, callback -> callback(true) },
+        onOpenPlantSettings = {},
+        onOpenImportShifts = {}
+    )
+}
+
+// Función auxiliar para copiar el archivo desde assets a Descargas
+private fun copyTemplateToDownloads(context: Context) {
+    val fileName = "plantilla_importacion_turnos.csv"
+    try {
+        // 1. Abrir el archivo desde los assets de la app
+        val inputStream = context.assets.open(fileName)
+
+        // 2. Definir la ruta de destino (Carpeta de Descargas pública)
+        val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val outFile = File(downloadsDir, fileName)
+
+        // 3. Copiar el contenido
+        FileOutputStream(outFile).use { output ->
+            inputStream.copyTo(output)
+        }
+
+        Toast.makeText(context, "Plantilla guardada en Descargas", Toast.LENGTH_LONG).show()
+    } catch (e: Exception) {
+        e.printStackTrace()
+        Toast.makeText(context, "Error al guardar: ${e.message}", Toast.LENGTH_SHORT).show()
+    }
+>>>>>>> 6ee37c7cae193aa582f6f2b545944f9a8dc39d28
 }
