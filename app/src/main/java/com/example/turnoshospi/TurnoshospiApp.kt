@@ -4,9 +4,9 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke // IMPORTANTE: Agregado
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,7 +53,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.turnoshospi.R
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.delay
@@ -71,6 +70,12 @@ enum class AppScreen {
     PlantSettings
 }
 
+// Clase de datos para los compañeros (Nombre y Rol)
+data class Colleague(
+    val name: String,
+    val role: String
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TurnoshospiApp(
@@ -87,7 +92,9 @@ fun TurnoshospiApp(
     onLoadPlantMembership: (String, String, (PlantMembership?) -> Unit) -> Unit,
     onLinkUserToStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
     onRegisterPlantStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
-    onEditPlantStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit, // NUEVO PARÁMETRO AÑADIDO
+    onEditPlantStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
+    onListenToShifts: (String, String, (Map<String, UserShift>) -> Unit) -> Unit,
+    onFetchColleagues: (String, String, String, (List<Colleague>) -> Unit) -> Unit,
     onSignOut: () -> Unit,
     onDeleteAccount: () -> Unit,
     onDeletePlant: (String) -> Unit
@@ -154,6 +161,7 @@ fun TurnoshospiApp(
                 existingProfile = profile
                 isLoadingProfile = false
             }
+            refreshUserPlant()
         } else {
             existingProfile = null
             showRegistration = false
@@ -284,7 +292,11 @@ fun TurnoshospiApp(
                     userEmail = user.email.orEmpty(),
                     profile = existingProfile,
                     isLoadingProfile = isLoadingProfile,
+                    userPlant = userPlant,
+                    plantMembership = plantMembership,
                     datePickerState = sharedDatePickerState,
+                    onListenToShifts = onListenToShifts,
+                    onFetchColleagues = onFetchColleagues,
                     onCreatePlant = { currentScreen = AppScreen.CreatePlant },
                     onEditProfile = { showProfileEditor = true },
                     onOpenPlant = {
@@ -373,7 +385,7 @@ fun TurnoshospiApp(
                             onResult(success)
                         }
                     },
-                    onEditStaff = { plantId, staffMember, onResult -> // AÑADIDO Y CONECTADO
+                    onEditStaff = { plantId, staffMember, onResult ->
                         onEditPlantStaff(plantId, staffMember) { success ->
                             if (success) {
                                 selectedPlantForDetail = selectedPlantForDetail?.copy(
@@ -710,7 +722,9 @@ fun SplashLoginPreview() {
             onLoadPlantMembership = { _, _, _ -> },
             onLinkUserToStaff = { _, _, _ -> },
             onRegisterPlantStaff = { _, _, _ -> },
-            onEditPlantStaff = { _, _, _ -> }, // Parámetro añadido en preview
+            onEditPlantStaff = { _, _, _ -> },
+            onListenToShifts = { _, _, _ -> },
+            onFetchColleagues = { _, _, _, _ -> },
             onSignOut = {},
             onDeleteAccount = {},
             onDeletePlant = {}

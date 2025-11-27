@@ -20,8 +20,10 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseException
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import java.util.Date
 
 class MainActivity : ComponentActivity() {
@@ -67,9 +69,14 @@ class MainActivity : ComponentActivity() {
                     onRegisterPlantStaff = { plantId, staffMember, onResult ->
                         registerPlantStaff(plantId, staffMember, onResult)
                     },
-                    // AQUI ESTA LA CORRECCION: Pasamos la función editPlantStaff
                     onEditPlantStaff = { plantId, staffMember, onResult ->
                         editPlantStaff(plantId, staffMember, onResult)
+                    },
+                    onListenToShifts = { plantId, staffId, onResult ->
+                        listenToUserShifts(plantId, staffId, onResult)
+                    },
+                    onFetchColleagues = { plantId, date, shiftName, onResult ->
+                        fetchColleaguesForShift(plantId, date, shiftName, onResult)
                     },
                     onSignOut = { signOut() },
                     onDeleteAccount = { deleteAccount() },
@@ -361,7 +368,6 @@ class MainActivity : ComponentActivity() {
             .addOnFailureListener { onResult(false) }
     }
 
-    // AÑADIDA: Función para editar personal en Firebase
     private fun editPlantStaff(
         plantId: String,
         staffMember: RegisteredUser,
@@ -381,6 +387,142 @@ class MainActivity : ComponentActivity() {
             .setValue(staffMember)
             .addOnSuccessListener { onResult(true) }
             .addOnFailureListener { onResult(false) }
+    }
+
+    private fun listenToUserShifts(
+        plantId: String,
+        staffId: String,
+        onResult: (Map<String, UserShift>) -> Unit
+    ) {
+        // 1. Obtener el nombre
+        realtimeDatabase.reference
+            .child("plants")
+            .child(plantId)
+            .child("personal_de_planta")
+            .child(staffId)
+            .child("name")
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(nameSnapshot: DataSnapshot) {
+                    val staffName = nameSnapshot.getValue(String::class.java)
+
+                    if (staffName.isNullOrBlank()) {
+                        onResult(emptyMap())
+                        return
+                    }
+
+                    // 2. Escuchar turnos usando el nombre
+                    realtimeDatabase.reference
+                        .child("plants")
+                        .child(plantId)
+                        .child("turnos")
+                        .addValueEventListener(object : ValueEventListener {
+                            override fun onDataChange(snapshot: DataSnapshot) {
+                                val userShifts = mutableMapOf<String, UserShift>()
+
+                                for (dateSnapshot in snapshot.children) {
+                                    val dateKey = dateSnapshot.key?.removePrefix("turnos-") ?: continue
+
+                                    for (shiftSnapshot in dateSnapshot.children) {
+                                        val shiftName = shiftSnapshot.key ?: continue
+                                        var found = false
+                                        var isHalf = false
+
+                                        // Nurses
+                                        for (slot in shiftSnapshot.child("nurses").children) {
+                                            val primary = slot.child("primary").getValue(String::class.java)
+                                            val secondary = slot.child("secondary").getValue(String::class.java)
+                                            val halfDay = slot.child("halfDay").getValue(Boolean::class.java) ?: false
+
+                                            if (primary == staffName) {
+                                                found = true
+                                                isHalf = halfDay
+                                                break
+                                            }
+                                            if (secondary == staffName) {
+                                                found = true
+                                                isHalf = true
+                                                break
+                                            }
+                                        }
+
+                                        if (!found) {
+                                            // Auxiliaries
+                                            for (slot in shiftSnapshot.child("auxiliaries").children) {
+                                                val primary = slot.child("primary").getValue(String::class.java)
+                                                val secondary = slot.child("secondary").getValue(String::class.java)
+                                                val halfDay = slot.child("halfDay").getValue(Boolean::class.java) ?: false
+
+                                                if (primary == staffName) {
+                                                    found = true
+                                                    isHalf = halfDay
+                                                    break
+                                                }
+                                                if (secondary == staffName) {
+                                                    found = true
+                                                    isHalf = true
+                                                    break
+                                                }
+                                            }
+                                        }
+
+                                        if (found) {
+                                            userShifts[dateKey] = UserShift(shiftName, isHalf)
+                                            break
+                                        }
+                                    }
+                                }
+                                onResult(userShifts)
+                            }
+
+                            override fun onCancelled(error: DatabaseError) {
+                            }
+                        })
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    onResult(emptyMap())
+                }
+            })
+    }
+
+    private fun fetchColleaguesForShift(
+        plantId: String,
+        date: String,
+        shiftName: String,
+        onResult: (List<Colleague>) -> Unit // AHORA DEVUELVE UNA LISTA DE COLLEAGUE
+    ) {
+        realtimeDatabase.reference
+            .child("plants")
+            .child(plantId)
+            .child("turnos")
+            .child("turnos-$date")
+            .child(shiftName)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val colleagues = mutableListOf<Colleague>()
+
+                    // Helper para extraer nombres y asignar rol
+                    fun collectNames(category: String, roleLabel: String) {
+                        for (slot in snapshot.child(category).children) {
+                            val primary = slot.child("primary").getValue(String::class.java)
+                            val secondary = slot.child("secondary").getValue(String::class.java)
+
+                            if (!primary.isNullOrBlank()) colleagues.add(Colleague(primary, roleLabel))
+                            if (!secondary.isNullOrBlank()) colleagues.add(Colleague(secondary, roleLabel))
+                        }
+                    }
+
+                    collectNames("nurses", "Enfermero/a")
+                    collectNames("auxiliaries", "Auxiliar")
+
+                    // Eliminar duplicados por nombre si existieran
+                    onResult(colleagues.distinctBy { it.name })
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    onResult(emptyList())
+                }
+            })
     }
 
     private fun linkUserToPlantStaff(
@@ -417,11 +559,8 @@ class MainActivity : ComponentActivity() {
 
     private fun deleteAccount() {
         val user = auth.currentUser ?: return
-
-        // Primero, borra los datos del usuario de Realtime Database
         realtimeDatabase.getReference("users").child(user.uid).removeValue()
             .addOnSuccessListener {
-                // Una vez borrados los datos, borra el usuario de Authentication
                 user.delete()
                     .addOnSuccessListener {
                         auth.signOut()
@@ -437,7 +576,6 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun deletePlant(plantId: String) {
-        // Borra la planta de la base de datos
         realtimeDatabase.getReference("plants").child(plantId).removeValue()
             .addOnFailureListener {
                 authErrorMessage.value = "No se pudo borrar la planta. Inténtalo de nuevo."
@@ -459,6 +597,11 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+data class UserShift(
+    val shiftName: String,
+    val isHalfDay: Boolean
+)
 
 data class UserProfile(
     val firstName: String = "",
@@ -553,7 +696,9 @@ fun MainActivityPreview() {
             onLoadPlantMembership = { _, _, _ -> },
             onLinkUserToStaff = { _, _, _ -> },
             onRegisterPlantStaff = { _, _, _ -> },
-            onEditPlantStaff = { _, _, _ -> }, // Parámetro añadido en preview
+            onEditPlantStaff = { _, _, _ -> },
+            onListenToShifts = { _, _, _ -> },
+            onFetchColleagues = { _, _, _, _ -> },
             onSignOut = {},
             onDeleteAccount = {},
             onDeletePlant = {}

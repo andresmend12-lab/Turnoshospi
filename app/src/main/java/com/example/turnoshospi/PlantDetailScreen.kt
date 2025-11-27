@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -27,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
@@ -35,7 +37,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DropdownMenu
@@ -68,7 +69,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -83,8 +83,12 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import java.time.Instant
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.Locale
 import java.util.UUID
 
 private data class SlotAssignment(
@@ -116,8 +120,9 @@ fun PlantDetailScreen(
         FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
     }
 
+    // Convertir millis del DatePickerState a LocalDate para usarlo en la lógica
     val selectedDate = datePickerState.selectedDateMillis?.let { millis ->
-        Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
+        Instant.ofEpochMilli(millis).atZone(ZoneId.of("UTC")).toLocalDate()
     }
 
     val supervisorRoles = listOf(
@@ -147,8 +152,6 @@ fun PlantDetailScreen(
     val savedAssignmentsByDate = remember(plant?.id) {
         mutableStateMapOf<String, Boolean>()
     }
-    val allowAuxStaffScope = plant?.staffScope == stringResource(id = R.string.staff_scope_with_aux)
-
     val plantStaff = plant?.personal_de_planta?.values.orEmpty()
     val nurseStaff = remember(plantStaff, normalizedNurseRoles) {
         plantStaff.filter { member -> member.isNurseRole(normalizedNurseRoles) }
@@ -176,8 +179,7 @@ fun PlantDetailScreen(
     var addStaffError by remember { mutableStateOf<String?>(null) }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = Modifier.fillMaxSize()
     ) {
         // CONTENIDO PRINCIPAL + APP BAR
         Scaffold(
@@ -230,64 +232,23 @@ fun PlantDetailScreen(
                         .padding(vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Tarjeta calendario
+                    // Tarjeta Calendario Personalizado
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(24.dp),
-                        colors = CardDefaults.cardColors(Color.Transparent),
-                        border = BorderStroke(5.dp, Color(0x22FFFFFF))
+                        colors = CardDefaults.cardColors(containerColor = Color(0x11FFFFFF)),
+                        border = BorderStroke(1.dp, Color(0x22FFFFFF))
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color(0xFF0F172A), RoundedCornerShape(22.dp))
-                                .padding(vertical = 12.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = stringResource(id = R.string.plant_calendar_title),
-                                color = Color.White,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            DatePicker(
-                                state = datePickerState,
-                                title = null,
-                                headline = null,
-                                showModeToggle = false,
-                                colors = DatePickerDefaults.colors(
-                                    containerColor = Color(0xFF0F172A),
-                                    titleContentColor = Color.White,
-                                    headlineContentColor = Color.White,
-                                    weekdayContentColor = Color.White,
-                                    subheadContentColor = Color.White,
-                                    yearContentColor = Color.White,
-                                    currentYearContentColor = Color.White,
-                                    selectedYearContentColor = Color.White,
-                                    selectedYearContainerColor = Color(0xFF1E293B),
-                                    disabledSelectedYearContainerColor = Color(0x661E293B),
-                                    selectedDayContentColor = Color.White,
-                                    disabledSelectedDayContentColor = Color(0x80FFFFFF),
-                                    selectedDayContainerColor = Color(0xFF1E293B),
-                                    disabledSelectedDayContainerColor = Color(0x661E293B),
-                                    dayContentColor = Color.White,
-                                    disabledDayContentColor = Color(0x80FFFFFF),
-                                    dayInSelectionRangeContentColor = Color.White,
-                                    dayInSelectionRangeContainerColor = Color(0x331E293B),
-                                    todayContentColor = Color.White,
-                                    todayDateBorderColor = Color(0x66FFFFFF)
-                                )
-                            )
-                            Text(
-                                text = selectedDate?.let { formatPlantDate(it) }
-                                    ?: stringResource(id = R.string.select_date_prompt),
-                                color = Color.White,
-                                style = MaterialTheme.typography.bodyLarge,
-                                textAlign = TextAlign.Start,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
+                        PlantCalendar(
+                            selectedDate = selectedDate,
+                            onDateSelected = { newDate ->
+                                // Actualizamos el estado del DatePicker compartido
+                                datePickerState.selectedDateMillis = newDate
+                                    .atStartOfDay(ZoneOffset.UTC)
+                                    .toInstant()
+                                    .toEpochMilli()
+                            }
+                        )
                     }
 
                     if (plant != null && selectedDate != null) {
@@ -376,7 +337,7 @@ fun PlantDetailScreen(
             }
         }
 
-        // DRAWER PERSONALIZADO
+        // DRAWER (Igual que antes)
         AnimatedVisibility(
             visible = isMenuOpen,
             enter = slideInHorizontally { -it } + fadeIn(),
@@ -385,7 +346,6 @@ fun PlantDetailScreen(
             Row(
                 modifier = Modifier.fillMaxSize()
             ) {
-                // Panel lateral
                 Column(
                     modifier = Modifier
                         .width(280.dp)
@@ -472,7 +432,6 @@ fun PlantDetailScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                // Scrim clicable para cerrar
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -484,7 +443,7 @@ fun PlantDetailScreen(
         }
     }
 
-    // Diálogo añadir personal
+    // Diálogos (sin cambios)
     if (showAddStaffDialog && plant != null) {
         AddStaffDialog(
             staffName = staffName,
@@ -504,10 +463,8 @@ fun PlantDetailScreen(
                     addStaffError = context.getString(R.string.staff_dialog_error)
                     return@AddStaffDialog
                 }
-
                 isSavingStaff = true
                 addStaffError = null
-
                 val newStaff = RegisteredUser(
                     id = UUID.randomUUID().toString(),
                     name = staffName,
@@ -515,7 +472,6 @@ fun PlantDetailScreen(
                     email = "",
                     profileType = "plant_staff"
                 )
-
                 onAddStaff(plant.id, newStaff) { success ->
                     isSavingStaff = false
                     if (success) {
@@ -530,7 +486,6 @@ fun PlantDetailScreen(
         )
     }
 
-    // Diálogo lista de personal (Actualizado con edición)
     if (showStaffListDialog && plant != null) {
         StaffListDialog(
             plantName = plant.name,
@@ -544,13 +499,117 @@ fun PlantDetailScreen(
     }
 }
 
+// --- NUEVO CALENDARIO PARA PLANT DETAIL ---
+@Composable
+fun PlantCalendar(
+    selectedDate: LocalDate?,
+    onDateSelected: (LocalDate) -> Unit
+) {
+    var currentMonth by remember { mutableStateOf(YearMonth.now()) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFF0F172A), RoundedCornerShape(24.dp))
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Cabecera Mes
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = { currentMonth = currentMonth.minusMonths(1) }) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Anterior", tint = Color.White)
+            }
+            Text(
+                text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale("es", "ES")).uppercase()} ${currentMonth.year}",
+                color = Color.White,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            IconButton(onClick = { currentMonth = currentMonth.plusMonths(1) }) {
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Siguiente", tint = Color.White)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Días semana
+        Row(modifier = Modifier.fillMaxWidth()) {
+            val daysOfWeek = listOf("L", "M", "X", "J", "V", "S", "D")
+            daysOfWeek.forEach { day ->
+                Text(
+                    text = day,
+                    modifier = Modifier.weight(1f),
+                    color = Color.Gray,
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Grid
+        val firstDayOfMonth = currentMonth.atDay(1)
+        val daysInMonth = currentMonth.lengthOfMonth()
+        val dayOfWeekOffset = firstDayOfMonth.dayOfWeek.value - 1
+        val totalCells = (daysInMonth + dayOfWeekOffset + 6) / 7 * 7
+
+        Column {
+            for (i in 0 until totalCells step 7) {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    for (j in 0 until 7) {
+                        val dayIndex = i + j - dayOfWeekOffset + 1
+                        if (dayIndex in 1..daysInMonth) {
+                            val date = currentMonth.atDay(dayIndex)
+                            val isSelected = date == selectedDate
+
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp)
+                                    .padding(2.dp)
+                                    .background(
+                                        color = if (isSelected) Color(0xFF54C7EC) else Color.Transparent,
+                                        shape = CircleShape
+                                    )
+                                    .border(
+                                        width = if (isSelected) 0.dp else 1.dp,
+                                        color = if (isSelected) Color.Transparent else Color.White.copy(alpha = 0.1f),
+                                        shape = CircleShape
+                                    )
+                                    .clickable { onDateSelected(date) },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = dayIndex.toString(),
+                                    color = if (isSelected) Color.Black else Color.White,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                )
+                            }
+                        } else {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+            }
+        }
+    }
+}
+
+// ... (El resto de funciones auxiliares y componentes como InfoMessage, ShiftAssignmentsSection, etc. se mantienen igual)
+
 @Composable
 private fun InfoMessage(message: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0x22000000)),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0x22FFFFFF))
+        border = BorderStroke(1.dp, Color(0x22FFFFFF))
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -571,67 +630,7 @@ fun formatPlantDate(date: LocalDate): String {
     return date.format(formatter)
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun PlantDetailScreenPreview() {
-    val nurseRole = stringResource(id = R.string.role_nurse_generic)
-    val auxRole = stringResource(id = R.string.role_aux_generic)
-    val staffScopeWithAux = stringResource(id = R.string.staff_scope_with_aux)
-    val dayShift = stringResource(id = R.string.shift_day)
-    val nightShift = stringResource(id = R.string.shift_night)
-
-    val samplePlant = Plant(
-        id = "plant-123",
-        name = "Planta Norte",
-        unitType = "UCI",
-        hospitalName = "Hospital Central",
-        shiftDuration = stringResource(id = R.string.shift_duration_12h),
-        allowHalfDay = false,
-        staffScope = staffScopeWithAux,
-        shiftTimes = mapOf(
-            dayShift to ShiftTime(start = "08:00", end = "20:00"),
-            nightShift to ShiftTime(start = "20:00", end = "08:00")
-        ),
-        staffRequirements = mapOf(dayShift to 2, nightShift to 2),
-        personal_de_planta = mapOf(
-            "n1" to RegisteredUser(
-                id = "n1",
-                name = "María Pérez",
-                role = nurseRole,
-                profileType = "plant_staff"
-            ),
-            "n2" to RegisteredUser(
-                id = "n2",
-                name = "Lucía Gómez",
-                role = nurseRole,
-                profileType = "plant_staff"
-            ),
-            "a1" to RegisteredUser(
-                id = "a1",
-                name = "Carlos Ruiz",
-                role = auxRole,
-                profileType = "plant_staff"
-            )
-        )
-    )
-
-    PlantDetailScreen(
-        plant = samplePlant,
-        datePickerState = rememberDatePickerState(initialSelectedDateMillis = System.currentTimeMillis()),
-        currentUserProfile = UserProfile(
-            firstName = "Ana",
-            lastName = "Supervisor",
-            role = stringResource(id = R.string.role_supervisor_female)
-        ),
-        currentMembership = null,
-        onBack = {},
-        onAddStaff = { _, _, callback -> callback(true) },
-        onEditStaff = { _, _, callback -> callback(true) },
-        onOpenPlantSettings = {}
-    )
-}
-
+// ... (Resto de funciones: StaffListDialog, ShiftAssignmentsSection, ensureSlotSize, saveShiftAssignments, etc. copiadas tal cual estaban para que compile)
 @Composable
 private fun StaffListDialog(
     plantName: String,
@@ -837,7 +836,7 @@ private fun ShiftAssignmentsSection(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(18.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0x22000000)),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0x22FFFFFF))
+                border = BorderStroke(1.dp, Color(0x22FFFFFF))
             ) {
                 Column(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -1374,4 +1373,65 @@ private fun StaffDropdownField(
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun PlantDetailScreenPreview() {
+    val nurseRole = stringResource(id = R.string.role_nurse_generic)
+    val auxRole = stringResource(id = R.string.role_aux_generic)
+    val staffScopeWithAux = stringResource(id = R.string.staff_scope_with_aux)
+    val dayShift = stringResource(id = R.string.shift_day)
+    val nightShift = stringResource(id = R.string.shift_night)
+
+    val samplePlant = Plant(
+        id = "plant-123",
+        name = "Planta Norte",
+        unitType = "UCI",
+        hospitalName = "Hospital Central",
+        shiftDuration = stringResource(id = R.string.shift_duration_12h),
+        allowHalfDay = false,
+        staffScope = staffScopeWithAux,
+        shiftTimes = mapOf(
+            dayShift to ShiftTime(start = "08:00", end = "20:00"),
+            nightShift to ShiftTime(start = "20:00", end = "08:00")
+        ),
+        staffRequirements = mapOf(dayShift to 2, nightShift to 2),
+        personal_de_planta = mapOf(
+            "n1" to RegisteredUser(
+                id = "n1",
+                name = "María Pérez",
+                role = nurseRole,
+                profileType = "plant_staff"
+            ),
+            "n2" to RegisteredUser(
+                id = "n2",
+                name = "Lucía Gómez",
+                role = nurseRole,
+                profileType = "plant_staff"
+            ),
+            "a1" to RegisteredUser(
+                id = "a1",
+                name = "Carlos Ruiz",
+                role = auxRole,
+                profileType = "plant_staff"
+            )
+        )
+    )
+
+    PlantDetailScreen(
+        plant = samplePlant,
+        datePickerState = rememberDatePickerState(initialSelectedDateMillis = System.currentTimeMillis()),
+        currentUserProfile = UserProfile(
+            firstName = "Ana",
+            lastName = "Supervisor",
+            role = stringResource(id = R.string.role_supervisor_female)
+        ),
+        currentMembership = null,
+        onBack = {},
+        onAddStaff = { _, _, callback -> callback(true) },
+        onEditStaff = { _, _, callback -> callback(true) },
+        onOpenPlantSettings = {}
+    )
 }
