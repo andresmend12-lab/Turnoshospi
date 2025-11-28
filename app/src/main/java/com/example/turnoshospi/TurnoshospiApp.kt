@@ -457,7 +457,9 @@ fun TurnoshospiApp(
                     onOpenPlantSettings = { navigateTo(AppScreen.PlantSettings) },
                     onOpenImportShifts = { navigateTo(AppScreen.ImportShifts) },
                     onOpenChat = { navigateTo(AppScreen.GroupChat) },
-                    onOpenShiftChange = { navigateTo(AppScreen.ShiftChange) }
+                    onOpenShiftChange = { navigateTo(AppScreen.ShiftChange) },
+                    // NEW: pass callback
+                    onSaveNotification = onSaveNotification
                 )
                 AppScreen.Settings -> SettingsScreen(
                     onBack = { navigateBack() },

@@ -80,8 +80,8 @@ class MainActivity : ComponentActivity() {
                     },
                     onSignOut = { signOut() },
                     onDeleteAccount = { deleteAccount() },
-                    onDeletePlant = { plantId -> deletePlant(plantId) },
                     // NEW: Callback para guardar notificaciones
+                    onDeletePlant = { plantId -> deletePlant(plantId) },
                     onSaveNotification = { userId, type, message, targetScreen, targetId, onResult ->
                         saveNotification(userId, type, message, targetScreen, targetId, onResult)
                     }
@@ -606,9 +606,9 @@ class MainActivity : ComponentActivity() {
         targetId: String?,
         onResult: (Boolean) -> Unit
     ) {
-        if (userId.isBlank() || userId == "GROUP_CHAT_FANOUT_ID" || userId == "SUPERVISOR_ID_PLACEHOLDER") {
+        if (userId.isBlank() || userId == "GROUP_CHAT_FANOUT_ID" || userId == "SUPERVISOR_ID_PLACEHOLDER" || userId == "SHIFT_STAFF_PLACEHOLDER") {
             // IDs de placeholder que requerirían lógica de servidor para expandir a múltiples usuarios
-            onResult(false)
+            onResult(true)
             return
         }
 
@@ -758,7 +758,6 @@ fun MainActivityPreview() {
             onRegisterPlantStaff = { _, _, _ -> },
             onEditPlantStaff = { _, _, _ -> },
             onListenToShifts = { _, _, _ -> },
-            // CORREGIDO: Debe aceptar 4 argumentos (3 Strings + callback)
             onFetchColleagues = { _, _, _, _ -> },
             onSignOut = {},
             onDeleteAccount = {},

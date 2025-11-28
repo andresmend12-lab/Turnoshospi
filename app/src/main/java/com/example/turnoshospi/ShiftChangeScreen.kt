@@ -113,6 +113,7 @@ fun ShiftChangeScreen(
     // Estado para el diálogo
     var showCreateRequestDialog by remember { mutableStateOf(false) }
     var selectedShiftForRequest by remember { mutableStateOf<Pair<String, String>?>(null) }
+    var showRequestActionDialog by remember { mutableStateOf<ShiftChangeRequest?>(null) } // NUEVO
 
     // Cargar turnos del usuario desde Firebase
     LaunchedEffect(plantId, currentUser) {
@@ -163,6 +164,51 @@ fun ShiftChangeScreen(
             }
             override fun onCancelled(error: DatabaseError) {}
         })
+    }
+
+    // NUEVO: Funciones para acciones del supervisor
+    val onAcceptRequest = { request: ShiftChangeRequest ->
+        val updatedRequest = request.copy(status = RequestStatus.APPROVED)
+        database.getReference("plants/$plantId/shift_requests/${request.id}").setValue(updatedRequest)
+            .addOnSuccessListener {
+                Toast.makeText(context, "Solicitud de ${request.requesterName} APROBADA.", Toast.LENGTH_LONG).show()
+
+                // NOTIFICACIÓN AL SOLICITANTE: Aprobación
+                onSaveNotification(
+                    request.requesterId,
+                    "SHIFT_REQUEST_APPROVED",
+                    "Tu solicitud de cambio para el ${request.originalDate} ha sido APROBADA.",
+                    AppScreen.ShiftChange.name,
+                    request.id,
+                    {}
+                )
+            }
+            .addOnFailureListener {
+                Toast.makeText(context, "Error al aprobar: ${it.message}", Toast.LENGTH_SHORT).show()
+            }
+        showRequestActionDialog = null
+    }
+
+    val onRejectRequest = { request: ShiftChangeRequest ->
+        val updatedRequest = request.copy(status = RequestStatus.REJECTED)
+        database.getReference("plants/$plantId/shift_requests/${request.id}").setValue(updatedRequest)
+            .addOnSuccessListener {
+                Toast.makeText(context, "Solicitud de ${request.requesterName} RECHAZADA.", Toast.LENGTH_LONG).show()
+
+                // NOTIFICACIÓN AL SOLICITANTE: Rechazo
+                onSaveNotification(
+                    request.requesterId,
+                    "SHIFT_REQUEST_REJECTED",
+                    "Tu solicitud de cambio para el ${request.originalDate} ha sido RECHAZADA.",
+                    AppScreen.ShiftChange.name,
+                    request.id,
+                    {}
+                )
+            }
+            .addOnFailureListener {
+                Toast.makeText(context, "Error al rechazar: ${it.message}", Toast.LENGTH_SHORT).show()
+            }
+        showRequestActionDialog = null
     }
 
     Scaffold(
@@ -217,7 +263,12 @@ fun ShiftChangeScreen(
                         }
                     )
                 } else {
-                    RequestsTab(activeRequests, currentUserId, currentUser?.role ?: "")
+                    RequestsTab(
+                        activeRequests,
+                        currentUserId,
+                        currentUser?.role ?: "",
+                        onActionClicked = { showRequestActionDialog = it }
+                    )
                 }
             }
         }
@@ -294,6 +345,16 @@ fun ShiftChangeScreen(
             )
         }
     }
+
+    // NUEVO: Diálogo de Acción del Supervisor
+    if (showRequestActionDialog != null) {
+        RequestActionDialog(
+            request = showRequestActionDialog!!,
+            onDismiss = { showRequestActionDialog = null },
+            onAccept = onAcceptRequest,
+            onReject = onRejectRequest
+        )
+    }
 }
 
 @Composable
@@ -329,7 +390,7 @@ fun MyShiftsTab(
 }
 
 @Composable
-fun RequestsTab(requests: List<ShiftChangeRequest>, currentUserId: String, currentUserRole: String) {
+fun RequestsTab(requests: List<ShiftChangeRequest>, currentUserId: String, currentUserRole: String, onActionClicked: (ShiftChangeRequest) -> Unit) {
     if (requests.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text("No hay solicitudes activas.", color = Color(0xCCFFFFFF))
@@ -340,12 +401,15 @@ fun RequestsTab(requests: List<ShiftChangeRequest>, currentUserId: String, curre
                 // Regla 1: Visualización - Solo mostrar compatibles o propias
                 val isCompatibleRole = ShiftRulesEngine.areRolesCompatible(currentUserRole, req.requesterRole)
                 val isMine = req.requesterId == currentUserId
+                val isSupervisor = currentUserRole.contains("Supervisor", ignoreCase = true)
 
-                if (isCompatibleRole || isMine) {
+                if (isCompatibleRole || isMine || isSupervisor) {
                     RequestCard(
                         request = req,
                         isMine = isMine,
-                        canAccept = isCompatibleRole && !isMine
+                        canAccept = isCompatibleRole && !isMine,
+                        isSupervisor = isSupervisor && !isMine,
+                        onSupervisorAction = { onActionClicked(req) }
                     )
                 }
             }
@@ -390,17 +454,21 @@ fun ShiftCard(date: String, shiftName: String, actionLabel: String, isDestructiv
 }
 
 @Composable
-fun RequestCard(request: ShiftChangeRequest, isMine: Boolean, canAccept: Boolean) {
+fun RequestCard(request: ShiftChangeRequest, isMine: Boolean, canAccept: Boolean, isSupervisor: Boolean, onSupervisorAction: () -> Unit) {
     val statusColor = when (request.status) {
         RequestStatus.SEARCHING -> Color(0xFFFFA000)
         RequestStatus.MATCH_FOUND -> Color(0xFF54C7EC)
-        else -> Color.Gray
+        RequestStatus.PENDING_APPROVAL -> Color(0xFFA855F7)
+        RequestStatus.APPROVED -> Color(0xFF4CAF50)
+        RequestStatus.REJECTED -> Color(0xFFFFB4AB)
     }
 
     val statusText = when (request.status) {
         RequestStatus.SEARCHING -> if (isMine) "Buscando..." else "Busca cambio"
         RequestStatus.MATCH_FOUND -> "Match encontrado"
-        else -> ""
+        RequestStatus.PENDING_APPROVAL -> "Pendiente de aprobación"
+        RequestStatus.APPROVED -> "Aprobada"
+        RequestStatus.REJECTED -> "Rechazada"
     }
 
     Card(
@@ -424,11 +492,20 @@ fun RequestCard(request: ShiftChangeRequest, isMine: Boolean, canAccept: Boolean
                 Text("Ofrece trabajar: ${request.offeredDates.joinToString(", ")}", color = Color(0xAAFFFFFF), style = MaterialTheme.typography.bodySmall)
             }
 
+            // NEW Supervisor Action or Match Button
             if (!isMine && request.status == RequestStatus.SEARCHING) {
                 Spacer(modifier = Modifier.height(12.dp))
-                if (canAccept) {
+                if (isSupervisor) {
                     Button(
-                        onClick = { /* Lógica futura de match con ShiftRulesEngine */ },
+                        onClick = onSupervisorAction,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFA855F7))
+                    ) {
+                        Text("Revisar Solicitud")
+                    }
+                } else if (canAccept) {
+                    Button(
+                        onClick = { /* Lógica futura de match */ },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFA855F7))
                     ) {
@@ -524,6 +601,54 @@ fun CreateChangeRequestDialog(
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
+        containerColor = Color(0xFF0F172A),
+        titleContentColor = Color.White,
+        textContentColor = Color.White
+    )
+}
+
+@Composable
+fun RequestActionDialog(
+    request: ShiftChangeRequest,
+    onDismiss: () -> Unit,
+    onAccept: (ShiftChangeRequest) -> Unit,
+    onReject: (ShiftChangeRequest) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Revisar Solicitud de Cambio") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    "Solicitante: ${request.requesterName} (${request.requesterRole})",
+                    color = Color.White
+                )
+                Text(
+                    "Quiere librar: ${request.originalDate} (${request.originalShift})",
+                    color = Color(0xFF54C7EC),
+                    fontWeight = FontWeight.Bold
+                )
+                Text("Ofrece trabajar:", color = Color.White)
+                Text(
+                    request.offeredDates.joinToString(", "),
+                    color = Color(0xCCFFFFFF)
+                )
+                Text("¿Desea aprobar esta solicitud?", color = Color.White)
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onAccept(request) },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+            ) {
+                Text("Aprobar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { onReject(request) }) {
+                Text("Rechazar", color = Color(0xFFFFB4AB))
+            }
+        },
         containerColor = Color(0xFF0F172A),
         titleContentColor = Color.White,
         textContentColor = Color.White

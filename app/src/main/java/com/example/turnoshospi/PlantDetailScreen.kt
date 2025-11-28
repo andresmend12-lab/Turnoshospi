@@ -105,7 +105,10 @@ import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 import java.util.UUID
+import com.google.firebase.auth.FirebaseAuth
 
+// Modelos de datos específicos de PlantDetailScreen, no definidos como 'private' para evitar duplicados
+// pero movidos fuera de la función PlantDetailScreen para que puedan ser accedidos.
 private class SlotAssignment(
     primaryName: String = "",
     secondaryName: String = "",
@@ -134,7 +137,9 @@ fun PlantDetailScreen(
     onOpenPlantSettings: () -> Unit,
     onOpenImportShifts: () -> Unit,
     onOpenChat: () -> Unit,
-    onOpenShiftChange: () -> Unit
+    onOpenShiftChange: () -> Unit,
+    // NUEVO ARGUMENTO
+    onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit
 ) {
     var isMenuOpen by remember { mutableStateOf(false) }
     var showVacationDialog by remember { mutableStateOf(false) }
@@ -144,7 +149,7 @@ fun PlantDetailScreen(
     }
 
     val selectedDate = datePickerState.selectedDateMillis?.let { millis ->
-        Instant.ofEpochMilli(millis).atZone(ZoneId.of("UTC")).toLocalDate()
+        Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
     }
 
     // Permisos y Roles
@@ -326,7 +331,9 @@ fun PlantDetailScreen(
                                     plantId = plant.id,
                                     dateKey = dateKey,
                                     assignments = states,
-                                    unassignedLabel = unassignedLabel
+                                    unassignedLabel = unassignedLabel,
+                                    plantStaff = plantStaff, // NEW
+                                    onSaveNotification = onSaveNotification // NEW
                                 ) { success ->
                                     if (success) savedAssignmentsByDate[dateKey] = true
                                 }
@@ -489,7 +496,8 @@ fun PlantDetailScreen(
                     plantId = plant.id,
                     staffId = currentMembership.staffId,
                     staffName = currentMembership.staffName ?: currentUserProfile?.firstName.orEmpty(),
-                    dates = dates
+                    dates = dates,
+                    onSaveNotification = onSaveNotification
                 )
                 showVacationDialog = false
             }
@@ -506,7 +514,8 @@ private fun saveVacationDaysToFirebase(
     plantId: String,
     staffId: String,
     staffName: String,
-    dates: List<String>
+    dates: List<String>,
+    onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit
 ) {
     if (dates.isEmpty()) {
         Toast.makeText(context, "No se seleccionó ninguna fecha.", Toast.LENGTH_SHORT).show()
@@ -516,7 +525,7 @@ private fun saveVacationDaysToFirebase(
     val database = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
     val updates = mutableMapOf<String, Any?>()
 
-    // Estructura de turno especial para "Vacaciones" (usando el slot de Nurse, que es el que se chequea)
+    // Estructura de turno especial para "Vacaciones"
     val vacationAssignment = mapOf(
         "nurses" to listOf(mapOf(
             "halfDay" to false,
@@ -530,13 +539,23 @@ private fun saveVacationDaysToFirebase(
     )
 
     dates.forEach { dateKey ->
-        // La clave del turno es "Vacaciones". Esto será leído por listenToUserShifts en MainMenuScreen
         updates["plants/$plantId/turnos/turnos-$dateKey/Vacaciones"] = vacationAssignment
     }
 
     database.reference.updateChildren(updates)
         .addOnSuccessListener {
             Toast.makeText(context, "Días de vacaciones guardados.", Toast.LENGTH_LONG).show()
+            // NEW: Notification for Vacation Saved
+            dates.forEach { dateKey ->
+                onSaveNotification(
+                    FirebaseAuth.getInstance().currentUser?.uid ?: "",
+                    "VACATION_SAVED",
+                    "Tu día de vacaciones del $dateKey ha sido registrado.",
+                    AppScreen.MainMenu.name,
+                    dateKey,
+                    {}
+                )
+            }
         }
         .addOnFailureListener {
             Toast.makeText(context, "Error al guardar vacaciones: ${it.message}", Toast.LENGTH_LONG).show()
@@ -608,7 +627,6 @@ private fun VacationDaysDialog(
                     }
                 }
 
-                // CORREGIDO: Uso correcto de OutlinedButton
                 OutlinedButton(onClick = { showDatePicker = true }, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Default.Add, null)
                     Spacer(Modifier.width(8.dp))
@@ -622,7 +640,6 @@ private fun VacationDaysDialog(
                 enabled = offeredDates.isNotEmpty(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E63), contentColor = Color.White)
             ) {
-                // CORREGIDO: Uso correcto de size para mostrar el conteo
                 Text("Confirmar (${offeredDates.size} días)")
             }
         },
@@ -634,7 +651,59 @@ private fun VacationDaysDialog(
 }
 
 // -----------------------------------------------------------------------------
-// RESTO DE FUNCIONES DEL ARCHIVO (Sin Cambios Lógicos)
+// LÓGICA DE PERSISTENCIA DE ASIGNACIÓN DE TURNOS
+// -----------------------------------------------------------------------------
+private fun saveShiftAssignments(
+    database: FirebaseDatabase,
+    plantId: String,
+    dateKey: String,
+    assignments: Map<String, ShiftAssignmentState>,
+    unassignedLabel: String,
+    plantStaff: Collection<RegisteredUser>,
+    onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit,
+    onComplete: (Boolean) -> Unit
+) {
+    val payload = assignments.mapValues { (_, state) ->
+        mapOf(
+            "nurses" to state.nurseSlots.mapIndexed { i, s -> s.toFirebaseMap(unassignedLabel, "enfermero${i + 1}") },
+            "auxiliaries" to state.auxSlots.mapIndexed { i, s -> s.toFirebaseMap(unassignedLabel, "auxiliar${i + 1}") }
+        )
+    }
+    database.reference.child("plants/$plantId/turnos/turnos-$dateKey").setValue(payload)
+        .addOnSuccessListener {
+            onComplete(true)
+
+            // LÓGICA DE NOTIFICACIÓN: SHIFT_ASSIGNED_STAFF
+            val staffNamesAssigned = mutableSetOf<String>()
+            assignments.forEach { (_, state) ->
+                (state.nurseSlots + state.auxSlots).forEach { slot ->
+                    if (slot.primaryName.isNotBlank() && slot.primaryName != unassignedLabel) {
+                        staffNamesAssigned.add(slot.primaryName)
+                    }
+                    if (slot.hasHalfDay && slot.secondaryName.isNotBlank() && slot.secondaryName != unassignedLabel) {
+                        staffNamesAssigned.add(slot.secondaryName)
+                    }
+                }
+            }
+
+            staffNamesAssigned.forEach { staffName ->
+                // Usamos el placeholder SHIFT_STAFF_PLACEHOLDER para indicar al servidor que notifique a quien corresponda
+                onSaveNotification(
+                    "SHIFT_STAFF_PLACEHOLDER", // Notifica a todo el personal afectado (fan-out en servidor)
+                    "SHIFT_ASSIGNED_STAFF",
+                    "Tu turno para el $dateKey ha sido actualizado por el supervisor.",
+                    AppScreen.MainMenu.name, // Lleva al calendario
+                    dateKey,
+                    {}
+                )
+            }
+        }
+        .addOnFailureListener { onComplete(false) }
+}
+
+
+// -----------------------------------------------------------------------------
+// LÓGICA DE IMPORTACIÓN (Restaurada a la versión completa)
 // -----------------------------------------------------------------------------
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -1088,18 +1157,6 @@ private fun EditableAssignmentRow(label: String, slot: SlotAssignment, options: 
 private fun ensureSlotSize(list: MutableList<SlotAssignment>, expected: Int) {
     while (list.size < expected) list.add(SlotAssignment())
     if (list.size > expected) repeat(list.size - expected) { list.removeLastOrNull() }
-}
-
-private fun saveShiftAssignments(database: FirebaseDatabase, plantId: String, dateKey: String, assignments: Map<String, ShiftAssignmentState>, unassignedLabel: String, onComplete: (Boolean) -> Unit) {
-    val payload = assignments.mapValues { (_, state) ->
-        mapOf(
-            "nurses" to state.nurseSlots.mapIndexed { i, s -> s.toFirebaseMap(unassignedLabel, "enfermero${i + 1}") },
-            "auxiliaries" to state.auxSlots.mapIndexed { i, s -> s.toFirebaseMap(unassignedLabel, "auxiliar${i + 1}") }
-        )
-    }
-    database.reference.child("plants/$plantId/turnos/turnos-$dateKey").setValue(payload)
-        .addOnSuccessListener { onComplete(true) }
-        .addOnFailureListener { onComplete(false) }
 }
 
 private fun SlotAssignment.toFirebaseMap(unassigned: String, base: String) = mapOf(
