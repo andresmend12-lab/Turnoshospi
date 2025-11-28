@@ -43,10 +43,12 @@ class MainActivity : ComponentActivity() {
     private val currentUserState = mutableStateOf<FirebaseUser?>(null)
     private val authErrorMessage = mutableStateOf<String?>(null)
 
+    // Launcher para pedir permiso de notificación en Android 13+
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
+            // Permiso concedido, intentamos obtener el token
             fetchAndSaveFCMToken()
         } else {
             Log.e("FCM_DEBUG", "Permiso de notificaciones DENEGADO por el usuario.")
@@ -57,7 +59,7 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
 
-        // 1. Crear el canal CON SONIDO y BADGE
+        // 1. Crear el canal CON SONIDO y BADGE al iniciar la app
         createNotificationChannel()
 
         enableEdgeToEdge()
@@ -66,6 +68,7 @@ class MainActivity : ComponentActivity() {
         realtimeDatabase = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
         currentUserState.value = auth.currentUser
 
+        // Pedir permiso al arrancar si ya hay usuario logueado
         if (currentUserState.value != null) {
             askNotificationPermission()
         }
@@ -133,7 +136,7 @@ class MainActivity : ComponentActivity() {
     // --- CONFIGURACIÓN DEL CANAL ---
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // ID NUEVO: forzamos v2 para limpiar configuraciones antiguas (silencio)
+            // ID NUEVO: forzamos v2 para limpiar configuraciones antiguas
             val channelId = "turnoshospi_sound_v2"
             val name = "Avisos de Turnos"
             val descriptionText = "Notificaciones con sonido y alerta visual"
@@ -145,7 +148,7 @@ class MainActivity : ComponentActivity() {
                 description = descriptionText
                 enableVibration(true)
                 setShowBadge(true) // ESTO ACTIVA EL PUNTO DE NOTIFICACIÓN EN EL ICONO
-                // No llamamos a setSound(null), así que usa el sonido por defecto
+                // No llamamos a setSound(null), así que usa el sonido por defecto del sistema
             }
 
             val notificationManager: NotificationManager =
@@ -153,6 +156,8 @@ class MainActivity : ComponentActivity() {
             notificationManager.createNotificationChannel(channel)
         }
     }
+
+    // --- LÓGICA DE PERMISOS Y TOKENS FCM ---
 
     private fun askNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -180,9 +185,11 @@ class MainActivity : ComponentActivity() {
                 Log.e("FCM_DEBUG", "Falló la obtención del token FCM", task.exception)
                 return@addOnCompleteListener
             }
+            // Obtener el nuevo token FCM
             val token = task.result
             Log.d("FCM_DEBUG", "Token obtenido con éxito: $token")
 
+            // Guardar en Firebase
             realtimeDatabase.getReference("users/${user.uid}/fcmToken").setValue(token)
                 .addOnSuccessListener {
                     Log.d("FCM_DEBUG", "Token guardado en Base de Datos correctamente.")
@@ -201,6 +208,7 @@ class MainActivity : ComponentActivity() {
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     currentUserState.value = auth.currentUser
+                    // Intentamos guardar el token al iniciar sesión
                     fetchAndSaveFCMToken()
                     onResult(true)
                 } else {
@@ -221,10 +229,14 @@ class MainActivity : ComponentActivity() {
         auth.createUserWithEmailAndPassword(profile.email.trim(), password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    currentUserState.value = auth.currentUser
+                    val newUser = auth.currentUser // Capturamos el usuario
+
+                    // CORRECCIÓN: Primero guardamos los datos en la base de datos
                     saveUserProfile(profile) { success ->
                         if (success) {
                             fetchAndSaveFCMToken()
+                            // AHORA SÍ: Actualizamos el estado para que la UI cargue el perfil recién guardado
+                            currentUserState.value = newUser
                         }
                         onResult(success)
                     }
@@ -736,6 +748,8 @@ class MainActivity : ComponentActivity() {
                 onResult(false)
             }
     }
+
+    // --- FUNCIONES PARA NOTIFICACIONES ---
 
     private fun listenToUserNotifications(
         userId: String,

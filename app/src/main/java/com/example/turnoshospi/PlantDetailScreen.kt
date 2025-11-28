@@ -1,6 +1,7 @@
 package com.example.turnoshospi
 
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Environment
 import android.widget.Toast
@@ -40,6 +41,7 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -412,6 +414,27 @@ fun PlantDetailScreen(
                             onClick = { isMenuOpen = false; onOpenImportShifts() },
                             colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
                         )
+
+                        // --- OPCIÓN COMPARTIR PLANTA ---
+                        HorizontalDivider(color = Color.White.copy(alpha = 0.2f), modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp))
+                        NavigationDrawerItem(
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            label = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.Share, contentDescription = null, tint = Color(0xFF54C7EC), modifier = Modifier.size(20.dp))
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text("Invitar compañeros", color = Color.White)
+                                }
+                            },
+                            selected = false,
+                            onClick = {
+                                isMenuOpen = false
+                                if (plant != null) {
+                                    sharePlantInvitation(context, plant.name, plant.id, plant.accessPassword)
+                                }
+                            },
+                            colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
+                        )
                     }
 
                     HorizontalDivider(color = Color.White.copy(alpha = 0.2f), modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp))
@@ -524,6 +547,29 @@ fun PlantDetailScreen(
             }
         )
     }
+}
+
+// -----------------------------------------------------------------------------
+// LÓGICA DE COMPARTIR PLANTA
+// -----------------------------------------------------------------------------
+private fun sharePlantInvitation(context: Context, plantName: String, plantId: String, accessCode: String) {
+    val message = """
+        ¡Hola! Únete a la planta "$plantName" en Turnoshospi.
+        
+        ID de Planta: $plantId
+        Código de acceso: $accessCode
+        
+        Descarga la app y únete desde el menú principal.
+    """.trimIndent()
+
+    val sendIntent: Intent = Intent().apply {
+        action = Intent.ACTION_SEND
+        putExtra(Intent.EXTRA_TEXT, message)
+        type = "text/plain"
+    }
+
+    val shareIntent = Intent.createChooser(sendIntent, "Invitar compañeros vía:")
+    context.startActivity(shareIntent)
 }
 
 // -----------------------------------------------------------------------------
@@ -987,7 +1033,7 @@ private fun copyTemplateToDownloads(context: Context) {
 }
 
 // -----------------------------------------------------------------------------
-// COMPONENTES UI
+// COMPONENTES EXISTENTES Y HELPERS
 // -----------------------------------------------------------------------------
 
 @Composable
