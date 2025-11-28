@@ -57,6 +57,7 @@ import com.google.firebase.database.FirebaseDatabase
 import java.util.UUID
 import kotlinx.coroutines.launch
 
+// --- MODELOS DE DATOS ---
 data class PlantCredentials(
     val plantId: String,
     val accessPassword: String
@@ -106,14 +107,9 @@ fun PlantCreationScreen(
     val database = remember {
         FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
     }
-    val supervisorRoles = listOf(
-        stringResource(id = R.string.role_supervisor_male),
-        stringResource(id = R.string.role_supervisor_female)
-    )
 
     var isSaving by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-
 
     var plantName by remember { mutableStateOf("") }
     var unitType by remember { mutableStateOf("") }
@@ -283,7 +279,7 @@ fun PlantCreationScreen(
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
                             text = stringResource(id = R.string.shift_half_day_question),
@@ -368,6 +364,28 @@ fun PlantCreationScreen(
                             StaffScope.NursesAndAux -> "nurses_and_aux"
                         }
 
+                        // --- NUEVA LÓGICA: SUPERVISOR AUTOMÁTICO ---
+                        val supervisorStaffId = currentUserId ?: UUID.randomUUID().toString()
+                        val userId = currentUserId ?: ""
+
+                        val supervisorName = if (currentUserProfile != null) {
+                            "${currentUserProfile.firstName} ${currentUserProfile.lastName}".trim().ifEmpty { currentUserProfile.email }
+                        } else {
+                            "Supervisor"
+                        }
+                        // Usamos el rol que tenga el usuario o forzamos "Supervisor"
+                        val supervisorRole = currentUserProfile?.role.takeIf { !it.isNullOrBlank() } ?: "Supervisor"
+
+                        // 1. Crear el objeto del personal (Supervisor)
+                        val supervisorStaffMember = RegisteredUser(
+                            id = supervisorStaffId,
+                            name = supervisorName,
+                            role = supervisorRole,
+                            email = currentUserProfile?.email ?: "",
+                            profileType = "Supervisor"
+                        )
+
+                        // 2. Crear la planta con el supervisor ya incluido
                         val plant = Plant(
                             id = plantId,
                             name = plantName,
@@ -382,11 +400,33 @@ fun PlantCreationScreen(
                             },
                             createdAt = System.currentTimeMillis(),
                             accessPassword = accessPassword,
-                            personal_de_planta = emptyMap()
+                            personal_de_planta = mapOf(supervisorStaffId to supervisorStaffMember)
                         )
 
                         coroutineScope.launch {
-                            val updates = mutableMapOf<String, Any>("plants/$plantId" to plant)
+                            val updates = mutableMapOf<String, Any?>()
+
+                            // Guardar Planta
+                            updates["plants/$plantId"] = plant
+
+                            // Si hay usuario logueado, vincularlo inmediatamente
+                            if (userId.isNotEmpty()) {
+                                // Enlace en la planta (userPlants)
+                                val membershipData = mapOf(
+                                    "plantId" to plantId,
+                                    "staffId" to supervisorStaffId,
+                                    "staffName" to supervisorName,
+                                    "staffRole" to supervisorRole
+                                )
+                                updates["plants/$plantId/userPlants/$userId"] = membershipData
+
+                                // Enlace en el usuario (users)
+                                updates["users/$userId/plantId"] = plantId
+                                updates["users/$userId/plantStaffId"] = supervisorStaffId
+                                updates["users/$userId/linkedStaffName"] = supervisorName
+                                // Opcional: Asegurar que el rol en 'users' sea Supervisor
+                                updates["users/$userId/role"] = supervisorRole
+                            }
 
                             database.reference
                                 .updateChildren(updates)

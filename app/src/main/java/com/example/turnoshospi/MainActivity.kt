@@ -4,18 +4,16 @@ import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
@@ -40,15 +38,19 @@ import java.util.Date
 class MainActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var realtimeDatabase: FirebaseDatabase
+
+    // Estados observables para la UI
     private val currentUserState = mutableStateOf<FirebaseUser?>(null)
     private val authErrorMessage = mutableStateOf<String?>(null)
+
+    // Estado para gestionar la navegación cuando se pulsa una notificación (Deep Linking)
+    private val pendingNavigation = mutableStateOf<Map<String, String>?>(null)
 
     // Launcher para pedir permiso de notificación en Android 13+
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
-            // Permiso concedido, intentamos obtener el token
             fetchAndSaveFCMToken()
         } else {
             Log.e("FCM_DEBUG", "Permiso de notificaciones DENEGADO por el usuario.")
@@ -73,28 +75,57 @@ class MainActivity : ComponentActivity() {
             askNotificationPermission()
         }
 
+        // Revisar si la app se abrió desde una notificación (Cold Start)
+        intent?.extras?.let { bundle ->
+            if (bundle.containsKey("screen")) {
+                val navData = mutableMapOf<String, String>()
+                for (key in bundle.keySet()) {
+                    bundle.getString(key)?.let { navData[key] = it }
+                }
+                pendingNavigation.value = navData
+            }
+        }
+
         setContent {
             TurnoshospiTheme {
                 TurnoshospiApp(
                     user = currentUserState.value,
                     errorMessage = authErrorMessage.value,
+                    pendingNavigation = pendingNavigation.value, // Pasamos la navegación pendiente
+                    onNavigationHandled = { pendingNavigation.value = null }, // Callback para limpiar tras navegar
                     onErrorDismiss = { authErrorMessage.value = null },
+
+                    // Callbacks de Autenticación
                     onLogin = { email, password, onResult ->
                         signInWithEmail(email, password, onResult)
                     },
                     onCreateAccount = { profile, password, onResult ->
                         createAccountWithEmail(profile, password, onResult)
                     },
-                    onForgotPassword = { email, onResult -> sendPasswordReset(email, onResult) },
-                    onLoadProfile = { loadUserProfile(it) },
-                    onSaveProfile = { profile, callback -> saveUserProfile(profile, callback) },
-                    onLoadPlant = { loadUserPlant(it) },
+                    onForgotPassword = { email, onResult ->
+                        sendPasswordReset(email, onResult)
+                    },
+
+                    // Callbacks de Perfil
+                    onLoadProfile = { onResult ->
+                        loadUserProfile(onResult)
+                    },
+                    onSaveProfile = { profile, onResult ->
+                        saveUserProfile(profile, onResult)
+                    },
+
+                    // Callbacks de Planta
+                    onLoadPlant = { onResult ->
+                        loadUserPlant(onResult)
+                    },
                     onJoinPlant = { plantId, code, profile, onResult ->
                         joinPlantWithCode(plantId, code, profile, onResult)
                     },
                     onLoadPlantMembership = { plantId, userId, onResult ->
                         loadPlantMembership(plantId, userId, onResult)
                     },
+
+                    // Callbacks de Personal
                     onLinkUserToStaff = { plantId, staff, onResult ->
                         linkUserToPlantStaff(plantId, staff, onResult)
                     },
@@ -104,15 +135,21 @@ class MainActivity : ComponentActivity() {
                     onEditPlantStaff = { plantId, staffMember, onResult ->
                         editPlantStaff(plantId, staffMember, onResult)
                     },
+
+                    // Callbacks de Turnos
                     onListenToShifts = { plantId, staffId, onResult ->
                         listenToUserShifts(plantId, staffId, onResult)
                     },
                     onFetchColleagues = { plantId, date, shiftName, onResult ->
                         fetchColleaguesForShift(plantId, date, shiftName, onResult)
                     },
+
+                    // Gestión de Cuenta
                     onSignOut = { signOut() },
                     onDeleteAccount = { deleteAccount() },
                     onDeletePlant = { plantId -> deletePlant(plantId) },
+
+                    // Notificaciones
                     onSaveNotification = { userId, type, message, targetScreen, targetId, onResult ->
                         saveNotification(userId, type, message, targetScreen, targetId, onResult)
                     },
@@ -127,8 +164,26 @@ class MainActivity : ComponentActivity() {
                     },
                     onClearAllNotifications = { userId ->
                         deleteAllUserNotifications(userId)
+                    },
+                    // NUEVO: Listener para obtener los contadores de no leídos
+                    onListenToChatUnreadCounts = { userId, onResult ->
+                        listenToChatUnreadCounts(userId, onResult)
                     }
                 )
+            }
+        }
+    }
+
+    // Manejar nuevos intents cuando la app ya está abierta (Warm Start / Foreground)
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        intent.extras?.let { bundle ->
+            if (bundle.containsKey("screen")) {
+                val navData = mutableMapOf<String, String>()
+                for (key in bundle.keySet()) {
+                    bundle.getString(key)?.let { navData[key] = it }
+                }
+                pendingNavigation.value = navData
             }
         }
     }
@@ -136,19 +191,15 @@ class MainActivity : ComponentActivity() {
     // --- CONFIGURACIÓN DEL CANAL ---
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // ID NUEVO: forzamos v2 para limpiar configuraciones antiguas
             val channelId = "turnoshospi_sound_v2"
             val name = "Avisos de Turnos"
             val descriptionText = "Notificaciones con sonido y alerta visual"
-
-            // IMPORTANCE_HIGH: Asegura sonido, vibración e icono en barra de estado
             val importance = NotificationManager.IMPORTANCE_HIGH
 
             val channel = NotificationChannel(channelId, name, importance).apply {
                 description = descriptionText
                 enableVibration(true)
-                setShowBadge(true) // ESTO ACTIVA EL PUNTO DE NOTIFICACIÓN EN EL ICONO
-                // No llamamos a setSound(null), así que usa el sonido por defecto del sistema
+                setShowBadge(true)
             }
 
             val notificationManager: NotificationManager =
@@ -158,7 +209,6 @@ class MainActivity : ComponentActivity() {
     }
 
     // --- LÓGICA DE PERMISOS Y TOKENS FCM ---
-
     private fun askNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
@@ -185,11 +235,9 @@ class MainActivity : ComponentActivity() {
                 Log.e("FCM_DEBUG", "Falló la obtención del token FCM", task.exception)
                 return@addOnCompleteListener
             }
-            // Obtener el nuevo token FCM
             val token = task.result
             Log.d("FCM_DEBUG", "Token obtenido con éxito: $token")
 
-            // Guardar en Firebase
             realtimeDatabase.getReference("users/${user.uid}/fcmToken").setValue(token)
                 .addOnSuccessListener {
                     Log.d("FCM_DEBUG", "Token guardado en Base de Datos correctamente.")
@@ -201,14 +249,12 @@ class MainActivity : ComponentActivity() {
     }
 
     // --- LÓGICA DE AUTENTICACIÓN ---
-
     private fun signInWithEmail(email: String, password: String, onResult: (Boolean) -> Unit) {
         authErrorMessage.value = null
         auth.signInWithEmailAndPassword(email.trim(), password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     currentUserState.value = auth.currentUser
-                    // Intentamos guardar el token al iniciar sesión
                     fetchAndSaveFCMToken()
                     onResult(true)
                 } else {
@@ -229,13 +275,10 @@ class MainActivity : ComponentActivity() {
         auth.createUserWithEmailAndPassword(profile.email.trim(), password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    val newUser = auth.currentUser // Capturamos el usuario
-
-                    // CORRECCIÓN: Primero guardamos los datos en la base de datos
+                    val newUser = auth.currentUser
                     saveUserProfile(profile) { success ->
                         if (success) {
                             fetchAndSaveFCMToken()
-                            // AHORA SÍ: Actualizamos el estado para que la UI cargue el perfil recién guardado
                             currentUserState.value = newUser
                         }
                         onResult(success)
@@ -265,7 +308,6 @@ class MainActivity : ComponentActivity() {
     }
 
     // --- LÓGICA DE PERFIL Y USUARIO ---
-
     private fun loadUserProfile(onResult: (UserProfile?) -> Unit) {
         val user = auth.currentUser ?: run {
             onResult(null)
@@ -350,7 +392,6 @@ class MainActivity : ComponentActivity() {
     }
 
     // --- LÓGICA DE PLANTA ---
-
     private fun loadUserPlant(onResult: (Plant?, String?) -> Unit) {
         val user = auth.currentUser ?: run {
             onResult(null, getString(R.string.plant_auth_error))
@@ -749,7 +790,7 @@ class MainActivity : ComponentActivity() {
             }
     }
 
-    // --- FUNCIONES PARA NOTIFICACIONES ---
+    // --- FUNCIONES PARA NOTIFICACIONES GENERALES ---
 
     private fun listenToUserNotifications(
         userId: String,
@@ -795,6 +836,25 @@ class MainActivity : ComponentActivity() {
         realtimeDatabase.getReference("user_notifications")
             .child(userId)
             .removeValue()
+    }
+
+    // --- NUEVO: LISTENER DE CONTADORES DE CHAT ---
+    private fun listenToChatUnreadCounts(userId: String, onResult: (Map<String, Int>) -> Unit) {
+        realtimeDatabase.getReference("user_direct_chats").child(userId)
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val counts = mutableMapOf<String, Int>()
+                    for (chatSnap in snapshot.children) {
+                        val chatId = chatSnap.key ?: continue
+                        val count = chatSnap.child("unreadCount").getValue(Int::class.java) ?: 0
+                        counts[chatId] = count
+                    }
+                    onResult(counts)
+                }
+                override fun onCancelled(error: DatabaseError) {
+                    onResult(emptyMap())
+                }
+            })
     }
 
     private fun formatAuthError(exception: Exception): String {
@@ -933,7 +993,9 @@ fun MainActivityPreview() {
             onListenToNotifications = { _, _ -> },
             onMarkNotificationAsRead = { _, _ -> },
             onDeleteNotification = { _, _ -> },
-            onClearAllNotifications = { _ -> }
+            onClearAllNotifications = { _ -> },
+            // Simulamos el listener de contadores
+            onListenToChatUnreadCounts = { _, _ -> }
         )
     }
 }

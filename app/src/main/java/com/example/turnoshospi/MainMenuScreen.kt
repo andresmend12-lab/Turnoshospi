@@ -98,8 +98,9 @@ fun MainMenuScreen(
     onListenToShifts: (String, String, (Map<String, UserShift>) -> Unit) -> Unit,
     onFetchColleagues: (String, String, String, (List<Colleague>) -> Unit) -> Unit,
     onSignOut: () -> Unit,
-    onOpenDirectChats: () -> Unit, // Callback para abrir chats
-    // NUEVOS PARÁMETROS PARA NOTIFICACIONES
+    onOpenDirectChats: () -> Unit,
+    // NUEVO: Contador para el botón flotante
+    unreadChatCount: Int = 0,
     unreadNotificationsCount: Int,
     onOpenNotifications: () -> Unit
 ) {
@@ -175,7 +176,7 @@ fun MainMenuScreen(
                     )
                 }
 
-                // NUEVO: CAMPANA DE NOTIFICACIONES (DERECHA)
+                // NOTIFICACIONES GENERALES (DERECHA)
                 IconButton(
                     modifier = Modifier.align(Alignment.CenterEnd),
                     onClick = onOpenNotifications
@@ -313,7 +314,23 @@ fun MainMenuScreen(
                 contentColor = Color.White,
                 shape = CircleShape
             ) {
-                Icon(Icons.Default.Chat, contentDescription = "Chats")
+                // Mostramos badge si hay mensajes no leídos
+                BadgedBox(
+                    badge = {
+                        if (unreadChatCount > 0) {
+                            Badge(
+                                containerColor = Color.Red,
+                                contentColor = Color.White
+                            ) {
+                                Text(
+                                    text = if (unreadChatCount > 99) "99+" else unreadChatCount.toString()
+                                )
+                            }
+                        }
+                    }
+                ) {
+                    Icon(Icons.Default.Chat, contentDescription = "Chats")
+                }
             }
         }
     }
@@ -670,6 +687,7 @@ fun MainMenuScreenPreview() {
             onSignOut = {},
             onOpenDirectChats = {},
             // VALORES DE PRUEBA
+            unreadChatCount = 3,
             unreadNotificationsCount = 5,
             onOpenNotifications = {}
         )

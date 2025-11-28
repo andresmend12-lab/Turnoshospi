@@ -51,32 +51,40 @@ exports.sendNotification = functions.database.ref('/user_notifications/{userId}/
         }
     });
 
-// 2. NUEVO: Notificaciones de Chat
-exports.sendChatNotification = functions.database.ref('/direct_messages/{chatId}/{messageId}')
+// 2. NUEVO: Notificaciones de Chat y Contadores
+exports.sendChatNotification = functions.database.ref('/plants/{plantId}/direct_chats/{chatId}/messages/{messageId}')
     .onCreate(async (snapshot, context) => {
         const messageData = snapshot.val();
+        const plantId = context.params.plantId;
         const chatId = context.params.chatId;
+
         const senderId = messageData.senderId;
-        const receiverId = messageData.receiverId; // Aseguraremos que la app envíe esto
         const text = messageData.text;
 
-        if (!receiverId) return console.log("No receiverId found");
+        // Deducir receiverId del chatId (el formato es id1_id2)
+        const ids = chatId.split("_");
+        // El receptor es el ID que NO coincide con el senderId
+        const receiverId = (ids[0] === senderId) ? ids[1] : ids[0];
 
-        console.log(`Nuevo mensaje de ${senderId} para ${receiverId}`);
+        if (!receiverId) return console.log("No receiverId found in chat:", chatId);
 
-        // A. Incrementar contador de no leídos en la metadata del usuario receptor
+        console.log(`Nuevo mensaje de ${senderId} para ${receiverId} en planta ${plantId}`);
+
+        // A. Actualizar metadata del chat para el receptor (Contador de no leídos)
+        // Guardamos esto en una ruta fácil de leer para la app: user_direct_chats/{userId}
         const chatMetaRef = admin.database().ref(`/user_direct_chats/${receiverId}/${chatId}`);
 
         await chatMetaRef.transaction((currentData) => {
-            if (currentData) {
-                return {
-                    ...currentData,
-                    unreadCount: (currentData.unreadCount || 0) + 1,
-                    lastMessage: text,
-                    timestamp: admin.database.ServerValue.TIMESTAMP
-                };
-            }
-            return currentData; // Si no existe el chat en metadata, no lo creamos aquí (lo hace la app)
+            // Si existe dato previo, incrementamos. Si no, empezamos en 1.
+            const count = (currentData && currentData.unreadCount) ? currentData.unreadCount + 1 : 1;
+            return {
+                ...currentData,
+                unreadCount: count,
+                lastMessage: text,
+                timestamp: admin.database.ServerValue.TIMESTAMP,
+                plantId: plantId, // Guardamos plantId para facilitar navegación si hace falta
+                otherUserId: senderId // Guardamos quién es la otra persona
+            };
         });
 
         // B. Enviar Notificación Push
@@ -85,11 +93,10 @@ exports.sendChatNotification = functions.database.ref('/direct_messages/{chatId}
 
         if (!fcmToken) return console.log('Sin token para receptor de chat:', receiverId);
 
-        // Obtener nombre del remitente para la notificación
+        // Obtener nombre del remitente para mostrar en la notificación
         const senderSnapshot = await admin.database().ref(`/users/${senderId}`).once('value');
-        const senderName = senderSnapshot.val() ?
-                           `${senderSnapshot.val().firstName} ${senderSnapshot.val().lastName}` :
-                           "Compañero";
+        const senderUser = senderSnapshot.val();
+        const senderName = senderUser ? `${senderUser.firstName} ${senderUser.lastName}` : "Compañero";
 
         const pushMessage = {
             token: fcmToken,
@@ -100,17 +107,19 @@ exports.sendChatNotification = functions.database.ref('/direct_messages/{chatId}
             android: {
                 priority: "high",
                 notification: {
-                    channelId: "turnoshospi_sound_v2", // Usamos el mismo canal con sonido
+                    channelId: "turnoshospi_sound_v2", // Canal con sonido
                     sound: "default",
                     priority: "high",
                     defaultSound: true,
                     icon: "ic_logo_hospi_round",
-                    tag: chatId // Agrupa notificaciones del mismo chat
+                    tag: chatId // Agrupa notificaciones del mismo chat para no llenar la barra
                 }
             },
             data: {
+                // Datos para que la App sepa abrir el chat directamente
                 screen: "DirectChat",
                 chatId: chatId,
+                plantId: plantId,
                 otherUserId: senderId,
                 otherUserName: senderName,
                 click_action: "FLUTTER_NOTIFICATION_CLICK"

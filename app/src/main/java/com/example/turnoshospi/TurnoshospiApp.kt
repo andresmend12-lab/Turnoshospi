@@ -88,6 +88,8 @@ data class Colleague(
 fun TurnoshospiApp(
     user: FirebaseUser?,
     errorMessage: String?,
+    pendingNavigation: Map<String, String>?, // NUEVO: Datos para navegar desde notificación
+    onNavigationHandled: () -> Unit, // NUEVO: Callback para limpiar navegación
     onErrorDismiss: () -> Unit,
     onLogin: (String, String, (Boolean) -> Unit) -> Unit,
     onCreateAccount: (UserProfile, String, (Boolean) -> Unit) -> Unit,
@@ -109,7 +111,8 @@ fun TurnoshospiApp(
     onListenToNotifications: (String, (List<UserNotification>) -> Unit) -> Unit,
     onMarkNotificationAsRead: (String, String) -> Unit,
     onDeleteNotification: (String, String) -> Unit,
-    onClearAllNotifications: (String) -> Unit
+    onClearAllNotifications: (String) -> Unit,
+    onListenToChatUnreadCounts: (String, (Map<String, Int>) -> Unit) -> Unit // NUEVO
 ) {
     var showLogin by remember { mutableStateOf(true) }
     var showRegistration by remember { mutableStateOf(false) }
@@ -136,6 +139,12 @@ fun TurnoshospiApp(
     // Estados para el chat directo
     var selectedDirectChatUserId by remember { mutableStateOf("") }
     var selectedDirectChatUserName by remember { mutableStateOf("") }
+    var chatUnreadCounts by remember { mutableStateOf<Map<String, Int>>(emptyMap()) } // NUEVO: Mapa de contadores
+
+    // Calculamos el total de mensajes no leídos para el botón del menú
+    val totalUnreadChats = remember(chatUnreadCounts) {
+        chatUnreadCounts.values.sum()
+    }
 
     // Estado para notificaciones
     var userNotifications by remember { mutableStateOf<List<UserNotification>>(emptyList()) }
@@ -219,6 +228,11 @@ fun TurnoshospiApp(
                 userNotifications = notifications
             }
 
+            // NUEVO: Escuchar contadores de chat
+            onListenToChatUnreadCounts(user.uid) { counts ->
+                chatUnreadCounts = counts
+            }
+
             refreshUserPlant()
         } else {
             existingProfile = null
@@ -232,6 +246,30 @@ fun TurnoshospiApp(
             currentScreen = AppScreen.MainMenu
             backStack.clear()
             userNotifications = emptyList()
+            chatUnreadCounts = emptyMap()
+        }
+    }
+
+    // MANEJO DE DEEP LINKING (NAVEGACIÓN DESDE NOTIFICACIÓN)
+    LaunchedEffect(pendingNavigation, user, userPlant) {
+        if (user != null && pendingNavigation != null && userPlant != null) {
+            val screen = pendingNavigation["screen"]
+            if (screen == "DirectChat") {
+                val otherId = pendingNavigation["otherUserId"]
+                val otherName = pendingNavigation["otherUserName"]
+
+                if (otherId != null && otherName != null) {
+                    selectedDirectChatUserId = otherId
+                    selectedDirectChatUserName = otherName
+
+                    // Si ya estamos en el chat, no hacemos nada, si no, navegamos
+                    if (currentScreen != AppScreen.DirectChat) {
+                        navigateTo(AppScreen.DirectChat)
+                    }
+                }
+            }
+            // Marcamos como manejada
+            onNavigationHandled()
         }
     }
 
@@ -365,6 +403,7 @@ fun TurnoshospiApp(
                     },
                     onOpenSettings = { navigateTo(AppScreen.Settings) },
                     onSignOut = onSignOut,
+                    unreadChatCount = totalUnreadChats, // PASAMOS EL CONTADOR TOTAL AL BOTÓN
                     onOpenDirectChats = {
                         if (userPlant != null) {
                             selectedPlantForDetail = userPlant
@@ -516,6 +555,7 @@ fun TurnoshospiApp(
                 AppScreen.DirectChatList -> DirectChatListScreen(
                     plantId = selectedPlantForDetail?.id ?: userPlant?.id ?: "",
                     currentUserId = user?.uid ?: "",
+                    unreadCounts = chatUnreadCounts, // PASAMOS EL MAPA DE CONTADORES A LA LISTA
                     onBack = { navigateBack() },
                     onNavigateToChat = { otherId, otherName ->
                         selectedDirectChatUserId = otherId
@@ -529,8 +569,8 @@ fun TurnoshospiApp(
                     currentUserId = user?.uid ?: "",
                     otherUserId = selectedDirectChatUserId,
                     otherUserName = selectedDirectChatUserName,
-                    onBack = { navigateBack() },
-                    onSaveNotification = onSaveNotification
+                    onBack = { navigateBack() }
+                    // NOTA: Eliminamos onSaveNotification porque ahora lo hace el backend
                 )
 
                 AppScreen.Notifications -> NotificationsScreen(
@@ -843,6 +883,8 @@ fun SplashLoginPreview() {
         TurnoshospiApp(
             user = null,
             errorMessage = null,
+            pendingNavigation = null,
+            onNavigationHandled = {},
             onErrorDismiss = {},
             onLogin = { _, _, _ -> },
             onCreateAccount = { _, _, _ -> },
@@ -864,7 +906,8 @@ fun SplashLoginPreview() {
             onListenToNotifications = { _, _ -> },
             onMarkNotificationAsRead = { _, _ -> },
             onDeleteNotification = { _, _ -> },
-            onClearAllNotifications = { _ -> }
+            onClearAllNotifications = { _ -> },
+            onListenToChatUnreadCounts = { _, _ -> }
         )
     }
 }

@@ -30,18 +30,21 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val data = remoteMessage.data
         val title = remoteMessage.notification?.title ?: data["title"] ?: "Turnoshospi"
         val body = remoteMessage.notification?.body ?: data["body"] ?: "Nueva notificación"
-        val targetScreen = data["screen"] ?: "MainMenu"
 
-        showNotification(title, body, targetScreen)
+        // Pasamos TODO el mapa de datos a la función
+        showNotification(title, body, data)
     }
 
-    private fun showNotification(title: String, message: String, targetScreen: String) {
-        val channelId = "turnoshospi_sound_v2" // Mismo ID que en MainActivity
+    private fun showNotification(title: String, message: String, data: Map<String, String>) {
+        val channelId = "turnoshospi_sound_v2"
         val notificationId = Random.nextInt()
 
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            putExtra("screen", targetScreen)
+            // Ponemos todos los datos recibidos en el intent extras
+            for ((key, value) in data) {
+                putExtra(key, value)
+            }
         }
 
         val pendingIntent = PendingIntent.getActivity(
@@ -50,7 +53,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         )
 
         val builder = NotificationCompat.Builder(this, channelId)
-            // Asegúrate de que este recurso de icono exista
+            // Asegúrate de que este recurso de icono exista en tu proyecto
             .setSmallIcon(R.mipmap.ic_logo_hospi_round)
             .setContentTitle(title)
             .setContentText(message)
