@@ -1,6 +1,9 @@
 package com.example.turnoshospi
 
 import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -40,12 +43,10 @@ class MainActivity : ComponentActivity() {
     private val currentUserState = mutableStateOf<FirebaseUser?>(null)
     private val authErrorMessage = mutableStateOf<String?>(null)
 
-    // Launcher para pedir permiso de notificación en Android 13+
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
-            // Permiso concedido, intentamos obtener el token
             fetchAndSaveFCMToken()
         } else {
             Log.e("FCM_DEBUG", "Permiso de notificaciones DENEGADO por el usuario.")
@@ -55,13 +56,16 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        // 1. Crear el canal CON SONIDO y BADGE
+        createNotificationChannel()
+
         enableEdgeToEdge()
         FirebaseApp.initializeApp(this)
         auth = FirebaseAuth.getInstance()
         realtimeDatabase = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
         currentUserState.value = auth.currentUser
 
-        // Pedir permiso al arrancar si ya hay usuario logueado
         if (currentUserState.value != null) {
             askNotificationPermission()
         }
@@ -115,7 +119,6 @@ class MainActivity : ComponentActivity() {
                     onMarkNotificationAsRead = { userId, notifId ->
                         markNotificationAsRead(userId, notifId)
                     },
-                    // NUEVOS CALLBACKS PARA BORRAR
                     onDeleteNotification = { userId, notifId ->
                         deleteUserNotification(userId, notifId)
                     },
@@ -127,7 +130,29 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // --- LÓGICA DE PERMISOS Y TOKENS FCM ---
+    // --- CONFIGURACIÓN DEL CANAL ---
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // ID NUEVO: forzamos v2 para limpiar configuraciones antiguas (silencio)
+            val channelId = "turnoshospi_sound_v2"
+            val name = "Avisos de Turnos"
+            val descriptionText = "Notificaciones con sonido y alerta visual"
+
+            // IMPORTANCE_HIGH: Asegura sonido, vibración e icono en barra de estado
+            val importance = NotificationManager.IMPORTANCE_HIGH
+
+            val channel = NotificationChannel(channelId, name, importance).apply {
+                description = descriptionText
+                enableVibration(true)
+                setShowBadge(true) // ESTO ACTIVA EL PUNTO DE NOTIFICACIÓN EN EL ICONO
+                // No llamamos a setSound(null), así que usa el sonido por defecto
+            }
+
+            val notificationManager: NotificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
 
     private fun askNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -711,8 +736,6 @@ class MainActivity : ComponentActivity() {
                 onResult(false)
             }
     }
-
-    // --- FUNCIONES PARA NOTIFICACIONES ---
 
     private fun listenToUserNotifications(
         userId: String,

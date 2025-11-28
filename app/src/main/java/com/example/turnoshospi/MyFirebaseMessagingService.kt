@@ -17,7 +17,6 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        // Si el token cambia (ej: reinstalar app), lo actualizamos en la BD
         val user = FirebaseAuth.getInstance().currentUser
         if (user != null) {
             FirebaseDatabase.getInstance().getReference("users/${user.uid}/fcmToken")
@@ -28,35 +27,31 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
 
-        // 1. Extraer datos del mensaje
         val data = remoteMessage.data
-        // Si el mensaje viene con "notification" (payload automático), úsalo como fallback
-        val title = data["title"] ?: remoteMessage.notification?.title ?: "Turnoshospi"
-        val body = data["body"] ?: remoteMessage.notification?.body ?: "Tienes una nueva notificación"
+        val title = remoteMessage.notification?.title ?: data["title"] ?: "Turnoshospi"
+        val body = remoteMessage.notification?.body ?: data["body"] ?: "Nueva notificación"
         val targetScreen = data["screen"] ?: "MainMenu"
 
         showNotification(title, body, targetScreen)
     }
 
     private fun showNotification(title: String, message: String, targetScreen: String) {
-        val channelId = "turnoshospi_alerts"
+        val channelId = "turnoshospi_sound_v2" // Mismo ID que en MainActivity
         val notificationId = Random.nextInt()
 
-        // Intent para abrir la app al tocar la notificación
         val intent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            putExtra("navigation_target", targetScreen)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("screen", targetScreen)
         }
 
         val pendingIntent = PendingIntent.getActivity(
             this, 0, intent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_ONE_SHOT
         )
 
-        // Crear la notificación visual
         val builder = NotificationCompat.Builder(this, channelId)
-            // Asegúrate de que este icono exista (por defecto suele ser ic_launcher_foreground o crea uno propio)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            // Asegúrate de que este recurso de icono exista
+            .setSmallIcon(R.mipmap.ic_logo_hospi_round)
             .setContentTitle(title)
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -65,13 +60,15 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        // Canal de notificaciones (Obligatorio en Android 8+)
         if (Build.VERSION_CODES.O <= Build.VERSION.SDK_INT) {
             val channel = NotificationChannel(
                 channelId,
                 "Avisos de Turnos",
                 NotificationManager.IMPORTANCE_HIGH
-            )
+            ).apply {
+                enableVibration(true)
+                setShowBadge(true)
+            }
             manager.createNotificationChannel(channel)
         }
 
