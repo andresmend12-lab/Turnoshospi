@@ -4,6 +4,8 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -43,8 +45,10 @@ class MainActivity : ComponentActivity() {
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
-            // Permiso concedido, podemos obtener el token
+            // Permiso concedido, intentamos obtener el token
             fetchAndSaveFCMToken()
+        } else {
+            Log.e("FCM_DEBUG", "Permiso de notificaciones DENEGADO por el usuario.")
         }
     }
 
@@ -69,12 +73,7 @@ class MainActivity : ComponentActivity() {
                     errorMessage = authErrorMessage.value,
                     onErrorDismiss = { authErrorMessage.value = null },
                     onLogin = { email, password, onResult ->
-                        signInWithEmail(email, password) { success ->
-                            if (success) {
-                                fetchAndSaveFCMToken() // Guardar token al login
-                            }
-                            onResult(success)
-                        }
+                        signInWithEmail(email, password, onResult)
                     },
                     onCreateAccount = { profile, password, onResult ->
                         createAccountWithEmail(profile, password, onResult)
@@ -115,7 +114,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // --- LÓGICA DE PERMISOS Y TOKENS FCM ---
+    // --- LÓGICA DE PERMISOS Y TOKENS FCM (VERSIÓN DIAGNÓSTICO) ---
 
     private fun askNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -132,13 +131,31 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun fetchAndSaveFCMToken() {
-        val user = auth.currentUser ?: return
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (!task.isSuccessful) return@addOnCompleteListener
-            val token = task.result
+        val user = auth.currentUser
+        if (user == null) {
+            Log.e("FCM_DEBUG", "Error: No hay usuario logueado para guardar el token.")
+            return
+        }
 
-            // Guardamos el token en el perfil del usuario
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                Log.e("FCM_DEBUG", "Falló la obtención del token FCM", task.exception)
+                return@addOnCompleteListener
+            }
+
+            // Obtener el nuevo token FCM
+            val token = task.result
+            Log.d("FCM_DEBUG", "Token obtenido con éxito: $token")
+
+            // Guardar en Firebase
             realtimeDatabase.getReference("users/${user.uid}/fcmToken").setValue(token)
+                .addOnSuccessListener {
+                    Log.d("FCM_DEBUG", "Token guardado en Base de Datos correctamente.")
+                }
+                .addOnFailureListener { e ->
+                    Log.e("FCM_DEBUG", "Error al guardar token en BD: ${e.message}")
+                    Toast.makeText(this, "Error guardando token: ${e.message}", Toast.LENGTH_LONG).show()
+                }
         }
     }
 
@@ -150,6 +167,8 @@ class MainActivity : ComponentActivity() {
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     currentUserState.value = auth.currentUser
+                    // Intentamos guardar el token al iniciar sesión
+                    fetchAndSaveFCMToken()
                     onResult(true)
                 } else {
                     val errorMessage = task.exception?.let { formatAuthError(it) }
@@ -171,7 +190,10 @@ class MainActivity : ComponentActivity() {
                 if (task.isSuccessful) {
                     currentUserState.value = auth.currentUser
                     saveUserProfile(profile) { success ->
-                        if (success) fetchAndSaveFCMToken() // Token también al crear cuenta
+                        if (success) {
+                            // Intentamos guardar el token al crear cuenta
+                            fetchAndSaveFCMToken()
+                        }
                         onResult(success)
                     }
                 } else {
@@ -401,7 +423,6 @@ class MainActivity : ComponentActivity() {
                     .updateChildren(updates)
                     .addOnSuccessListener {
                         onResult(true, null)
-                        // Notificación de Asignación de Turno (Unión a planta)
                         val joinMessage = getString(R.string.join_plant_success)
                         saveNotification(
                             user.uid,
@@ -469,7 +490,6 @@ class MainActivity : ComponentActivity() {
         staffId: String,
         onResult: (Map<String, UserShift>) -> Unit
     ) {
-        // 1. Obtener el nombre
         realtimeDatabase.reference
             .child("plants")
             .child(plantId)
@@ -485,7 +505,6 @@ class MainActivity : ComponentActivity() {
                         return
                     }
 
-                    // 2. Escuchar turnos usando el nombre
                     realtimeDatabase.reference
                         .child("plants")
                         .child(plantId)
@@ -502,7 +521,6 @@ class MainActivity : ComponentActivity() {
                                         var found = false
                                         var isHalf = false
 
-                                        // Nurses
                                         for (slot in shiftSnapshot.child("nurses").children) {
                                             val primary = slot.child("primary").getValue(String::class.java)
                                             val secondary = slot.child("secondary").getValue(String::class.java)
@@ -521,7 +539,6 @@ class MainActivity : ComponentActivity() {
                                         }
 
                                         if (!found) {
-                                            // Auxiliaries
                                             for (slot in shiftSnapshot.child("auxiliaries").children) {
                                                 val primary = slot.child("primary").getValue(String::class.java)
                                                 val secondary = slot.child("secondary").getValue(String::class.java)
@@ -576,7 +593,6 @@ class MainActivity : ComponentActivity() {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val colleagues = mutableListOf<Colleague>()
 
-                    // Helper para extraer nombres y asignar rol
                     fun collectNames(category: String, roleLabel: String) {
                         for (slot in snapshot.child(category).children) {
                             val primary = slot.child("primary").getValue(String::class.java)
@@ -590,7 +606,6 @@ class MainActivity : ComponentActivity() {
                     collectNames("nurses", "Enfermero/a")
                     collectNames("auxiliaries", "Auxiliar")
 
-                    // Eliminar duplicados por nombre si existieran
                     onResult(colleagues.distinctBy { it.name })
                 }
 
@@ -657,8 +672,6 @@ class MainActivity : ComponentActivity() {
             }
     }
 
-    // --- SISTEMA DE NOTIFICACIONES ---
-
     private fun saveNotification(
         userId: String,
         type: String,
@@ -667,10 +680,6 @@ class MainActivity : ComponentActivity() {
         targetId: String?,
         onResult: (Boolean) -> Unit
     ) {
-        // Manejo de IDs de placeholder: Si es uno de estos, la app no hace nada en el cliente,
-        // asumiendo que el backend (Cloud Functions) manejará el "Fan-out" si es necesario.
-        // OJO: Para la asignación directa de turnos a UN usuario, PlantDetailScreen ahora pasa el staffId real,
-        // por lo que este bloque solo captura los casos de grupo masivo.
         if (userId.isBlank() || userId == "GROUP_CHAT_FANOUT_ID" || userId == "SUPERVISOR_ID_PLACEHOLDER" || userId == "SHIFT_STAFF_PLACEHOLDER") {
             onResult(true)
             return
@@ -732,10 +741,10 @@ data class UserProfile(
 
 data class UserNotification(
     val id: String = "",
-    val type: String = "", // e.g., "CHAT_DIRECT", "SHIFT_MATCH", "SHIFT_ASSIGNED"
+    val type: String = "",
     val message: String = "",
-    val targetScreen: String = "", // e.g., "DirectChat", "ShiftChange"
-    val targetId: String? = null, // e.g., chatId, shiftRequestId, date
+    val targetScreen: String = "",
+    val targetId: String? = null,
     val timestamp: Long = System.currentTimeMillis(),
     val isRead: Boolean = false
 )

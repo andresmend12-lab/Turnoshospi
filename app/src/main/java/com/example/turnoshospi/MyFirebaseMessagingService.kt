@@ -66,7 +66,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         // Canal de notificaciones (Obligatorio en Android 8+)
-        if (Build.VERSION.CODES.O <= Build.VERSION.SDK_INT) {
+        if (Build.VERSION_CODES.O <= Build.VERSION.SDK_INT) {
             val channel = NotificationChannel(
                 channelId,
                 "Avisos de Turnos",
