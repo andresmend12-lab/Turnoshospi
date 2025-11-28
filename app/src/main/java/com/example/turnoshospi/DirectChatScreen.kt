@@ -30,7 +30,9 @@ fun DirectChatScreen(
     currentUserId: String,
     otherUserId: String,
     otherUserName: String,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    // NEW
+    onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit
 ) {
     val chatId = if (currentUserId < otherUserId) "${currentUserId}_${otherUserId}" else "${otherUserId}_${currentUserId}"
 
@@ -114,6 +116,16 @@ fun DirectChatScreen(
                             )
                             messagesRef.child(key).setValue(msg)
                             textState = ""
+
+                            // NEW: Notificación de Chat Directo
+                            onSaveNotification(
+                                otherUserId,
+                                "CHAT_DIRECT",
+                                "Nuevo mensaje de ${otherUserName.ifBlank { "Un usuario" }}",
+                                AppScreen.DirectChat.name,
+                                chatId,
+                                {}
+                            )
                         }
                     },
                     modifier = Modifier.background(Color(0xFF54C7EC), androidx.compose.foundation.shape.CircleShape)

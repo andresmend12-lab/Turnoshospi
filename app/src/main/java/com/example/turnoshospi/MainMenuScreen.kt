@@ -182,7 +182,7 @@ fun MainMenuScreen(
                     plantId = userPlant?.id,
                     selectedDate = selectedDate,
                     selectedShift = selectedShift,
-                    colleagues = colleaguesList,
+                    colleagues = colleaguesList, // CORREGIDO
                     isLoadingColleagues = isLoadingColleagues,
                     onDayClick = { date, shift ->
                         if (userPlant != null && shift != null) {

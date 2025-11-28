@@ -103,7 +103,9 @@ fun TurnoshospiApp(
     onFetchColleagues: (String, String, String, (List<Colleague>) -> Unit) -> Unit,
     onSignOut: () -> Unit,
     onDeleteAccount: () -> Unit,
-    onDeletePlant: (String) -> Unit
+    onDeletePlant: (String) -> Unit,
+    // NEW: Callback para guardar notificaciones
+    onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit
 ) {
     var showLogin by remember { mutableStateOf(true) }
     var showRegistration by remember { mutableStateOf(false) }
@@ -387,6 +389,7 @@ fun TurnoshospiApp(
                     errorMessage = plantError,
                     isLinkingStaff = isLinkingStaff,
                     onBack = { navigateBack() },
+                    // CORREGIDO: Llamar a la función local refreshUserPlant
                     onRefresh = { refreshUserPlant() },
                     onOpenPlantDetail = { plant ->
                         selectedPlantForDetail = plant
@@ -486,14 +489,18 @@ fun TurnoshospiApp(
                     plantId = selectedPlantForDetail?.id ?: "",
                     currentUser = existingProfile,
                     currentUserId = user?.uid ?: "",
-                    onBack = { navigateBack() }
+                    onBack = { navigateBack() },
+                    // NEW: pass callback
+                    onSaveNotification = onSaveNotification
                 )
 
                 AppScreen.ShiftChange -> ShiftChangeScreen(
                     plantId = selectedPlantForDetail?.id ?: "",
                     currentUser = existingProfile,
                     currentUserId = user?.uid ?: "",
-                    onBack = { navigateBack() }
+                    onBack = { navigateBack() },
+                    // NEW: pass callback
+                    onSaveNotification = onSaveNotification
                 )
 
                 AppScreen.DirectChatList -> DirectChatListScreen(
@@ -512,7 +519,9 @@ fun TurnoshospiApp(
                     currentUserId = user?.uid ?: "",
                     otherUserId = selectedDirectChatUserId,
                     otherUserName = selectedDirectChatUserName,
-                    onBack = { navigateBack() }
+                    onBack = { navigateBack() },
+                    // NEW: pass callback
+                    onSaveNotification = onSaveNotification
                 )
             }
         }
@@ -828,7 +837,8 @@ fun SplashLoginPreview() {
             onFetchColleagues = { _, _, _, _ -> },
             onSignOut = {},
             onDeleteAccount = {},
-            onDeletePlant = {}
+            onDeletePlant = {},
+            onSaveNotification = { _, _, _, _, _, _ -> }
         )
     }
 }

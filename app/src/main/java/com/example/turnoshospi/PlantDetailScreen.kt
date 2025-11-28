@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -34,7 +35,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.AlertDialog
@@ -42,6 +45,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -52,6 +57,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
@@ -131,6 +137,7 @@ fun PlantDetailScreen(
     onOpenShiftChange: () -> Unit
 ) {
     var isMenuOpen by remember { mutableStateOf(false) }
+    var showVacationDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val database = remember {
         FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
@@ -332,6 +339,7 @@ fun PlantDetailScreen(
             }
         }
 
+        // --- MENU LATERAL (DRAWER) ---
         AnimatedVisibility(
             visible = isMenuOpen,
             enter = slideInHorizontally { -it } + fadeIn(),
@@ -374,6 +382,19 @@ fun PlantDetailScreen(
                             label = { Text("Importar Turnos", color = Color.White) },
                             selected = false,
                             onClick = { isMenuOpen = false; onOpenImportShifts() },
+                            colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
+                        )
+                    }
+
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.2f), modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp))
+
+                    // --- NEW: OPCIÓN DE VACACIONES ---
+                    if (currentMembership?.staffId != null) {
+                        NavigationDrawerItem(
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            label = { Text("Días de Vacaciones", color = Color(0xFFE91E63), fontWeight = FontWeight.Bold) },
+                            selected = false,
+                            onClick = { isMenuOpen = false; showVacationDialog = true },
                             colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
                         )
                     }
@@ -457,10 +478,163 @@ fun PlantDetailScreen(
             onSaveEdit = { editedMember, callback -> onEditStaff(plant.id, editedMember, callback) }
         )
     }
+
+    // --- NEW: DIALOG DE DÍAS DE VACACIONES ---
+    if (showVacationDialog && plant != null && currentMembership?.staffId != null) {
+        VacationDaysDialog(
+            onDismiss = { showVacationDialog = false },
+            onConfirm = { dates ->
+                saveVacationDaysToFirebase(
+                    context = context,
+                    plantId = plant.id,
+                    staffId = currentMembership.staffId,
+                    staffName = currentMembership.staffName ?: currentUserProfile?.firstName.orEmpty(),
+                    dates = dates
+                )
+                showVacationDialog = false
+            }
+        )
+    }
 }
 
 // -----------------------------------------------------------------------------
-// PANTALLA DE IMPORTACIÓN Y LÓGICA
+// LÓGICA DE PERSISTENCIA DE VACACIONES
+// -----------------------------------------------------------------------------
+
+private fun saveVacationDaysToFirebase(
+    context: Context,
+    plantId: String,
+    staffId: String,
+    staffName: String,
+    dates: List<String>
+) {
+    if (dates.isEmpty()) {
+        Toast.makeText(context, "No se seleccionó ninguna fecha.", Toast.LENGTH_SHORT).show()
+        return
+    }
+
+    val database = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
+    val updates = mutableMapOf<String, Any?>()
+
+    // Estructura de turno especial para "Vacaciones" (usando el slot de Nurse, que es el que se chequea)
+    val vacationAssignment = mapOf(
+        "nurses" to listOf(mapOf(
+            "halfDay" to false,
+            "primary" to staffName,
+            "secondary" to "",
+            "primaryLabel" to "Vacaciones",
+            "secondaryLabel" to ""
+        )),
+        // Borramos todas las demás asignaciones de ese día (si existen) para evitar conflictos.
+        "auxiliaries" to emptyList<Any>()
+    )
+
+    dates.forEach { dateKey ->
+        // La clave del turno es "Vacaciones". Esto será leído por listenToUserShifts en MainMenuScreen
+        updates["plants/$plantId/turnos/turnos-$dateKey/Vacaciones"] = vacationAssignment
+    }
+
+    database.reference.updateChildren(updates)
+        .addOnSuccessListener {
+            Toast.makeText(context, "Días de vacaciones guardados.", Toast.LENGTH_LONG).show()
+        }
+        .addOnFailureListener {
+            Toast.makeText(context, "Error al guardar vacaciones: ${it.message}", Toast.LENGTH_LONG).show()
+        }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun VacationDaysDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (List<String>) -> Unit
+) {
+    val offeredDates = remember { mutableStateListOf<String>() }
+    var showDatePicker by remember { mutableStateOf(false) }
+    // Inicializa el selector para que empiece en mañana
+    val initialDate = LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+    val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialDate)
+
+    val context = LocalContext.current
+
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        val date = Instant.ofEpochMilli(millis).atZone(ZoneId.of("UTC")).toLocalDate()
+                        val dateStr = date.toString()
+                        if (date.isBefore(LocalDate.now())) {
+                            Toast.makeText(context, "No puedes seleccionar días pasados.", Toast.LENGTH_SHORT).show()
+                            return@TextButton
+                        }
+                        if (dateStr !in offeredDates) {
+                            offeredDates.add(dateStr)
+                            offeredDates.sortBy { it }
+                        }
+                    }
+                    showDatePicker = false
+                }) { Text("Añadir") }
+            },
+            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Cancelar") } }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Seleccionar Días de Vacaciones") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Selecciona los días que estarás de vacaciones:", color = Color.White)
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = Color.White.copy(0.1f))
+
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    if (offeredDates.isEmpty()) {
+                        Text("No se han seleccionado días.", color = Color.Gray)
+                    } else {
+                        offeredDates.forEach { date ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth().background(Color(0x22FFFFFF), RoundedCornerShape(4.dp)).padding(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
+                                Text(date, color = Color.White, modifier = Modifier.weight(1f))
+                                Icon(Icons.Default.Close, "Eliminar", tint = Color(0xFFFFB4AB), modifier = Modifier.clickable { offeredDates.remove(date) }.size(16.dp))
+                            }
+                        }
+                    }
+                }
+
+                // CORREGIDO: Uso correcto de OutlinedButton
+                OutlinedButton(onClick = { showDatePicker = true }, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.Add, null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Añadir día")
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onConfirm(offeredDates.toList()) },
+                enabled = offeredDates.isNotEmpty(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E63), contentColor = Color.White)
+            ) {
+                // CORREGIDO: Uso correcto de size para mostrar el conteo
+                Text("Confirmar (${offeredDates.size} días)")
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
+        containerColor = Color(0xFF0F172A),
+        titleContentColor = Color.White,
+        textContentColor = Color.White
+    )
+}
+
+// -----------------------------------------------------------------------------
+// RESTO DE FUNCIONES DEL ARCHIVO (Sin Cambios Lógicos)
 // -----------------------------------------------------------------------------
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -756,7 +930,7 @@ fun PlantCalendar(selectedDate: LocalDate?, onDateSelected: (LocalDate) -> Unit)
                                 modifier = Modifier
                                     .weight(1f).height(48.dp).padding(2.dp)
                                     .background(if (isSelected) Color(0xFF54C7EC) else Color.Transparent, CircleShape)
-                                    .border(if (isSelected) 0.dp else 1.dp, if (isSelected) Color.Transparent else Color.White.copy(alpha = 0.1f), CircleShape)
+                                    .border(if (isSelected) 0.dp else 1.dp, if (isSelected) Color.White.copy(alpha = 0.1f) else Color.White.copy(alpha = 0.1f), CircleShape)
                                     .clickable { onDateSelected(date) },
                                 contentAlignment = Alignment.Center
                             ) {
@@ -995,7 +1169,7 @@ private fun StaffDropdownField(modifier: Modifier = Modifier, label: String, sel
     Box(modifier = modifier) {
         OutlinedTextField(
             value = display, onValueChange = {}, readOnly = true, enabled = enabled, label = { Text(label) },
-            trailingIcon = { IconButton(onClick = { if (enabled) expanded = !expanded }) { Icon(Icons.Filled.ArrowDropDown, null, Modifier.rotate(if (expanded) 180f else 0f)) } },
+            trailingIcon = { IconButton(onClick = { if (enabled) expanded = !expanded }) { Icon(Icons.Filled.ArrowDropDown, null, Modifier.rotate(if (expanded) 180f else 0f) ) } },
             modifier = Modifier.fillMaxWidth().clickable(enabled = enabled, indication = null, interactionSource = remember { MutableInteractionSource() }) { expanded = !expanded },
             colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedBorderColor = Color(0xFF54C7EC), unfocusedBorderColor = Color(0x66FFFFFF))
         )

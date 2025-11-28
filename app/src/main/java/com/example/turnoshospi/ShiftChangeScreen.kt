@@ -94,7 +94,9 @@ fun ShiftChangeScreen(
     plantId: String,
     currentUser: UserProfile?,
     currentUserId: String,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    // NEW
+    onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf("Mis Turnos", "Solicitudes")
@@ -256,11 +258,12 @@ fun ShiftChangeScreen(
                     }
 
                     val reqId = database.getReference("plants/$plantId/shift_requests").push().key ?: UUID.randomUUID().toString()
+                    val requesterName = "${currentUser?.firstName} ${currentUser?.lastName}"
                     val newRequest = ShiftChangeRequest(
                         id = reqId,
                         plantId = plantId,
                         requesterId = currentUserId,
-                        requesterName = "${currentUser?.firstName} ${currentUser?.lastName}",
+                        requesterName = requesterName,
                         requesterRole = currentUser?.role ?: "",
                         originalDate = dateStr,
                         originalShift = shiftName,
@@ -271,6 +274,16 @@ fun ShiftChangeScreen(
                     database.getReference("plants/$plantId/shift_requests/$reqId").setValue(newRequest)
                         .addOnSuccessListener {
                             Toast.makeText(context, "Solicitud enviada correctamente", Toast.LENGTH_LONG).show()
+
+                            // NEW: Notificación de Solicitud de Aprobación al supervisor
+                            onSaveNotification(
+                                "SUPERVISOR_ID_PLACEHOLDER", // ID del supervisor
+                                "SHIFT_APPROVAL_REQUEST",
+                                "${requesterName} solicita librar el ${dateStr} (turno: ${shiftName}).",
+                                AppScreen.ShiftChange.name,
+                                reqId,
+                                {}
+                            )
                         }
                         .addOnFailureListener {
                             Toast.makeText(context, "Error al enviar: ${it.message}", Toast.LENGTH_SHORT).show()

@@ -80,7 +80,11 @@ class MainActivity : ComponentActivity() {
                     },
                     onSignOut = { signOut() },
                     onDeleteAccount = { deleteAccount() },
-                    onDeletePlant = { plantId -> deletePlant(plantId) }
+                    onDeletePlant = { plantId -> deletePlant(plantId) },
+                    // NEW: Callback para guardar notificaciones
+                    onSaveNotification = { userId, type, message, targetScreen, targetId, onResult ->
+                        saveNotification(userId, type, message, targetScreen, targetId, onResult)
+                    }
                 )
             }
         }
@@ -336,7 +340,19 @@ class MainActivity : ComponentActivity() {
 
                 realtimeDatabase.reference
                     .updateChildren(updates)
-                    .addOnSuccessListener { onResult(true, null) }
+                    .addOnSuccessListener {
+                        onResult(true, null)
+                        // NEW: Notificación de Asignación de Turno (Unión a planta)
+                        val joinMessage = getString(R.string.join_plant_success)
+                        saveNotification(
+                            user.uid,
+                            "PLANT_JOINED",
+                            "Te has unido a la planta con éxito. $joinMessage",
+                            AppScreen.MyPlant.name,
+                            cleanPlantId,
+                            {}
+                        )
+                    }
                     .addOnFailureListener {
                         onResult(false, getString(R.string.join_plant_error))
                     }
@@ -582,6 +598,40 @@ class MainActivity : ComponentActivity() {
             }
     }
 
+    private fun saveNotification(
+        userId: String,
+        type: String,
+        message: String,
+        targetScreen: String,
+        targetId: String?,
+        onResult: (Boolean) -> Unit
+    ) {
+        if (userId.isBlank() || userId == "GROUP_CHAT_FANOUT_ID" || userId == "SUPERVISOR_ID_PLACEHOLDER") {
+            // IDs de placeholder que requerirían lógica de servidor para expandir a múltiples usuarios
+            onResult(false)
+            return
+        }
+
+        val notificationRef = realtimeDatabase.getReference("user_notifications").child(userId).push()
+        val notificationId = notificationRef.key ?: run { onResult(false); return }
+
+        val notification = UserNotification(
+            id = notificationId,
+            type = type,
+            message = message,
+            targetScreen = targetScreen,
+            targetId = targetId,
+            isRead = false
+        )
+
+        notificationRef.setValue(notification)
+            .addOnSuccessListener { onResult(true) }
+            .addOnFailureListener {
+                authErrorMessage.value = "Error al guardar notificación: ${it.message}"
+                onResult(false)
+            }
+    }
+
     private fun formatAuthError(exception: Exception): String {
         return when (exception) {
             is FirebaseAuthWeakPasswordException -> "La contraseña es demasiado débil; debe tener al menos 6 caracteres"
@@ -612,6 +662,16 @@ data class UserProfile(
     val plantId: String? = null,
     val createdAt: Timestamp? = null,
     val updatedAt: Timestamp? = null
+)
+
+data class UserNotification(
+    val id: String = "",
+    val type: String = "", // e.g., "CHAT_DIRECT", "SHIFT_MATCH", "SHIFT_ASSIGNED"
+    val message: String = "",
+    val targetScreen: String = "", // e.g., "DirectChat", "ShiftChange"
+    val targetId: String? = null, // e.g., chatId, shiftRequestId, date
+    val timestamp: Long = System.currentTimeMillis(),
+    val isRead: Boolean = false
 )
 
 fun DataSnapshot.toUserProfile(fallbackEmail: String): UserProfile? {
@@ -698,10 +758,12 @@ fun MainActivityPreview() {
             onRegisterPlantStaff = { _, _, _ -> },
             onEditPlantStaff = { _, _, _ -> },
             onListenToShifts = { _, _, _ -> },
+            // CORREGIDO: Debe aceptar 4 argumentos (3 Strings + callback)
             onFetchColleagues = { _, _, _, _ -> },
             onSignOut = {},
             onDeleteAccount = {},
-            onDeletePlant = {}
+            onDeletePlant = {},
+            onSaveNotification = { _, _, _, _, _, _ -> }
         )
     }
 }

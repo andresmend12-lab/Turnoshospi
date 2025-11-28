@@ -60,7 +60,9 @@ fun GroupChatScreen(
     plantId: String,
     currentUser: UserProfile?,
     currentUserId: String,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    // NEW
+    onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit
 ) {
     val database = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
     val chatRef = database.getReference("plants").child(plantId).child("chat")
@@ -160,6 +162,16 @@ fun GroupChatScreen(
                             )
                             chatRef.child(msgId).setValue(newMsg)
                             textInput = ""
+
+                            // NEW: Notificación de Chat de Grupo (placeholder para fan-out)
+                            onSaveNotification(
+                                "GROUP_CHAT_FANOUT_ID",
+                                "CHAT_GROUP",
+                                "Nuevo mensaje de ${newMsg.senderName} en el chat de planta.",
+                                AppScreen.GroupChat.name,
+                                plantId,
+                                {}
+                            )
                         }
                     },
                     modifier = Modifier.padding(start = 8.dp)
