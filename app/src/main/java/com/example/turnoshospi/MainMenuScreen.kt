@@ -35,7 +35,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
@@ -272,12 +272,12 @@ fun MainMenuScreen(
                 onClick = onOpenDirectChats,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(24.dp),
+                    .padding(horizontal= 20.dp,vertical = 40.dp),
                 containerColor = Color(0xFF54C7EC),
-                contentColor = Color.Black,
+                contentColor = Color.White,
                 shape = CircleShape
             ) {
-                Icon(Icons.Default.Email, contentDescription = "Chats")
+                Icon(Icons.Default.Chat, contentDescription = "Chats")
             }
         }
     }
