@@ -13,7 +13,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.Composable // [NUEVO] Import necesario
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.tooling.preview.Preview // [NUEVO] Import necesario
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
@@ -973,6 +975,8 @@ fun MainActivityPreview() {
             user = null,
             errorMessage = null,
             onErrorDismiss = {},
+            pendingNavigation = null, // [NUEVO]
+            onNavigationHandled = {}, // [NUEVO]
             onLogin = { _, _, _ -> },
             onCreateAccount = { _, _, _ -> },
             onForgotPassword = { _, _ -> },
@@ -994,7 +998,6 @@ fun MainActivityPreview() {
             onMarkNotificationAsRead = { _, _ -> },
             onDeleteNotification = { _, _ -> },
             onClearAllNotifications = { _ -> },
-            // Simulamos el listener de contadores
             onListenToChatUnreadCounts = { _, _ -> }
         )
     }
