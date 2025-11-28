@@ -1,12 +1,17 @@
 package com.example.turnoshospi
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
 import com.google.firebase.FirebaseApp
@@ -24,6 +29,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseException
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.messaging.FirebaseMessaging
 import java.util.Date
 
 class MainActivity : ComponentActivity() {
@@ -31,6 +37,16 @@ class MainActivity : ComponentActivity() {
     private lateinit var realtimeDatabase: FirebaseDatabase
     private val currentUserState = mutableStateOf<FirebaseUser?>(null)
     private val authErrorMessage = mutableStateOf<String?>(null)
+
+    // Launcher para pedir permiso de notificación en Android 13+
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // Permiso concedido, podemos obtener el token
+            fetchAndSaveFCMToken()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -41,6 +57,11 @@ class MainActivity : ComponentActivity() {
         realtimeDatabase = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
         currentUserState.value = auth.currentUser
 
+        // Pedir permiso al arrancar si ya hay usuario logueado
+        if (currentUserState.value != null) {
+            askNotificationPermission()
+        }
+
         setContent {
             TurnoshospiTheme {
                 TurnoshospiApp(
@@ -48,7 +69,12 @@ class MainActivity : ComponentActivity() {
                     errorMessage = authErrorMessage.value,
                     onErrorDismiss = { authErrorMessage.value = null },
                     onLogin = { email, password, onResult ->
-                        signInWithEmail(email, password, onResult)
+                        signInWithEmail(email, password) { success ->
+                            if (success) {
+                                fetchAndSaveFCMToken() // Guardar token al login
+                            }
+                            onResult(success)
+                        }
                     },
                     onCreateAccount = { profile, password, onResult ->
                         createAccountWithEmail(profile, password, onResult)
@@ -80,7 +106,6 @@ class MainActivity : ComponentActivity() {
                     },
                     onSignOut = { signOut() },
                     onDeleteAccount = { deleteAccount() },
-                    // NEW: Callback para guardar notificaciones
                     onDeletePlant = { plantId -> deletePlant(plantId) },
                     onSaveNotification = { userId, type, message, targetScreen, targetId, onResult ->
                         saveNotification(userId, type, message, targetScreen, targetId, onResult)
@@ -89,6 +114,35 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    // --- LÓGICA DE PERMISOS Y TOKENS FCM ---
+
+    private fun askNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
+                PackageManager.PERMISSION_GRANTED
+            ) {
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                fetchAndSaveFCMToken()
+            }
+        } else {
+            fetchAndSaveFCMToken()
+        }
+    }
+
+    private fun fetchAndSaveFCMToken() {
+        val user = auth.currentUser ?: return
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!task.isSuccessful) return@addOnCompleteListener
+            val token = task.result
+
+            // Guardamos el token en el perfil del usuario
+            realtimeDatabase.getReference("users/${user.uid}/fcmToken").setValue(token)
+        }
+    }
+
+    // --- LÓGICA DE AUTENTICACIÓN ---
 
     private fun signInWithEmail(email: String, password: String, onResult: (Boolean) -> Unit) {
         authErrorMessage.value = null
@@ -117,6 +171,7 @@ class MainActivity : ComponentActivity() {
                 if (task.isSuccessful) {
                     currentUserState.value = auth.currentUser
                     saveUserProfile(profile) { success ->
+                        if (success) fetchAndSaveFCMToken() // Token también al crear cuenta
                         onResult(success)
                     }
                 } else {
@@ -142,6 +197,8 @@ class MainActivity : ComponentActivity() {
                 }
             }
     }
+
+    // --- LÓGICA DE PERFIL Y USUARIO ---
 
     private fun loadUserProfile(onResult: (UserProfile?) -> Unit) {
         val user = auth.currentUser ?: run {
@@ -225,6 +282,8 @@ class MainActivity : ComponentActivity() {
                 onResult(false)
             }
     }
+
+    // --- LÓGICA DE PLANTA ---
 
     private fun loadUserPlant(onResult: (Plant?, String?) -> Unit) {
         val user = auth.currentUser ?: run {
@@ -342,7 +401,7 @@ class MainActivity : ComponentActivity() {
                     .updateChildren(updates)
                     .addOnSuccessListener {
                         onResult(true, null)
-                        // NEW: Notificación de Asignación de Turno (Unión a planta)
+                        // Notificación de Asignación de Turno (Unión a planta)
                         val joinMessage = getString(R.string.join_plant_success)
                         saveNotification(
                             user.uid,
@@ -505,7 +564,7 @@ class MainActivity : ComponentActivity() {
         plantId: String,
         date: String,
         shiftName: String,
-        onResult: (List<Colleague>) -> Unit // AHORA DEVUELVE UNA LISTA DE COLLEAGUE
+        onResult: (List<Colleague>) -> Unit
     ) {
         realtimeDatabase.reference
             .child("plants")
@@ -598,6 +657,8 @@ class MainActivity : ComponentActivity() {
             }
     }
 
+    // --- SISTEMA DE NOTIFICACIONES ---
+
     private fun saveNotification(
         userId: String,
         type: String,
@@ -606,8 +667,11 @@ class MainActivity : ComponentActivity() {
         targetId: String?,
         onResult: (Boolean) -> Unit
     ) {
+        // Manejo de IDs de placeholder: Si es uno de estos, la app no hace nada en el cliente,
+        // asumiendo que el backend (Cloud Functions) manejará el "Fan-out" si es necesario.
+        // OJO: Para la asignación directa de turnos a UN usuario, PlantDetailScreen ahora pasa el staffId real,
+        // por lo que este bloque solo captura los casos de grupo masivo.
         if (userId.isBlank() || userId == "GROUP_CHAT_FANOUT_ID" || userId == "SUPERVISOR_ID_PLACEHOLDER" || userId == "SHIFT_STAFF_PLACEHOLDER") {
-            // IDs de placeholder que requerirían lógica de servidor para expandir a múltiples usuarios
             onResult(true)
             return
         }
@@ -647,6 +711,8 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+// --- MODELOS ---
 
 data class UserShift(
     val shiftName: String,

@@ -108,7 +108,6 @@ import java.util.UUID
 import com.google.firebase.auth.FirebaseAuth
 
 // Modelos de datos específicos de PlantDetailScreen, no definidos como 'private' para evitar duplicados
-// pero movidos fuera de la función PlantDetailScreen para que puedan ser accedidos.
 private class SlotAssignment(
     primaryName: String = "",
     secondaryName: String = "",
@@ -686,16 +685,23 @@ private fun saveShiftAssignments(
                 }
             }
 
+            // Mapear nombres a IDs de staff (RegisteredUser.id)
+            val staffIdMap = plantStaff.associateBy { it.name }
+
             staffNamesAssigned.forEach { staffName ->
-                // Usamos el placeholder SHIFT_STAFF_PLACEHOLDER para indicar al servidor que notifique a quien corresponda
-                onSaveNotification(
-                    "SHIFT_STAFF_PLACEHOLDER", // Notifica a todo el personal afectado (fan-out en servidor)
-                    "SHIFT_ASSIGNED_STAFF",
-                    "Tu turno para el $dateKey ha sido actualizado por el supervisor.",
-                    AppScreen.MainMenu.name, // Lleva al calendario
-                    dateKey,
-                    {}
-                )
+                val staffId = staffIdMap[staffName]?.id
+
+                // Usar staffId como identificador único para la notificación
+                if (staffId != null) {
+                    onSaveNotification(
+                        staffId, // Usamos el ID de staff (UUID) como target, no el placeholder
+                        "SHIFT_ASSIGNED_STAFF",
+                        "Tu turno para el $dateKey ha sido actualizado por el supervisor.",
+                        AppScreen.MainMenu.name, // Lleva al calendario
+                        dateKey,
+                        {}
+                    )
+                }
             }
         }
         .addOnFailureListener { onComplete(false) }
