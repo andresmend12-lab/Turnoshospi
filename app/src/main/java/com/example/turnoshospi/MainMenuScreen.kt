@@ -37,8 +37,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -95,7 +98,10 @@ fun MainMenuScreen(
     onListenToShifts: (String, String, (Map<String, UserShift>) -> Unit) -> Unit,
     onFetchColleagues: (String, String, String, (List<Colleague>) -> Unit) -> Unit,
     onSignOut: () -> Unit,
-    onOpenDirectChats: () -> Unit // Callback para abrir chats
+    onOpenDirectChats: () -> Unit, // Callback para abrir chats
+    // NUEVOS PARÁMETROS PARA NOTIFICACIONES
+    unreadNotificationsCount: Int,
+    onOpenNotifications: () -> Unit
 ) {
     var isMenuOpen by remember { mutableStateOf(false) }
     var userShifts by remember { mutableStateOf<Map<String, UserShift>>(emptyMap()) }
@@ -145,6 +151,7 @@ fun MainMenuScreen(
                     .padding(top = 16.dp, bottom = 12.dp),
                 contentAlignment = Alignment.Center
             ) {
+                // MENÚ LATERAL (IZQUIERDA)
                 IconButton(
                     modifier = Modifier.align(Alignment.CenterStart),
                     onClick = { isMenuOpen = true }
@@ -156,6 +163,7 @@ fun MainMenuScreen(
                     )
                 }
 
+                // TÍTULO BIENVENIDA (CENTRO)
                 Crossfade(targetState = displayName, animationSpec = tween(durationMillis = 600)) { name ->
                     Text(
                         text = stringResource(id = welcomeStringId, name),
@@ -165,6 +173,34 @@ fun MainMenuScreen(
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold
                     )
+                }
+
+                // NUEVO: CAMPANA DE NOTIFICACIONES (DERECHA)
+                IconButton(
+                    modifier = Modifier.align(Alignment.CenterEnd),
+                    onClick = onOpenNotifications
+                ) {
+                    BadgedBox(
+                        badge = {
+                            if (unreadNotificationsCount > 0) {
+                                Badge(
+                                    containerColor = Color(0xFFE91E63), // Color rojizo/rosa para destacar
+                                    contentColor = Color.White
+                                ) {
+                                    Text(
+                                        text = if (unreadNotificationsCount > 99) "99+" else unreadNotificationsCount.toString(),
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
+                                }
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Notifications,
+                            contentDescription = "Notificaciones",
+                            tint = Color.White
+                        )
+                    }
                 }
             }
 
@@ -182,7 +218,7 @@ fun MainMenuScreen(
                     plantId = userPlant?.id,
                     selectedDate = selectedDate,
                     selectedShift = selectedShift,
-                    colleagues = colleaguesList, // CORREGIDO
+                    colleagues = colleaguesList,
                     isLoadingColleagues = isLoadingColleagues,
                     onDayClick = { date, shift ->
                         if (userPlant != null && shift != null) {
@@ -632,7 +668,10 @@ fun MainMenuScreenPreview() {
             onListenToShifts = { _, _, _ -> },
             onFetchColleagues = { _, _, _, _ -> },
             onSignOut = {},
-            onOpenDirectChats = {}
+            onOpenDirectChats = {},
+            // VALORES DE PRUEBA
+            unreadNotificationsCount = 5,
+            onOpenNotifications = {}
         )
     }
 }

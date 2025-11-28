@@ -88,6 +88,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -105,9 +106,8 @@ import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 import java.util.UUID
-import com.google.firebase.auth.FirebaseAuth
 
-// Modelos de datos específicos de PlantDetailScreen, no definidos como 'private' para evitar duplicados
+// Modelos de datos específicos de PlantDetailScreen
 private class SlotAssignment(
     primaryName: String = "",
     secondaryName: String = "",
@@ -137,7 +137,6 @@ fun PlantDetailScreen(
     onOpenImportShifts: () -> Unit,
     onOpenChat: () -> Unit,
     onOpenShiftChange: () -> Unit,
-    // NUEVO ARGUMENTO
     onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit
 ) {
     var isMenuOpen by remember { mutableStateOf(false) }
@@ -151,7 +150,7 @@ fun PlantDetailScreen(
         Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
     }
 
-    // Permisos y Roles
+    // --- LÓGICA DE ROLES ---
     val supervisorRoles = listOf(
         stringResource(id = R.string.role_supervisor_male),
         stringResource(id = R.string.role_supervisor_female)
@@ -174,7 +173,7 @@ fun PlantDetailScreen(
         ?: currentUserProfile?.role
     val isSupervisor = resolvedRole in supervisorRoles
 
-    // Estados de datos
+    // --- ESTADOS DE DATOS ---
     val assignmentsByDate = remember(plant?.id) {
         mutableStateMapOf<String, MutableMap<String, ShiftAssignmentState>>()
     }
@@ -196,7 +195,29 @@ fun PlantDetailScreen(
         auxStaff.map { member -> member.displayName(auxRole) }.sorted()
     }
 
-    // Dialogs states
+    // --- MAPEO DE STAFF ID A USER ID (Para notificaciones) ---
+    val staffIdToUserIdMap = remember { mutableStateMapOf<String, String>() }
+
+    LaunchedEffect(plant?.id) {
+        if (plant?.id != null) {
+            database.reference.child("plants/${plant.id}/userPlants")
+                .addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        staffIdToUserIdMap.clear()
+                        for (userSnapshot in snapshot.children) {
+                            val userId = userSnapshot.key ?: continue
+                            val staffId = userSnapshot.child("staffId").value as? String
+                            if (staffId != null) {
+                                staffIdToUserIdMap[staffId] = userId
+                            }
+                        }
+                    }
+                    override fun onCancelled(error: DatabaseError) {}
+                })
+        }
+    }
+
+    // --- ESTADOS DIALOGOS ---
     var showAddStaffDialog by remember { mutableStateOf(false) }
     var isSavingStaff by remember { mutableStateOf(false) }
     var showStaffListDialog by remember { mutableStateOf(false) }
@@ -331,8 +352,9 @@ fun PlantDetailScreen(
                                     dateKey = dateKey,
                                     assignments = states,
                                     unassignedLabel = unassignedLabel,
-                                    plantStaff = plantStaff, // NEW
-                                    onSaveNotification = onSaveNotification // NEW
+                                    plantStaff = plantStaff,
+                                    staffIdToUserIdMap = staffIdToUserIdMap,
+                                    onSaveNotification = onSaveNotification
                                 ) { success ->
                                     if (success) savedAssignmentsByDate[dateKey] = true
                                 }
@@ -505,6 +527,98 @@ fun PlantDetailScreen(
 }
 
 // -----------------------------------------------------------------------------
+// LÓGICA DE PERSISTENCIA DE ASIGNACIÓN DE TURNOS CON NOTIFICACIONES
+// -----------------------------------------------------------------------------
+private fun saveShiftAssignments(
+    database: FirebaseDatabase,
+    plantId: String,
+    dateKey: String,
+    assignments: Map<String, ShiftAssignmentState>,
+    unassignedLabel: String,
+    plantStaff: Collection<RegisteredUser>,
+    staffIdToUserIdMap: Map<String, String>,
+    onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit,
+    onComplete: (Boolean) -> Unit
+) {
+    val turnosRef = database.reference.child("plants/$plantId/turnos/turnos-$dateKey")
+
+    // 1. LEER DATOS ANTIGUOS PARA COMPARAR
+    turnosRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        override fun onDataChange(snapshot: DataSnapshot) {
+            val oldNames = mutableSetOf<String>()
+            if (snapshot.exists()) {
+                snapshot.children.forEach { shiftSnapshot ->
+                    // Enfermeros
+                    shiftSnapshot.child("nurses").children.forEach { slot ->
+                        val p = slot.child("primary").value as? String
+                        val s = slot.child("secondary").value as? String
+                        if (!p.isNullOrBlank() && p != unassignedLabel) oldNames.add(p)
+                        if (!s.isNullOrBlank() && s != unassignedLabel) oldNames.add(s)
+                    }
+                    // Auxiliares
+                    shiftSnapshot.child("auxiliaries").children.forEach { slot ->
+                        val p = slot.child("primary").value as? String
+                        val s = slot.child("secondary").value as? String
+                        if (!p.isNullOrBlank() && p != unassignedLabel) oldNames.add(p)
+                        if (!s.isNullOrBlank() && s != unassignedLabel) oldNames.add(s)
+                    }
+                }
+            }
+
+            // 2. PREPARAR DATOS NUEVOS
+            val newNames = mutableSetOf<String>()
+            val payload = assignments.mapValues { (_, state) ->
+                val nurseList = state.nurseSlots.mapIndexed { i, s ->
+                    val map = s.toFirebaseMap(unassignedLabel, "enfermero${i + 1}")
+                    if (s.primaryName.isNotBlank() && s.primaryName != unassignedLabel) newNames.add(s.primaryName)
+                    if (s.hasHalfDay && s.secondaryName.isNotBlank() && s.secondaryName != unassignedLabel) newNames.add(s.secondaryName)
+                    map
+                }
+                val auxList = state.auxSlots.mapIndexed { i, s ->
+                    val map = s.toFirebaseMap(unassignedLabel, "auxiliar${i + 1}")
+                    if (s.primaryName.isNotBlank() && s.primaryName != unassignedLabel) newNames.add(s.primaryName)
+                    if (s.hasHalfDay && s.secondaryName.isNotBlank() && s.secondaryName != unassignedLabel) newNames.add(s.secondaryName)
+                    map
+                }
+                mapOf("nurses" to nurseList, "auxiliaries" to auxList)
+            }
+
+            // 3. GUARDAR
+            turnosRef.setValue(payload).addOnSuccessListener {
+                onComplete(true)
+
+                // 4. NOTIFICACIONES
+                val staffIdMap = plantStaff.associateBy { it.name }
+
+                // A. Desasignados (Estaban antes y ahora no)
+                val unassignedStaff = oldNames - newNames
+                unassignedStaff.forEach { name ->
+                    val staffId = staffIdMap[name]?.id
+                    val userId = staffId?.let { staffIdToUserIdMap[it] }
+                    if (userId != null) {
+                        onSaveNotification(userId, "SHIFT_UNASSIGNED", "Se te ha desasignado del turno el $dateKey.", AppScreen.MainMenu.name, dateKey, {})
+                    }
+                }
+
+                // B. Asignados/Actualizados (Están ahora)
+                newNames.forEach { name ->
+                    val staffId = staffIdMap[name]?.id
+                    val userId = staffId?.let { staffIdToUserIdMap[it] }
+                    if (userId != null) {
+                        onSaveNotification(userId, "SHIFT_ASSIGNED_STAFF", "Tu turno para el $dateKey ha sido actualizado por el supervisor.", AppScreen.MainMenu.name, dateKey, {})
+                    }
+                }
+
+            }.addOnFailureListener { onComplete(false) }
+        }
+
+        override fun onCancelled(error: DatabaseError) {
+            onComplete(false)
+        }
+    })
+}
+
+// -----------------------------------------------------------------------------
 // LÓGICA DE PERSISTENCIA DE VACACIONES
 // -----------------------------------------------------------------------------
 
@@ -524,7 +638,6 @@ private fun saveVacationDaysToFirebase(
     val database = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
     val updates = mutableMapOf<String, Any?>()
 
-    // Estructura de turno especial para "Vacaciones"
     val vacationAssignment = mapOf(
         "nurses" to listOf(mapOf(
             "halfDay" to false,
@@ -533,7 +646,6 @@ private fun saveVacationDaysToFirebase(
             "primaryLabel" to "Vacaciones",
             "secondaryLabel" to ""
         )),
-        // Borramos todas las demás asignaciones de ese día (si existen) para evitar conflictos.
         "auxiliaries" to emptyList<Any>()
     )
 
@@ -544,7 +656,6 @@ private fun saveVacationDaysToFirebase(
     database.reference.updateChildren(updates)
         .addOnSuccessListener {
             Toast.makeText(context, "Días de vacaciones guardados.", Toast.LENGTH_LONG).show()
-            // NEW: Notification for Vacation Saved
             dates.forEach { dateKey ->
                 onSaveNotification(
                     FirebaseAuth.getInstance().currentUser?.uid ?: "",
@@ -561,6 +672,10 @@ private fun saveVacationDaysToFirebase(
         }
 }
 
+// -----------------------------------------------------------------------------
+// DIÁLOGOS Y COMPONENTES AUXILIARES
+// -----------------------------------------------------------------------------
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun VacationDaysDialog(
@@ -569,10 +684,8 @@ private fun VacationDaysDialog(
 ) {
     val offeredDates = remember { mutableStateListOf<String>() }
     var showDatePicker by remember { mutableStateOf(false) }
-    // Inicializa el selector para que empiece en mañana
     val initialDate = LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
     val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialDate)
-
     val context = LocalContext.current
 
     if (showDatePicker) {
@@ -607,9 +720,7 @@ private fun VacationDaysDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("Selecciona los días que estarás de vacaciones:", color = Color.White)
-
                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = Color.White.copy(0.1f))
-
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     if (offeredDates.isEmpty()) {
                         Text("No se han seleccionado días.", color = Color.Gray)
@@ -625,7 +736,6 @@ private fun VacationDaysDialog(
                         }
                     }
                 }
-
                 OutlinedButton(onClick = { showDatePicker = true }, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Default.Add, null)
                     Spacer(Modifier.width(8.dp))
@@ -650,66 +760,7 @@ private fun VacationDaysDialog(
 }
 
 // -----------------------------------------------------------------------------
-// LÓGICA DE PERSISTENCIA DE ASIGNACIÓN DE TURNOS
-// -----------------------------------------------------------------------------
-private fun saveShiftAssignments(
-    database: FirebaseDatabase,
-    plantId: String,
-    dateKey: String,
-    assignments: Map<String, ShiftAssignmentState>,
-    unassignedLabel: String,
-    plantStaff: Collection<RegisteredUser>,
-    onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit,
-    onComplete: (Boolean) -> Unit
-) {
-    val payload = assignments.mapValues { (_, state) ->
-        mapOf(
-            "nurses" to state.nurseSlots.mapIndexed { i, s -> s.toFirebaseMap(unassignedLabel, "enfermero${i + 1}") },
-            "auxiliaries" to state.auxSlots.mapIndexed { i, s -> s.toFirebaseMap(unassignedLabel, "auxiliar${i + 1}") }
-        )
-    }
-    database.reference.child("plants/$plantId/turnos/turnos-$dateKey").setValue(payload)
-        .addOnSuccessListener {
-            onComplete(true)
-
-            // LÓGICA DE NOTIFICACIÓN: SHIFT_ASSIGNED_STAFF
-            val staffNamesAssigned = mutableSetOf<String>()
-            assignments.forEach { (_, state) ->
-                (state.nurseSlots + state.auxSlots).forEach { slot ->
-                    if (slot.primaryName.isNotBlank() && slot.primaryName != unassignedLabel) {
-                        staffNamesAssigned.add(slot.primaryName)
-                    }
-                    if (slot.hasHalfDay && slot.secondaryName.isNotBlank() && slot.secondaryName != unassignedLabel) {
-                        staffNamesAssigned.add(slot.secondaryName)
-                    }
-                }
-            }
-
-            // Mapear nombres a IDs de staff (RegisteredUser.id)
-            val staffIdMap = plantStaff.associateBy { it.name }
-
-            staffNamesAssigned.forEach { staffName ->
-                val staffId = staffIdMap[staffName]?.id
-
-                // Usar staffId como identificador único para la notificación
-                if (staffId != null) {
-                    onSaveNotification(
-                        staffId, // Usamos el ID de staff (UUID) como target, no el placeholder
-                        "SHIFT_ASSIGNED_STAFF",
-                        "Tu turno para el $dateKey ha sido actualizado por el supervisor.",
-                        AppScreen.MainMenu.name, // Lleva al calendario
-                        dateKey,
-                        {}
-                    )
-                }
-            }
-        }
-        .addOnFailureListener { onComplete(false) }
-}
-
-
-// -----------------------------------------------------------------------------
-// LÓGICA DE IMPORTACIÓN (Restaurada a la versión completa)
+// IMPORTACIÓN DE CSV
 // -----------------------------------------------------------------------------
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -723,7 +774,6 @@ fun ImportShiftsScreen(
     var importStatus by remember { mutableStateOf<String?>(null) }
     var isError by remember { mutableStateOf(false) }
 
-    // Launcher para seleccionar archivo CSV
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -737,7 +787,6 @@ fun ImportShiftsScreen(
             importStatus = "Procesando archivo..."
             isError = false
 
-            // Ejecutar la lógica de importación
             processCsvImport(context, it, plant) { success, message ->
                 isImporting = false
                 isError = !success
@@ -783,7 +832,6 @@ fun ImportShiftsScreen(
                 ) {
                     Text("Opciones de importación", style = MaterialTheme.typography.titleMedium, color = Color.White)
 
-                    // Botón Descargar Plantilla
                     Button(
                         onClick = { copyTemplateToDownloads(context) },
                         modifier = Modifier.fillMaxWidth(),
@@ -794,11 +842,10 @@ fun ImportShiftsScreen(
 
                     HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
 
-                    // Botón Importar Turnos
                     Button(
                         onClick = {
                             importStatus = null
-                            launcher.launch("text/*") // Abre selector de archivos
+                            launcher.launch("text/*")
                         },
                         enabled = !isImporting,
                         modifier = Modifier.fillMaxWidth(),
@@ -807,7 +854,6 @@ fun ImportShiftsScreen(
                         Text(if (isImporting) "Importando..." else "Importar turnos")
                     }
 
-                    // Mensajes de estado
                     if (importStatus != null) {
                         Text(
                             text = importStatus.orEmpty(),
@@ -821,7 +867,6 @@ fun ImportShiftsScreen(
     }
 }
 
-// Función Lógica de Importación
 private fun processCsvImport(
     context: Context,
     uri: Uri,
@@ -839,16 +884,14 @@ private fun processCsvImport(
             return
         }
 
-        // Estructura temporal para agrupar datos: Date -> ShiftName -> Lists
         val updatesByDate = mutableMapOf<String, MutableMap<String, ShiftAssignmentState>>()
         val database = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
         val staffNames = plant.personal_de_planta.values.map { it.name.trim().lowercase() }.toSet()
         val validShifts = plant.shiftTimes.keys
 
-        // Saltamos cabecera (índice 0) y leemos filas
         for ((index, line) in lines.drop(1).withIndex()) {
             if (line.isBlank()) continue
-            val rowNum = index + 2 // +2 por header y 0-based
+            val rowNum = index + 2
             val cols = line.split(",").map { it.trim() }
 
             if (cols.size < 4) {
@@ -863,21 +906,18 @@ private fun processCsvImport(
             val isHalfDay = if (cols.size > 4) cols[4].equals("Sí", ignoreCase = true) || cols[4].equals("Si", ignoreCase = true) || cols[4].equals("True", ignoreCase = true) else false
             val secondaryName = if (cols.size > 5) cols[5] else ""
 
-            // 1. Validar Fecha
             try {
-                LocalDate.parse(dateStr) // Valida formato YYYY-MM-DD
+                LocalDate.parse(dateStr)
             } catch (e: Exception) {
                 onResult(false, "Error en fila $rowNum: Fecha inválida ($dateStr). Usa AAAA-MM-DD.")
                 return
             }
 
-            // 2. Validar Turno
             if (shiftName !in validShifts) {
                 onResult(false, "Error en fila $rowNum: El turno '$shiftName' no existe en esta planta.")
                 return
             }
 
-            // 3. Validar Rol
             val isNurse = role.contains("Enfermero", ignoreCase = true)
             val isAux = role.contains("Auxiliar", ignoreCase = true)
             if (!isNurse && !isAux) {
@@ -885,7 +925,6 @@ private fun processCsvImport(
                 return
             }
 
-            // 4. Validar Nombres
             if (primaryName.isNotBlank() && primaryName.lowercase() !in staffNames) {
                 onResult(false, "Error en fila $rowNum: '$primaryName' no está registrado en el personal de la planta.")
                 return
@@ -895,7 +934,6 @@ private fun processCsvImport(
                 return
             }
 
-            // Agrupación
             val dateAssignments = updatesByDate.getOrPut(dateStr) { mutableMapOf() }
             val shiftState = dateAssignments.getOrPut(shiftName) {
                 ShiftAssignmentState(mutableListOf(), mutableListOf())
@@ -909,7 +947,6 @@ private fun processCsvImport(
             }
         }
 
-        // Si llegamos aquí, la validación pasó. Guardamos en Firebase.
         val updates = mutableMapOf<String, Any>()
         updatesByDate.forEach { (dateKey, shiftsMap) ->
             val datePayload = shiftsMap.mapValues { (_, state) ->
@@ -935,7 +972,6 @@ private fun processCsvImport(
     }
 }
 
-// Función auxiliar para copiar el archivo desde assets a Descargas
 private fun copyTemplateToDownloads(context: Context) {
     val fileName = "plantilla_importacion_turnos.csv"
     try {
@@ -951,7 +987,7 @@ private fun copyTemplateToDownloads(context: Context) {
 }
 
 // -----------------------------------------------------------------------------
-// COMPONENTES EXISTENTES Y HELPERS
+// COMPONENTES UI
 // -----------------------------------------------------------------------------
 
 @Composable
@@ -1041,7 +1077,13 @@ fun formatPlantDate(date: LocalDate): String {
 }
 
 @Composable
-private fun StaffListDialog(plantName: String, staff: List<RegisteredUser>, isSupervisor: Boolean, onDismiss: () -> Unit, onSaveEdit: (RegisteredUser, (Boolean) -> Unit) -> Unit) {
+private fun StaffListDialog(
+    plantName: String,
+    staff: List<RegisteredUser>,
+    isSupervisor: Boolean,
+    onDismiss: () -> Unit,
+    onSaveEdit: (RegisteredUser, (Boolean) -> Unit) -> Unit
+) {
     val sortedStaff = remember(staff) { staff.sortedBy { it.name.lowercase() } }
     var memberInEdition by remember { mutableStateOf<RegisteredUser?>(null) }
 
@@ -1104,7 +1146,6 @@ private fun ShiftAssignmentsSection(
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(stringResource(id = R.string.plant_shifts_for_date, selectedDateLabel), color = Color.White, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
-        // Ordenar turnos
         val preferredOrder = if (plant.shiftDuration == stringResource(id = R.string.shift_duration_8h))
             listOf(stringResource(id = R.string.shift_morning), stringResource(id = R.string.shift_afternoon), stringResource(id = R.string.shift_night))
         else listOf(stringResource(id = R.string.shift_day), stringResource(id = R.string.shift_night))
@@ -1198,7 +1239,18 @@ private fun ReadOnlyAssignmentRow(label: String, halfDayLabel: String, slot: Slo
 }
 
 @Composable
-private fun AddStaffDialog(staffName: String, onStaffNameChange: (String) -> Unit, staffRole: String, onStaffRoleChange: (String) -> Unit, isSaving: Boolean, errorMessage: String?, title: String = stringResource(id = R.string.staff_dialog_title), confirmButtonText: String = stringResource(id = R.string.staff_dialog_save_action), onDismiss: () -> Unit, onConfirm: () -> Unit) {
+private fun AddStaffDialog(
+    staffName: String,
+    onStaffNameChange: (String) -> Unit,
+    staffRole: String,
+    onStaffRoleChange: (String) -> Unit,
+    isSaving: Boolean,
+    errorMessage: String?,
+    title: String = stringResource(id = R.string.staff_dialog_title),
+    confirmButtonText: String = stringResource(id = R.string.staff_dialog_save_action),
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
     val roles = listOf(stringResource(id = R.string.role_nurse_generic), stringResource(id = R.string.role_aux_generic))
     AlertDialog(
         onDismissRequest = onDismiss,

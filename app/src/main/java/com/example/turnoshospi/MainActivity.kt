@@ -108,13 +108,26 @@ class MainActivity : ComponentActivity() {
                     onDeletePlant = { plantId -> deletePlant(plantId) },
                     onSaveNotification = { userId, type, message, targetScreen, targetId, onResult ->
                         saveNotification(userId, type, message, targetScreen, targetId, onResult)
+                    },
+                    onListenToNotifications = { userId, onResult ->
+                        listenToUserNotifications(userId, onResult)
+                    },
+                    onMarkNotificationAsRead = { userId, notifId ->
+                        markNotificationAsRead(userId, notifId)
+                    },
+                    // NUEVOS CALLBACKS PARA BORRAR
+                    onDeleteNotification = { userId, notifId ->
+                        deleteUserNotification(userId, notifId)
+                    },
+                    onClearAllNotifications = { userId ->
+                        deleteAllUserNotifications(userId)
                     }
                 )
             }
         }
     }
 
-    // --- LÓGICA DE PERMISOS Y TOKENS FCM (VERSIÓN DIAGNÓSTICO) ---
+    // --- LÓGICA DE PERMISOS Y TOKENS FCM ---
 
     private fun askNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -142,19 +155,15 @@ class MainActivity : ComponentActivity() {
                 Log.e("FCM_DEBUG", "Falló la obtención del token FCM", task.exception)
                 return@addOnCompleteListener
             }
-
-            // Obtener el nuevo token FCM
             val token = task.result
             Log.d("FCM_DEBUG", "Token obtenido con éxito: $token")
 
-            // Guardar en Firebase
             realtimeDatabase.getReference("users/${user.uid}/fcmToken").setValue(token)
                 .addOnSuccessListener {
                     Log.d("FCM_DEBUG", "Token guardado en Base de Datos correctamente.")
                 }
                 .addOnFailureListener { e ->
                     Log.e("FCM_DEBUG", "Error al guardar token en BD: ${e.message}")
-                    Toast.makeText(this, "Error guardando token: ${e.message}", Toast.LENGTH_LONG).show()
                 }
         }
     }
@@ -167,7 +176,6 @@ class MainActivity : ComponentActivity() {
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     currentUserState.value = auth.currentUser
-                    // Intentamos guardar el token al iniciar sesión
                     fetchAndSaveFCMToken()
                     onResult(true)
                 } else {
@@ -191,7 +199,6 @@ class MainActivity : ComponentActivity() {
                     currentUserState.value = auth.currentUser
                     saveUserProfile(profile) { success ->
                         if (success) {
-                            // Intentamos guardar el token al crear cuenta
                             fetchAndSaveFCMToken()
                         }
                         onResult(success)
@@ -705,6 +712,54 @@ class MainActivity : ComponentActivity() {
             }
     }
 
+    // --- FUNCIONES PARA NOTIFICACIONES ---
+
+    private fun listenToUserNotifications(
+        userId: String,
+        onResult: (List<UserNotification>) -> Unit
+    ) {
+        realtimeDatabase.getReference("user_notifications")
+            .child(userId)
+            .orderByChild("timestamp")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val notifications = mutableListOf<UserNotification>()
+                    for (child in snapshot.children) {
+                        val notif = child.getValue(UserNotification::class.java)
+                        if (notif != null) {
+                            notifications.add(notif)
+                        }
+                    }
+                    onResult(notifications.reversed())
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    onResult(emptyList())
+                }
+            })
+    }
+
+    private fun markNotificationAsRead(userId: String, notificationId: String) {
+        realtimeDatabase.getReference("user_notifications")
+            .child(userId)
+            .child(notificationId)
+            .child("isRead")
+            .setValue(true)
+    }
+
+    private fun deleteUserNotification(userId: String, notificationId: String) {
+        realtimeDatabase.getReference("user_notifications")
+            .child(userId)
+            .child(notificationId)
+            .removeValue()
+    }
+
+    private fun deleteAllUserNotifications(userId: String) {
+        realtimeDatabase.getReference("user_notifications")
+            .child(userId)
+            .removeValue()
+    }
+
     private fun formatAuthError(exception: Exception): String {
         return when (exception) {
             is FirebaseAuthWeakPasswordException -> "La contraseña es demasiado débil; debe tener al menos 6 caracteres"
@@ -837,7 +892,11 @@ fun MainActivityPreview() {
             onSignOut = {},
             onDeleteAccount = {},
             onDeletePlant = {},
-            onSaveNotification = { _, _, _, _, _, _ -> }
+            onSaveNotification = { _, _, _, _, _, _ -> },
+            onListenToNotifications = { _, _ -> },
+            onMarkNotificationAsRead = { _, _ -> },
+            onDeleteNotification = { _, _ -> },
+            onClearAllNotifications = { _ -> }
         )
     }
 }

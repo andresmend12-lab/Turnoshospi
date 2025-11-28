@@ -74,7 +74,8 @@ enum class AppScreen {
     GroupChat,
     ShiftChange,
     DirectChatList,
-    DirectChat
+    DirectChat,
+    Notifications
 }
 
 data class Colleague(
@@ -104,8 +105,11 @@ fun TurnoshospiApp(
     onSignOut: () -> Unit,
     onDeleteAccount: () -> Unit,
     onDeletePlant: (String) -> Unit,
-    // NEW: Callback para guardar notificaciones
-    onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit
+    onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit,
+    onListenToNotifications: (String, (List<UserNotification>) -> Unit) -> Unit,
+    onMarkNotificationAsRead: (String, String) -> Unit,
+    onDeleteNotification: (String, String) -> Unit,
+    onClearAllNotifications: (String) -> Unit
 ) {
     var showLogin by remember { mutableStateOf(true) }
     var showRegistration by remember { mutableStateOf(false) }
@@ -133,6 +137,12 @@ fun TurnoshospiApp(
     var selectedDirectChatUserId by remember { mutableStateOf("") }
     var selectedDirectChatUserName by remember { mutableStateOf("") }
 
+    // Estado para notificaciones
+    var userNotifications by remember { mutableStateOf<List<UserNotification>>(emptyList()) }
+    val unreadNotificationsCount = remember(userNotifications) {
+        userNotifications.count { !it.isRead }
+    }
+
     val coroutineScope = rememberCoroutineScope()
 
     val todayMillis = remember {
@@ -153,8 +163,6 @@ fun TurnoshospiApp(
     }
 
     // --- Manejo del botón atrás físico ---
-    // 1. Si estamos en registro (login), volver al login.
-    // 2. Si estamos dentro de la app y hay historial, volver atrás.
     BackHandler(enabled = (user == null && showRegistration) || (user != null && backStack.isNotEmpty())) {
         if (user == null && showRegistration) {
             showRegistration = false
@@ -205,6 +213,12 @@ fun TurnoshospiApp(
                 existingProfile = profile
                 isLoadingProfile = false
             }
+
+            // Escuchar notificaciones del usuario
+            onListenToNotifications(user.uid) { notifications ->
+                userNotifications = notifications
+            }
+
             refreshUserPlant()
         } else {
             existingProfile = null
@@ -217,6 +231,7 @@ fun TurnoshospiApp(
             isLoadingMembership = false
             currentScreen = AppScreen.MainMenu
             backStack.clear()
+            userNotifications = emptyList()
         }
     }
 
@@ -355,15 +370,15 @@ fun TurnoshospiApp(
                             selectedPlantForDetail = userPlant
                             navigateTo(AppScreen.DirectChatList)
                         }
-                    }
+                    },
+                    unreadNotificationsCount = unreadNotificationsCount,
+                    onOpenNotifications = { navigateTo(AppScreen.Notifications) }
                 )
 
                 AppScreen.CreatePlant -> PlantCreationScreen(
                     onBack = { navigateBack() },
                     onPlantCreated = { credentials ->
                         lastCreatedPlantCredentials = credentials
-                        // Al ir a la pantalla de éxito, no queremos volver al formulario
-                        // Así que usamos navigateTo, pero luego gestionamos la salida
                         navigateTo(AppScreen.PlantCreated)
                     },
                     currentUserId = user?.uid,
@@ -373,7 +388,6 @@ fun TurnoshospiApp(
                 AppScreen.PlantCreated -> PlantCreatedScreen(
                     credentials = lastCreatedPlantCredentials,
                     onBackToMenu = {
-                        // Limpiar pila hasta el inicio
                         backStack.clear()
                         currentScreen = AppScreen.MainMenu
                     }
@@ -389,7 +403,6 @@ fun TurnoshospiApp(
                     errorMessage = plantError,
                     isLinkingStaff = isLinkingStaff,
                     onBack = { navigateBack() },
-                    // CORREGIDO: Llamar a la función local refreshUserPlant
                     onRefresh = { refreshUserPlant() },
                     onOpenPlantDetail = { plant ->
                         selectedPlantForDetail = plant
@@ -458,7 +471,6 @@ fun TurnoshospiApp(
                     onOpenImportShifts = { navigateTo(AppScreen.ImportShifts) },
                     onOpenChat = { navigateTo(AppScreen.GroupChat) },
                     onOpenShiftChange = { navigateTo(AppScreen.ShiftChange) },
-                    // NEW: pass callback
                     onSaveNotification = onSaveNotification
                 )
                 AppScreen.Settings -> SettingsScreen(
@@ -472,8 +484,6 @@ fun TurnoshospiApp(
                     onDeletePlant = { plantId ->
                         onDeletePlant(plantId)
                         refreshUserPlant()
-                        // Al borrar, volvemos a la pantalla de "Mi Planta" (o MainMenu si se prefiere)
-                        // Limpiamos la pila de detalles
                         while(backStack.isNotEmpty() && backStack.last() != AppScreen.MyPlant && backStack.last() != AppScreen.MainMenu) {
                             backStack.removeLast()
                         }
@@ -492,7 +502,6 @@ fun TurnoshospiApp(
                     currentUser = existingProfile,
                     currentUserId = user?.uid ?: "",
                     onBack = { navigateBack() },
-                    // NEW: pass callback
                     onSaveNotification = onSaveNotification
                 )
 
@@ -501,7 +510,6 @@ fun TurnoshospiApp(
                     currentUser = existingProfile,
                     currentUserId = user?.uid ?: "",
                     onBack = { navigateBack() },
-                    // NEW: pass callback
                     onSaveNotification = onSaveNotification
                 )
 
@@ -522,8 +530,21 @@ fun TurnoshospiApp(
                     otherUserId = selectedDirectChatUserId,
                     otherUserName = selectedDirectChatUserName,
                     onBack = { navigateBack() },
-                    // NEW: pass callback
                     onSaveNotification = onSaveNotification
+                )
+
+                AppScreen.Notifications -> NotificationsScreen(
+                    notifications = userNotifications,
+                    onBack = { navigateBack() },
+                    onMarkAsRead = { notifId ->
+                        user?.uid?.let { uid -> onMarkNotificationAsRead(uid, notifId) }
+                    },
+                    onDelete = { notifId ->
+                        user?.uid?.let { uid -> onDeleteNotification(uid, notifId) }
+                    },
+                    onDeleteAll = {
+                        user?.uid?.let { uid -> onClearAllNotifications(uid) }
+                    }
                 )
             }
         }
@@ -815,7 +836,6 @@ fun PlantSettingsScreen(
     }
 }
 
-
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun SplashLoginPreview() {
@@ -840,7 +860,11 @@ fun SplashLoginPreview() {
             onSignOut = {},
             onDeleteAccount = {},
             onDeletePlant = {},
-            onSaveNotification = { _, _, _, _, _, _ -> }
+            onSaveNotification = { _, _, _, _, _, _ -> },
+            onListenToNotifications = { _, _ -> },
+            onMarkNotificationAsRead = { _, _ -> },
+            onDeleteNotification = { _, _ -> },
+            onClearAllNotifications = { _ -> }
         )
     }
 }
