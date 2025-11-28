@@ -9,7 +9,7 @@ exports.sendNotification = functions.database.ref('/user_notifications/{userId}/
 
         console.log('Nueva notificacion para:', userId);
 
-        // 1. Obtener el token
+        // 1. Obtener el token del usuario
         const userSnapshot = await admin.database().ref(`/users/${userId}/fcmToken`).once('value');
         const fcmToken = userSnapshot.val();
 
@@ -18,25 +18,26 @@ exports.sendNotification = functions.database.ref('/user_notifications/{userId}/
             return null;
         }
 
-        // 2. Construir el mensaje con la NUEVA ESTRUCTURA (API v1)
-        // Ya no se usa "payload" genérico, sino bloques específicos (android, apns...)
+        // 2. Construir el mensaje con la NUEVA ESTRUCTURA (API HTTP v1)
+        // Esta estructura es obligatoria para las versiones nuevas de firebase-admin
         const message = {
-            token: fcmToken, // El token va aquí dentro ahora
+            token: fcmToken, // El token ahora va dentro del objeto mensaje
             notification: {
                 title: "Turnoshospi",
                 body: notification.message
             },
-            // Configuración específica de Android
+            // Configuración específica para Android
             android: {
-                priority: "high", // Para despertar al móvil en Doze mode
+                priority: "high", // Para despertar el móvil si está en reposo (Doze)
                 notification: {
-                    channelId: "turnoshospi_sound_v2", // IMPORTANTE: camelCase (channelId, no android_channel_id)
+                    channelId: "turnoshospi_sound_v2", // El canal con sonido que configuramos en la App
                     sound: "default",
                     priority: "high", // Prioridad visual máxima
-                    defaultSound: true
+                    defaultSound: true,
+                    icon: "ic_logo_hospi_round" // Asegúrate de que este recurso existe, si no, usa 'default'
                 }
             },
-            // Datos personalizados
+            // Datos adicionales para la navegación
             data: {
                 screen: notification.targetScreen || "MainMenu",
                 targetId: notification.targetId || "",
@@ -45,7 +46,7 @@ exports.sendNotification = functions.database.ref('/user_notifications/{userId}/
         };
 
         try {
-            // 3. Usar el nuevo método .send()
+            // 3. Usar el nuevo método .send() en lugar de sendToDevice()
             const response = await admin.messaging().send(message);
             console.log('Mensaje enviado con éxito:', response);
             return response;
