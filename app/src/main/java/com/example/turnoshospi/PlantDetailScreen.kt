@@ -39,9 +39,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -139,6 +141,8 @@ fun PlantDetailScreen(
     onOpenImportShifts: () -> Unit,
     onOpenChat: () -> Unit,
     onOpenShiftChange: () -> Unit,
+    onOpenShiftMarketplace: () -> Unit,
+    onOpenStatistics: () -> Unit,
     onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit
 ) {
     var isMenuOpen by remember { mutableStateOf(false) }
@@ -470,6 +474,43 @@ fun PlantDetailScreen(
                         onClick = {
                             isMenuOpen = false
                             onOpenShiftChange()
+                        },
+                        colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
+                    )
+
+                    // --- BOLSA DE TURNOS ---
+                    NavigationDrawerItem(
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                        label = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.Star, null, tint = Color(0xFFFFC107), modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text("Bolsa de Turnos", color = Color.White)
+                            }
+                        },
+                        selected = false,
+                        onClick = {
+                            isMenuOpen = false
+                            onOpenShiftMarketplace()
+                        },
+                        colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
+                    )
+
+                    // --- OPCIÓN ESTADÍSTICAS ---
+                    NavigationDrawerItem(
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                        label = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                // Se usa DateRange como icono por defecto para estadísticas si BarChart no está disponible en la dependencia básica
+                                Icon(Icons.Default.DateRange, null, modifier = Modifier.size(18.dp), tint = Color(0xFF54C7EC))
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text("Estadísticas", color = Color.White)
+                            }
+                        },
+                        selected = false,
+                        onClick = {
+                            isMenuOpen = false
+                            onOpenStatistics()
                         },
                         colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
                     )

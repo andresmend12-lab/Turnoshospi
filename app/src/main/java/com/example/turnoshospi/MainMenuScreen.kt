@@ -75,11 +75,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
+
+// Modelo de datos para la vista de supervisor (solo lectura)
+data class ShiftRoster(
+    val nurses: List<String>,
+    val auxiliaries: List<String>
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,6 +122,12 @@ fun MainMenuScreen(
     var colleaguesList by remember { mutableStateOf<List<Colleague>>(emptyList()) }
     var isLoadingColleagues by remember { mutableStateOf(false) }
 
+    // Estados para la vista de Supervisor
+    val database = remember { FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/") }
+    var selectedDateRoster by remember { mutableStateOf<Map<String, ShiftRoster>>(emptyMap()) }
+    var isLoadingRoster by remember { mutableStateOf(false) }
+    val unassignedLabel = stringResource(id = R.string.staff_unassigned_option)
+
     LaunchedEffect(userPlant, plantMembership) {
         if (userPlant != null && plantMembership?.staffId != null) {
             onListenToShifts(userPlant.id, plantMembership.staffId) { shifts ->
@@ -135,6 +151,7 @@ fun MainMenuScreen(
     val supervisorMale = stringResource(id = R.string.role_supervisor_male)
     val supervisorFemale = stringResource(id = R.string.role_supervisor_female)
     val showCreatePlant = profile?.role == supervisorMale || profile?.role == supervisorFemale
+    val isSupervisor = showCreatePlant // Reutilizamos la lógica de rol
 
     Box(
         modifier = modifier
@@ -221,22 +238,77 @@ fun MainMenuScreen(
                     selectedShift = selectedShift,
                     colleagues = colleaguesList,
                     isLoadingColleagues = isLoadingColleagues,
+                    isSupervisor = isSupervisor,
+                    roster = selectedDateRoster,
+                    isLoadingRoster = isLoadingRoster,
                     onDayClick = { date, shift ->
-                        if (userPlant != null && shift != null) {
-                            selectedDate = date
-                            selectedShift = shift
-                            isLoadingColleagues = true
-                            colleaguesList = emptyList()
+                        selectedDate = date
+                        selectedShift = shift
 
+                        // Limpiar estados anteriores
+                        colleaguesList = emptyList()
+                        selectedDateRoster = emptyMap()
+
+                        if (isSupervisor && userPlant != null) {
+                            // Lógica de Supervisor: Cargar todo el calendario del día
+                            isLoadingRoster = true
+                            val dateKey = date.toString()
+                            database.reference.child("plants/${userPlant.id}/turnos/turnos-$dateKey")
+                                .addListenerForSingleValueEvent(object : ValueEventListener {
+                                    override fun onDataChange(snapshot: DataSnapshot) {
+                                        val newRoster = mutableMapOf<String, ShiftRoster>()
+                                        if (snapshot.exists()) {
+                                            snapshot.children.forEach { shiftSnap ->
+                                                val shiftName = shiftSnap.key ?: return@forEach
+
+                                                // Función helper para parsear slots
+                                                fun parseSlots(nodeName: String): List<String> {
+                                                    return shiftSnap.child(nodeName).children.mapNotNull { slot ->
+                                                        val p = slot.child("primary").value as? String
+                                                        val s = slot.child("secondary").value as? String
+                                                        val h = slot.child("halfDay").value as? Boolean == true
+
+                                                        if (!p.isNullOrBlank() && p != unassignedLabel) {
+                                                            if (h) "$p / ${if(!s.isNullOrBlank() && s != unassignedLabel) s else "LIBRE"}" else p
+                                                        } else null
+                                                    }
+                                                }
+
+                                                val nurses = parseSlots("nurses")
+                                                val auxs = parseSlots("auxiliaries")
+
+                                                if (nurses.isNotEmpty() || auxs.isNotEmpty()) {
+                                                    newRoster[shiftName] = ShiftRoster(nurses, auxs)
+                                                }
+                                            }
+                                        }
+                                        // Ordenar visualmente (Mañana < Tarde < Noche)
+                                        val order = listOf("Mañana", "Tarde", "Noche", "Dia", "Día")
+                                        val sortedMap = newRoster.entries.sortedBy { (k, _) ->
+                                            val idx = order.indexOfFirst { k.contains(it, true) }
+                                            if (idx == -1) 99 else idx
+                                        }.associate { it.key to it.value }
+
+                                        selectedDateRoster = sortedMap
+                                        isLoadingRoster = false
+                                    }
+
+                                    override fun onCancelled(error: DatabaseError) {
+                                        isLoadingRoster = false
+                                    }
+                                })
+
+                        } else if (userPlant != null && shift != null) {
+                            // Lógica normal: Cargar compañeros del turno propio
+                            isLoadingColleagues = true
                             onFetchColleagues(userPlant.id, date.toString(), shift.shiftName) { colleagues ->
                                 colleaguesList = colleagues
                                 isLoadingColleagues = false
                             }
                         } else {
-                            selectedDate = date
-                            selectedShift = null
-                            colleaguesList = emptyList()
+                            // No hay turno y no es supervisor (o no hay planta)
                             isLoadingColleagues = false
+                            isLoadingRoster = false
                         }
                     }
                 )
@@ -345,6 +417,10 @@ fun CustomCalendar(
     selectedShift: UserShift?,
     colleagues: List<Colleague>,
     isLoadingColleagues: Boolean,
+    // Parametros para Supervisor
+    isSupervisor: Boolean = false,
+    roster: Map<String, ShiftRoster> = emptyMap(),
+    isLoadingRoster: Boolean = false,
     onDayClick: (LocalDate, UserShift?) -> Unit
 ) {
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
@@ -407,7 +483,9 @@ fun CustomCalendar(
                             val date = currentMonth.atDay(dayIndex)
                             val dateKey = date.toString()
                             val shift = shifts[dateKey]
-                            val color = getDayColor(date, shifts)
+
+                            // CAMBIO: Si es supervisor, fondo transparente. Si no, color del turno.
+                            val color = if (isSupervisor) Color.Transparent else getDayColor(date, shifts)
 
                             val isSelected = date == selectedDate
 
@@ -445,7 +523,8 @@ fun CustomCalendar(
             }
         }
 
-        if (plantId != null) {
+        // CAMBIO: Ocultamos leyenda si es supervisor, ya que no ve colores
+        if (plantId != null && !isSupervisor) {
             Spacer(modifier = Modifier.height(20.dp))
             HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
             Spacer(modifier = Modifier.height(12.dp))
@@ -492,77 +571,138 @@ fun CustomCalendar(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "Turno: ${selectedShift?.shiftName ?: "Libre"}",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = dateStr,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF54C7EC)
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                if (selectedShift == null) {
+                if (isSupervisor) {
+                    // --- VISTA DE SUPERVISOR (Detalle completo del día) ---
                     Text(
-                        text = "No tienes turno asignado este día.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
+                        text = "Agenda del día: $dateStr",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
                     )
-                } else if (isLoadingColleagues) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(32.dp),
-                        color = Color(0xFF54C7EC)
-                    )
-                } else {
-                    if (colleagues.isEmpty()) {
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    if (isLoadingRoster) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(32.dp),
+                            color = Color(0xFF54C7EC)
+                        )
+                    } else if (roster.isEmpty()) {
                         Text(
-                            text = "No se encontraron compañeros para este turno.",
+                            text = "No hay turnos asignados para este día.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.Gray
                         )
                     } else {
                         Column(
                             modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Text(
-                                text = "Compañeros en servicio:",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = Color.Gray,
-                                modifier = Modifier.align(Alignment.Start)
-                            )
-
-                            colleagues.forEach { colleague ->
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
+                            roster.forEach { (shiftName, data) ->
+                                Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .background(Color(0x22FFFFFF), RoundedCornerShape(8.dp))
+                                        .background(Color(0x22FFFFFF), RoundedCornerShape(12.dp))
                                         .padding(12.dp)
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Person,
-                                        contentDescription = null,
-                                        tint = Color(0xFF54C7EC),
-                                        modifier = Modifier.size(20.dp)
+                                    Text(
+                                        text = shiftName,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = Color(0xFF54C7EC),
+                                        fontWeight = FontWeight.Bold
                                     )
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Column {
-                                        Text(
-                                            text = colleague.name,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = Color.White,
-                                            fontWeight = FontWeight.Medium
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    if (data.nurses.isNotEmpty()) {
+                                        Text("Enfermeros:", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+                                        data.nurses.forEach {
+                                            Text("• $it", color = Color.White, style = MaterialTheme.typography.bodySmall)
+                                        }
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                    }
+                                    if (data.auxiliaries.isNotEmpty()) {
+                                        Text("Auxiliares:", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+                                        data.auxiliaries.forEach {
+                                            Text("• $it", color = Color.White, style = MaterialTheme.typography.bodySmall)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                } else {
+                    // --- VISTA NORMAL (Turno propio y compañeros) ---
+                    Text(
+                        text = "Turno: ${selectedShift?.shiftName ?: "Libre"}",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = dateStr,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color(0xFF54C7EC)
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    if (selectedShift == null) {
+                        Text(
+                            text = "No tienes turno asignado este día.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray
+                        )
+                    } else if (isLoadingColleagues) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(32.dp),
+                            color = Color(0xFF54C7EC)
+                        )
+                    } else {
+                        if (colleagues.isEmpty()) {
+                            Text(
+                                text = "No se encontraron compañeros para este turno.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Gray
+                            )
+                        } else {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = "Compañeros en servicio:",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = Color.Gray,
+                                    modifier = Modifier.align(Alignment.Start)
+                                )
+
+                                colleagues.forEach { colleague ->
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(Color(0x22FFFFFF), RoundedCornerShape(8.dp))
+                                            .padding(12.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Person,
+                                            contentDescription = null,
+                                            tint = Color(0xFF54C7EC),
+                                            modifier = Modifier.size(20.dp)
                                         )
-                                        Text(
-                                            text = colleague.role,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = Color.Gray
-                                        )
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Column {
+                                            Text(
+                                                text = colleague.name,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = Color.White,
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                            Text(
+                                                text = colleague.role,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = Color.Gray
+                                            )
+                                        }
                                     }
                                 }
                             }
