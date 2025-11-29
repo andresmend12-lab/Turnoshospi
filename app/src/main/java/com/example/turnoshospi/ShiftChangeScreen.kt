@@ -1,13 +1,16 @@
 package com.example.turnoshospi
 
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,11 +20,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
@@ -29,7 +39,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -40,7 +49,6 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import java.time.LocalDate
 import java.time.YearMonth
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
@@ -58,26 +66,29 @@ data class ShiftChangeRequest(
     val status: RequestStatus = RequestStatus.SEARCHING,
     val mode: RequestMode = RequestMode.FLEXIBLE,
     val hardnessLevel: ShiftRulesEngine.Hardness = ShiftRulesEngine.Hardness.NORMAL,
-
-    // Solicitante
     val requesterId: String = "",
     val requesterName: String = "",
     val requesterRole: String = "",
-    val requesterShiftDate: String = "", // YYYY-MM-DD
+    val requesterShiftDate: String = "",
     val requesterShiftName: String = "",
-
-    // Configuración
-    val offeredDates: List<String> = emptyList(), // Fechas que acepto a cambio
-    val targetUserId: String? = null, // Para cambios directos
+    val offeredDates: List<String> = emptyList(),
+    val targetUserId: String? = null,
     val timestamp: Long = System.currentTimeMillis()
 )
 
-// Helper para UI
 data class MyShiftDisplay(
     val date: String,
     val shiftName: String,
     val fullDate: LocalDate,
     val isHalfDay: Boolean = false
+)
+
+data class PlantShift(
+    val userId: String,
+    val userName: String,
+    val userRole: String,
+    val date: LocalDate,
+    val shiftName: String
 )
 
 // --- 2. PANTALLA PRINCIPAL ---
@@ -92,31 +103,62 @@ fun ShiftChangeScreen(
     onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Mis Turnos", "Sugerencias")
+    val tabs = listOf("Mis Turnos", "Gestión de Cambios", "Sugerencias")
+
     val context = LocalContext.current
     val database = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
 
-    // Estados
-    val myShiftsMap = remember { mutableStateMapOf<LocalDate, String>() } // Para el Engine
-    val myShiftsList = remember { mutableStateListOf<MyShiftDisplay>() }  // Para UI
-    val allActiveRequests = remember { mutableStateListOf<ShiftChangeRequest>() }
+    // Estados Globales
+    val myShiftsMap = remember { mutableStateMapOf<LocalDate, String>() }
+    val myShiftsList = remember { mutableStateListOf<MyShiftDisplay>() }
+    val allRequests = remember { mutableStateListOf<ShiftChangeRequest>() }
+
+    // Estados para "Sugerencias"
+    val plantStaffMap = remember { mutableStateMapOf<String, RegisteredUser>() }
+    val staffNameMap = remember { mutableStateMapOf<String, String>() }
+    val allPlantShifts = remember { mutableStateListOf<PlantShift>() }
+    val userSchedules = remember { mutableStateMapOf<String, MutableMap<LocalDate, String>>() }
+
     var isLoading by remember { mutableStateOf(true) }
+
+    // Navegación interna
+    var selectedRequestForSuggestions by remember { mutableStateOf<ShiftChangeRequest?>(null) }
 
     // Diálogos
     var showCreateDialog by remember { mutableStateOf(false) }
     var selectedShiftForRequest by remember { mutableStateOf<MyShiftDisplay?>(null) }
 
-    // Cargar Datos
+    // --- CARGA DE DATOS ---
     LaunchedEffect(plantId, currentUser) {
         if (currentUser == null) return@LaunchedEffect
-        val userName = "${currentUser.firstName} ${currentUser.lastName}".trim()
+        val myName = "${currentUser.firstName} ${currentUser.lastName}".trim()
 
-        // 1. Cargar Turnos Propios (y construir mapa para validaciones)
-        database.getReference("plants/$plantId/turnos").limitToLast(90)
+        // 1. Cargar Personal
+        database.getReference("plants/$plantId/personal_de_planta").get().addOnSuccessListener { snap ->
+            plantStaffMap.clear()
+            staffNameMap.clear()
+            snap.children.forEach { child ->
+                val u = child.getValue(RegisteredUser::class.java)
+                if (u != null) {
+                    plantStaffMap[child.key!!] = u
+                    if (u.name.isNotBlank()) staffNameMap[u.name.lowercase()] = child.key!!
+                }
+            }
+        }
+
+        // 2. Cargar TODOS los turnos (Desde HOY + 60 días)
+        val todayKey = "turnos-${LocalDate.now()}"
+
+        database.getReference("plants/$plantId/turnos")
+            .orderByKey()
+            .startAt(todayKey)
+            .limitToFirst(60)
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     myShiftsMap.clear()
                     myShiftsList.clear()
+                    allPlantShifts.clear()
+                    userSchedules.clear()
 
                     snapshot.children.forEach { dateSnapshot ->
                         val dateKey = dateSnapshot.key?.removePrefix("turnos-") ?: return@forEach
@@ -124,47 +166,72 @@ fun ShiftChangeScreen(
                             val date = LocalDate.parse(dateKey)
                             dateSnapshot.children.forEach { shiftSnap ->
                                 val shiftName = shiftSnap.key ?: ""
-                                // Buscar si soy enfermero o auxiliar
-                                val isNurse = shiftSnap.child("nurses").children.any {
-                                    it.child("primary").value.toString().equals(userName, true)
-                                }
-                                val isAux = shiftSnap.child("auxiliaries").children.any {
-                                    it.child("primary").value.toString().equals(userName, true)
+
+                                fun processSlot(slot: DataSnapshot, rolePrefix: String) {
+                                    val name = slot.child("primary").value.toString()
+                                    if (name.isNotBlank() && name != "null" && !name.equals("sin asignar", ignoreCase = true)) {
+                                        val uid = staffNameMap[name.lowercase()]
+                                        val finalId = uid ?: "UNREGISTERED_$name"
+                                        val role = if (plantStaffMap[finalId] != null) plantStaffMap[finalId]!!.role else rolePrefix
+
+                                        if (!userSchedules.containsKey(finalId)) {
+                                            userSchedules[finalId] = mutableMapOf()
+                                        }
+                                        userSchedules[finalId]!![date] = shiftName
+
+                                        allPlantShifts.add(PlantShift(finalId, name, role, date, shiftName))
+
+                                        if (name.equals(myName, true)) {
+                                            myShiftsMap[date] = shiftName
+                                            myShiftsList.add(MyShiftDisplay(dateKey, shiftName, date))
+                                        }
+                                    }
                                 }
 
-                                if (isNurse || isAux) {
-                                    myShiftsMap[date] = shiftName
-                                    myShiftsList.add(MyShiftDisplay(dateKey, shiftName, date))
-                                }
+                                shiftSnap.child("nurses").children.forEach { processSlot(it, "Enfermero/a") }
+                                shiftSnap.child("auxiliaries").children.forEach { processSlot(it, "Auxiliar") }
                             }
                         } catch (_: Exception) {}
                     }
                     myShiftsList.sortBy { it.fullDate }
+                    allPlantShifts.sortBy { it.date }
                     isLoading = false
                 }
                 override fun onCancelled(error: DatabaseError) { isLoading = false }
             })
 
-        // 2. Cargar Solicitudes Globales (Mercado)
+        // 3. Cargar Solicitudes
         database.getReference("plants/$plantId/shift_requests")
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    allActiveRequests.clear()
+                    allRequests.clear()
                     snapshot.children.mapNotNull { it.getValue(ShiftChangeRequest::class.java) }
-                        .filter { it.status == RequestStatus.SEARCHING } // Solo las abiertas
-                        .forEach { allActiveRequests.add(it) }
+                        .filter { it.status == RequestStatus.SEARCHING || it.status == RequestStatus.PENDING_PARTNER }
+                        .forEach { allRequests.add(it) }
                 }
                 override fun onCancelled(error: DatabaseError) {}
             })
+    }
+
+    BackHandler(enabled = selectedRequestForSuggestions != null) {
+        selectedRequestForSuggestions = null
     }
 
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
-                title = { Text("Gestión de Cambios", color = Color.White, fontWeight = FontWeight.Bold) },
+                title = {
+                    if (selectedRequestForSuggestions != null)
+                        Text("Buscador de Candidatos", color = Color.White, fontWeight = FontWeight.Bold)
+                    else
+                        Text("Gestión de Cambios", color = Color.White, fontWeight = FontWeight.Bold)
+                },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = {
+                        if (selectedRequestForSuggestions != null) selectedRequestForSuggestions = null
+                        else onBack()
+                    }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver", tint = Color.White)
                     }
                 },
@@ -176,64 +243,76 @@ fun ShiftChangeScreen(
             .fillMaxSize()
             .padding(paddingValues)) {
 
-            // TABS
-            TabRow(
-                selectedTabIndex = selectedTab,
-                containerColor = Color.Transparent,
-                contentColor = Color.White,
-                indicator = { tabPositions ->
-                    TabRowDefaults.SecondaryIndicator(Modifier.tabIndicatorOffset(tabPositions[selectedTab]), color = Color(0xFF54C7EC))
+            if (selectedRequestForSuggestions == null) {
+                TabRow(
+                    selectedTabIndex = selectedTab,
+                    containerColor = Color.Transparent,
+                    contentColor = Color.White,
+                    indicator = { tabPositions ->
+                        TabRowDefaults.SecondaryIndicator(Modifier.tabIndicatorOffset(tabPositions[selectedTab]), color = Color(0xFF54C7EC))
+                    }
+                ) {
+                    tabs.forEachIndexed { index, title ->
+                        Tab(
+                            selected = selectedTab == index,
+                            onClick = { selectedTab = index },
+                            text = { Text(title, fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal, fontSize = 13.sp) }
+                        )
+                    }
                 }
-            ) {
-                tabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = selectedTab == index,
-                        onClick = { selectedTab = index },
-                        text = { Text(title, fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal) }
-                    )
-                }
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // CONTENIDO
-            Box(modifier = Modifier
-                .fillMaxSize()
-                ) {
+            Box(modifier = Modifier.fillMaxSize()) {
                 if (isLoading) {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = Color(0xFF54C7EC))
                 } else {
-                    when (selectedTab) {
-                        0 -> MyShiftsCalendarTab(
-                            shifts = myShiftsList,
-                            onSelectShiftForChange = { shift ->
-                                selectedShiftForRequest = shift
-                                showCreateDialog = true
-                            }
-                        )
-                        1 -> MatchSuggestionsTab(
+                    if (selectedRequestForSuggestions != null) {
+                        // VISTA DE LISTA CON FILTROS
+                        FullPlantShiftsList(
+                            request = selectedRequestForSuggestions!!,
+                            allShifts = allPlantShifts,
                             currentUserId = currentUserId,
-                            currentUserRole = currentUser?.role ?: "",
-                            myRequests = allActiveRequests.filter { it.requesterId == currentUserId },
-                            otherRequests = allActiveRequests.filter { it.requesterId != currentUserId },
-                            mySchedule = myShiftsMap,
-                            // Nota: En una app real, deberías traer el schedule de los candidatos bajo demanda.
-                            // Aquí simularemos que validamos contra reglas locales básicas por falta de esos datos completos.
-                            onRequestMatch = { myReq, otherReq ->
-                                // Lógica para iniciar el "Swap"
-                                performMatchProposal(database, plantId, myReq, otherReq, onSaveNotification)
+                            userSchedules = userSchedules,
+                            currentUserSchedule = myShiftsMap,
+                            onProposeSwap = { candidateShift ->
+                                performDirectProposal(database, plantId, selectedRequestForSuggestions!!, candidateShift, onSaveNotification)
+                                selectedRequestForSuggestions = null
+                                Toast.makeText(context, "Propuesta enviada a ${candidateShift.userName}", Toast.LENGTH_SHORT).show()
                             }
                         )
+                    } else {
+                        when (selectedTab) {
+                            0 -> MyShiftsCalendarTab(
+                                shifts = myShiftsList,
+                                onSelectShiftForChange = { shift ->
+                                    selectedShiftForRequest = shift
+                                    showCreateDialog = true
+                                }
+                            )
+                            1 -> ShiftManagementTab(
+                                myRequests = allRequests.filter { it.requesterId == currentUserId },
+                                incomingRequests = allRequests.filter { it.targetUserId == currentUserId },
+                                onDeleteRequest = { req ->
+                                    deleteShiftRequest(database, plantId, req.id)
+                                    Toast.makeText(context, "Solicitud borrada", Toast.LENGTH_SHORT).show()
+                                }
+                            )
+                            2 -> MyRequestsForSuggestionsTab(
+                                myRequests = allRequests.filter { it.requesterId == currentUserId && it.status == RequestStatus.SEARCHING },
+                                onSeeCandidates = { req ->
+                                    selectedRequestForSuggestions = req
+                                }
+                            )
+                        }
                     }
                 }
             }
         }
     }
 
-    // DIÁLOGO CREAR SOLICITUD
     if (showCreateDialog && selectedShiftForRequest != null) {
         val shift = selectedShiftForRequest!!
-        // Usa el nuevo diálogo sin campo obligatorio de fechas.
         CreateShiftRequestDialog(
             shift = shift,
             onDismiss = { showCreateDialog = false },
@@ -256,14 +335,302 @@ fun ShiftChangeScreen(
                 )
 
                 database.getReference("plants/$plantId/shift_requests/$reqId").setValue(newRequest)
-                Toast.makeText(context, "Buscando cambio...", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Solicitud creada. Ve a 'Sugerencias' para buscar candidatos.", Toast.LENGTH_LONG).show()
                 showCreateDialog = false
+                selectedTab = 2
             }
         )
     }
 }
 
-// --- 3. TAB 1: CALENDARIO DE MIS TURNOS (Mismo estilo que PlantCalendar) ---
+// --- 3. LISTA DE TURNOS CON BARRA DE FILTROS ---
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FullPlantShiftsList(
+    request: ShiftChangeRequest,
+    allShifts: List<PlantShift>,
+    currentUserId: String,
+    userSchedules: Map<String, Map<LocalDate, String>>,
+    currentUserSchedule: Map<LocalDate, String>,
+    onProposeSwap: (PlantShift) -> Unit
+) {
+    // ESTADOS UI
+    var filterDate by remember { mutableStateOf<LocalDate?>(null) }
+    var filterPerson by remember { mutableStateOf<String?>(null) }
+    var filterShiftType by remember { mutableStateOf<String?>(null) }
+
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showPersonMenu by remember { mutableStateOf(false) }
+    var showShiftMenu by remember { mutableStateOf(false) }
+
+    // Personas disponibles (mismo rol)
+    val availablePeople = remember(allShifts, request.requesterRole) {
+        allShifts
+            .filter { ShiftRulesEngine.areRolesCompatible(request.requesterRole, it.userRole) && it.userId != currentUserId }
+            .map { it.userName }
+            .distinct()
+            .sorted()
+    }
+
+    // LÓGICA DE FILTRADO UNIFICADA
+    val filteredShifts = remember(allShifts, request, currentUserId, filterDate, filterPerson, filterShiftType) {
+        val today = LocalDate.now()
+        val myDate = LocalDate.parse(request.requesterShiftDate)
+
+        // Simular que SUELTO mi turno
+        val mySimulatedSchedule = currentUserSchedule.filterKeys { it != myDate }
+
+        allShifts.filter { shift ->
+            // 1. FILTROS MANDATORIOS (Reglas de Negocio)
+            val isFuture = !shift.date.isBefore(today)
+            val isCompatibleRole = ShiftRulesEngine.areRolesCompatible(request.requesterRole, shift.userRole)
+            val isNotMe = shift.userId != currentUserId
+
+            // [FILTRO "MISMO TURNO" CORREGIDO Y REFORZADO]
+            // Comparamos Fecha IGUAL Y Nombre de Turno IGUAL (ignorando mayúsculas y espacios)
+            val isSameExactShift = (
+                    shift.date == myDate &&
+                            shift.shiftName.trim().equals(request.requesterShiftName.trim(), ignoreCase = true)
+                    )
+
+            if (!isFuture || !isCompatibleRole || !isNotMe || isSameExactShift) return@filter false
+
+            // 2. FILTROS OPCIONALES (Botones UI)
+            if (filterDate != null && shift.date != filterDate) return@filter false
+            if (filterPerson != null && shift.userName != filterPerson) return@filter false
+            if (filterShiftType != null && !shift.shiftName.contains(filterShiftType!!, ignoreCase = true)) return@filter false
+
+            // 3. REGLAS DE TRABAJO (Salientes / Noches)
+            // A. ¿Puedo yo hacer su turno?
+            val errorForMe = ShiftRulesEngine.validateWorkRules(shift.date, shift.shiftName, mySimulatedSchedule)
+            if (errorForMe != null) return@filter false
+
+            // B. ¿Puede él hacer mi turno?
+            val candidateSchedule = userSchedules[shift.userId] ?: emptyMap()
+            val candidateSimulatedSchedule = candidateSchedule.filterKeys { it != shift.date }
+
+            val errorForHim = ShiftRulesEngine.validateWorkRules(myDate, request.requesterShiftName, candidateSimulatedSchedule)
+            if (errorForHim != null) return@filter false
+
+            true
+        }.sortedWith(compareBy({ it.date }, { it.shiftName }))
+    }
+
+    Column(Modifier.fillMaxSize()) {
+        Card(
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0x3354C7EC))
+        ) {
+            Row(Modifier.padding(12.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Info, null, tint = Color(0xFF54C7EC))
+                Spacer(Modifier.width(12.dp))
+                Column {
+                    Text("Candidatos Compatibles", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text("Turno del: ${request.requesterShiftDate}", color = Color(0xAAFFFFFF), fontSize = 12.sp)
+                }
+            }
+        }
+
+        // --- BARRA DE FILTROS (LazyRow) ---
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp)
+        ) {
+            // 1. FECHA
+            item {
+                FilterChip(
+                    selected = filterDate != null,
+                    onClick = { showDatePicker = true },
+                    label = { Text(if(filterDate != null) filterDate.toString() else "Fecha") },
+                    leadingIcon = { Icon(Icons.Default.CalendarToday, null, Modifier.size(16.dp)) },
+                    trailingIcon = if (filterDate != null) {
+                        { Icon(Icons.Default.Close, "Borrar", Modifier.size(16.dp).clickable { filterDate = null }) }
+                    } else null,
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFF54C7EC), selectedLabelColor = Color.Black)
+                )
+            }
+
+            // 2. PERSONA
+            item {
+                Box {
+                    FilterChip(
+                        selected = filterPerson != null,
+                        onClick = { showPersonMenu = true },
+                        label = { Text(filterPerson ?: "Persona") },
+                        leadingIcon = { Icon(Icons.Default.Person, null, Modifier.size(16.dp)) },
+                        trailingIcon = if (filterPerson != null) {
+                            { Icon(Icons.Default.Close, "Borrar", Modifier.size(16.dp).clickable { filterPerson = null }) }
+                        } else null,
+                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFF54C7EC), selectedLabelColor = Color.Black)
+                    )
+                    DropdownMenu(expanded = showPersonMenu, onDismissRequest = { showPersonMenu = false }) {
+                        availablePeople.forEach { name ->
+                            DropdownMenuItem(
+                                text = { Text(name) },
+                                onClick = { filterPerson = name; showPersonMenu = false }
+                            )
+                        }
+                    }
+                }
+            }
+
+            // 3. TURNO
+            item {
+                Box {
+                    FilterChip(
+                        selected = filterShiftType != null,
+                        onClick = { showShiftMenu = true },
+                        label = { Text(filterShiftType ?: "Turno") },
+                        leadingIcon = { Icon(Icons.Default.Schedule, null, Modifier.size(16.dp)) },
+                        trailingIcon = if (filterShiftType != null) {
+                            { Icon(Icons.Default.Close, "Borrar", Modifier.size(16.dp).clickable { filterShiftType = null }) }
+                        } else null,
+                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFF54C7EC), selectedLabelColor = Color.Black)
+                    )
+                    DropdownMenu(expanded = showShiftMenu, onDismissRequest = { showShiftMenu = false }) {
+                        listOf("Mañana", "Tarde", "Noche").forEach { type ->
+                            DropdownMenuItem(
+                                text = { Text(type) },
+                                onClick = { filterShiftType = type; showShiftMenu = false }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        if (showDatePicker) {
+            val datePickerState = rememberDatePickerState()
+            DatePickerDialog(
+                onDismissRequest = { showDatePicker = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        datePickerState.selectedDateMillis?.let {
+                            filterDate = java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+                        }
+                        showDatePicker = false
+                    }) { Text("OK") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDatePicker = false }) { Text("Cancelar") }
+                }
+            ) {
+                DatePicker(state = datePickerState)
+            }
+        }
+
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            if (filteredShifts.isEmpty()) {
+                item {
+                    Text(
+                        text = "No se encontraron compañeros disponibles con estos filtros.",
+                        color = Color.Gray,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth().padding(32.dp)
+                    )
+                }
+            } else {
+                items(filteredShifts) { shift ->
+                    PlantShiftCard(
+                        shift = shift,
+                        onAction = { onProposeSwap(shift) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+// --- 4. TARJETA DE TURNO ---
+
+@Composable
+fun PlantShiftCard(
+    shift: PlantShift,
+    onAction: () -> Unit
+) {
+    val shiftColor = getShiftColor(shift.shiftName)
+
+    val initials = shift.userName.split(" ")
+        .take(2)
+        .mapNotNull { it.firstOrNull()?.toString() }
+        .joinToString("")
+        .uppercase()
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Row(modifier = Modifier.height(IntrinsicSize.Min)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(6.dp)
+                    .background(shiftColor)
+            )
+
+            Row(
+                modifier = Modifier
+                    .padding(12.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(42.dp)
+                        .background(Color(0xFF334155), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(text = initials, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                }
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = shift.userName,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                        maxLines = 1
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Schedule, null, tint = Color(0xFF94A3B8), modifier = Modifier.size(12.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "${shift.date} • ${shift.shiftName}",
+                            color = Color(0xFF94A3B8),
+                            fontSize = 13.sp
+                        )
+                    }
+                    Text(
+                        text = shift.userRole,
+                        color = Color(0xFF64748B),
+                        fontSize = 12.sp
+                    )
+                }
+
+                Button(
+                    onClick = onAction,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC)),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                    modifier = Modifier.height(32.dp)
+                ) {
+                    Text("Elegir", color = Color.Black, fontSize = 12.sp)
+                }
+            }
+        }
+    }
+}
+
+// --- 5. TABS Y CALENDARIO ---
 
 @Composable
 fun MyShiftsCalendarTab(
@@ -272,57 +639,28 @@ fun MyShiftsCalendarTab(
 ) {
     var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
-
-    // Convertir lista a mapa para colorear fácil
     val shiftsMap = remember(shifts) { shifts.associateBy { it.fullDate } }
 
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .verticalScroll(rememberScrollState())) {
-
-        // --- CALENDARIO VISUAL ---
+    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = Color(0x11FFFFFF)),
             border = BorderStroke(1.dp, Color(0x33FFFFFF))
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = { currentMonth = currentMonth.minusMonths(1) }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
-                    }
-                    Text(
-                        "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale("es", "ES")).uppercase()} ${currentMonth.year}",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    )
-                    IconButton(onClick = { currentMonth = currentMonth.plusMonths(1) }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Color.White)
-                    }
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = { currentMonth = currentMonth.minusMonths(1) }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White) }
+                    Text("${currentMonth.month.getDisplayName(TextStyle.FULL, Locale("es", "ES")).uppercase()} ${currentMonth.year}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    IconButton(onClick = { currentMonth = currentMonth.plusMonths(1) }) { Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Color.White) }
                 }
-
-                // Días Semana
                 Row(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
-                    listOf("L", "M", "X", "J", "V", "S", "D").forEach {
-                        Text(it, modifier = Modifier.weight(1f), color = Color.Gray, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold)
-                    }
+                    listOf("L", "M", "X", "J", "V", "S", "D").forEach { Text(it, modifier = Modifier.weight(1f), color = Color.Gray, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold) }
                 }
-
-                // Grid Días
                 val firstDay = currentMonth.atDay(1)
                 val daysInMonth = currentMonth.lengthOfMonth()
                 val offset = firstDay.dayOfWeek.value - 1
                 val totalCells = (daysInMonth + offset + 6) / 7 * 7
-
                 Column {
                     for (i in 0 until totalCells step 7) {
                         Row(modifier = Modifier.fillMaxWidth()) {
@@ -333,196 +671,144 @@ fun MyShiftsCalendarTab(
                                     val shift = shiftsMap[date]
                                     val isSelected = date == selectedDate
                                     val color = getShiftColor(shift?.shiftName)
-
-                                    Box(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .height(48.dp) // Tamaño grande
-                                            .padding(2.dp)
-                                            .background(if(shift != null) color else Color.Transparent, CircleShape)
-                                            .border(if (isSelected) 0.dp else 1.dp, if (isSelected) Color.White.copy(alpha = 0.1f) else Color.White.copy(alpha = 0.1f), CircleShape)
-                                            .clickable { selectedDate = date },
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            "$dayIndex",
-                                            color = if (shift != null) Color.White else Color(0xFFAAAAAA),
-                                            fontWeight = if(shift!=null) FontWeight.Bold else FontWeight.Normal,
-                                            fontSize = 18.sp
-                                        )
+                                    Box(modifier = Modifier.weight(1f).height(48.dp).padding(2.dp).background(if(shift != null) color else Color.Transparent, CircleShape).border(if (isSelected) 0.dp else 1.dp, if (isSelected) Color.White.copy(alpha = 0.1f) else Color.White.copy(alpha = 0.1f), CircleShape).clickable { selectedDate = date }, contentAlignment = Alignment.Center) {
+                                        Text("$dayIndex", color = if (shift != null) Color.White else Color(0xFFAAAAAA), fontWeight = if(shift!=null) FontWeight.Bold else FontWeight.Normal, fontSize = 18.sp)
                                     }
-                                } else {
-                                    Spacer(modifier = Modifier.weight(1f))
-                                }
+                                } else { Spacer(modifier = Modifier.weight(1f)) }
                             }
                         }
                     }
                 }
             }
         }
-
         Spacer(modifier = Modifier.height(24.dp))
-
-        // --- DETALLE DEL DÍA SELECCIONADO ---
         AnimatedVisibility(visible = selectedDate != null) {
             val date = selectedDate!!
             val shift = shiftsMap[date]
-
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = date.format(DateTimeFormatter.ofPattern("EEEE d 'de' MMMM", Locale("es", "ES"))).replaceFirstChar { it.uppercase() },
-                    color = Color(0xFF54C7EC),
-                    style = MaterialTheme.typography.titleMedium
-                )
+                Text(text = date.format(DateTimeFormatter.ofPattern("EEEE d 'de' MMMM", Locale("es", "ES"))).replaceFirstChar { it.uppercase() }, color = Color(0xFF54C7EC), style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))
-
                 if (shift != null) {
-                    Text(
-                        text = "Turno actual: ${shift.shiftName}",
-                        color = Color.White,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Text(text = "Turno actual: ${shift.shiftName}", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(16.dp))
-
-                    Button(
-                        onClick = { onSelectShiftForChange(shift) },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC), contentColor = Color.Black),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp)
-                    ) {
+                    Button(onClick = { onSelectShiftForChange(shift) }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC), contentColor = Color.Black), modifier = Modifier.fillMaxWidth().height(50.dp)) {
                         Icon(Icons.Default.SwapHoriz, null)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("BUSCAR CAMBIO", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
-                } else {
-                    Text("No tienes turno este día.", color = Color.Gray)
+                } else { Text("No tienes turno este día.", color = Color.Gray) }
+            }
+        }
+    }
+}
+
+@Composable
+fun ShiftManagementTab(
+    myRequests: List<ShiftChangeRequest>,
+    incomingRequests: List<ShiftChangeRequest>,
+    onDeleteRequest: (ShiftChangeRequest) -> Unit
+) {
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        if (incomingRequests.isNotEmpty()) {
+            item { Text("Solicitudes Recibidas", color = Color(0xFF54C7EC), fontWeight = FontWeight.Bold) }
+            items(incomingRequests) { req ->
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0x224CAF50))) {
+                    Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text("Propuesta de Cambio", color = Color.White, fontWeight = FontWeight.Bold)
+                            Text("De: ${req.requesterName}", color = Color(0xCCFFFFFF), fontSize = 12.sp)
+                        }
+                        IconButton(onClick = { onDeleteRequest(req) }) {
+                            Icon(Icons.Default.Delete, contentDescription = "Borrar", tint = Color(0xFFFFB4AB))
+                        }
+                    }
+                }
+            }
+        }
+        item {
+            Text("Mis Solicitudes (${myRequests.size})", color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
+        }
+        if (myRequests.isEmpty()) {
+            item { Text("No tienes solicitudes activas.", color = Color.Gray) }
+        } else {
+            items(myRequests) { req ->
+                val statusColor = when(req.status) {
+                    RequestStatus.SEARCHING -> Color(0xFFFFA000)
+                    RequestStatus.PENDING_PARTNER -> Color(0xFF2196F3)
+                    else -> Color.Gray
+                }
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0x22FFFFFF))) {
+                    Column(Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Refresh, null, tint = statusColor, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(req.status.name, color = statusColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Spacer(Modifier.weight(1f))
+                            IconButton(onClick = { onDeleteRequest(req) }) {
+                                Icon(Icons.Default.Delete, contentDescription = "Borrar", tint = Color(0xFFFFB4AB))
+                            }
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        Text("Sueltas: ${req.requesterShiftDate} (${req.requesterShiftName})", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
         }
     }
 }
 
-// --- 4. TAB 2: SUGERENCIAS (MATCHING) ---
-// (Contenido de MatchSuggestionsTab igual)
-
 @Composable
-fun MatchSuggestionsTab(
-    currentUserId: String,
-    currentUserRole: String,
+fun MyRequestsForSuggestionsTab(
     myRequests: List<ShiftChangeRequest>,
-    otherRequests: List<ShiftChangeRequest>,
-    mySchedule: Map<LocalDate, String>,
-    onRequestMatch: (ShiftChangeRequest, ShiftChangeRequest) -> Unit
+    onSeeCandidates: (ShiftChangeRequest) -> Unit
 ) {
-    // Algoritmo de Match en Cliente
-    val suggestions = remember(myRequests, otherRequests) {
-        val matches = mutableListOf<Pair<ShiftChangeRequest, ShiftChangeRequest>>() // Mi Petición -> Su Petición
-
-        myRequests.forEach { myReq ->
-            otherRequests.forEach { otherReq ->
-                // Usamos el Engine con datos simulados del otro usuario (asumimos vacio para validacion estricta inicial)
-                // En prod: necesitarías leer el horario del otro usuario.
-                val isMatch = ShiftRulesEngine.checkMatch(
-                    requesterRequest = myReq,
-                    candidateRequest = otherReq,
-                    requesterSchedule = mySchedule,
-                    candidateSchedule = emptyMap() // TODO: Cargar horario del candidato
-                )
-                if (isMatch) {
-                    matches.add(myReq to otherReq)
-                }
-            }
-        }
-        matches
-    }
-
     LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         item {
             Text(
-                "Tus Solicitudes Activas (${myRequests.size})",
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-        }
-
-        if (myRequests.isEmpty()) {
-            item { Text("No estás buscando cambios actualmente.", color = Color.Gray, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic) }
-        } else {
-            items(myRequests) { req ->
-                Card(colors = CardDefaults.cardColors(containerColor = Color(0x22FFA000))) {
-                    Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text("Sueltas: ${req.requesterShiftDate} (${req.requesterShiftName})", color = Color.White, fontWeight = FontWeight.Bold)
-                            // Texto que indica que acepta cualquier fecha
-                            Text(
-                                if(req.offeredDates.isEmpty()) "Busca: Cualquier turno compatible" else "Buscas: ${req.offeredDates.joinToString(", ")}",
-                                color = Color.White.copy(0.7f),
-                                fontSize = 12.sp
-                            )
-                        }
-                        Icon(Icons.Default.Refresh, null, tint = Color(0xFFFFA000))
-                    }
-                }
-            }
-        }
-
-        item {
-            HorizontalDivider(color = Color.White.copy(0.1f), modifier = Modifier.padding(vertical = 8.dp))
-            Text(
-                "Oportunidades de Cambio (${suggestions.size})",
+                "Busca candidatos para tus turnos",
                 color = Color(0xFF54C7EC),
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
+            Text(
+                "Selecciona uno de tus turnos ofertados para ver quién puede cambiártelo.",
+                color = Color.Gray,
+                fontSize = 12.sp
+            )
         }
 
-        if (suggestions.isEmpty()) {
+        if (myRequests.isEmpty()) {
             item {
-                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(Modifier.fillMaxWidth().padding(top = 32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Default.Info, null, tint = Color.Gray, modifier = Modifier.size(48.dp))
-                    Text("No hay coincidencias compatibles aún.", color = Color.Gray)
+                    Text("No tienes ofertas activas.", color = Color.Gray)
+                    Text("Crea una en 'Mis Turnos' primero.", color = Color.Gray, fontSize = 12.sp)
                 }
             }
-        } else {
-            items(suggestions) { (myReq, otherReq) ->
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0x224CAF50)),
-                    border = BorderStroke(1.dp, Color(0x444CAF50))
-                ) {
-                    Column(Modifier.padding(16.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("MATCH ENCONTRADO", color = Color(0xFF4CAF50), fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                            Spacer(Modifier.weight(1f))
-                            Badge { Text("${otherReq.hardnessLevel}") }
-                        }
-                        Spacer(Modifier.height(8.dp))
-                        Text("Con ${otherReq.requesterName}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                        Spacer(Modifier.height(8.dp))
+        }
 
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Column {
-                                Text("Tú das:", color = Color(0xAAFFFFFF), fontSize = 12.sp)
-                                Text("${myReq.requesterShiftDate}", color = Color.White, fontWeight = FontWeight.Bold)
-                            }
-                            Icon(Icons.Default.SwapHoriz, null, tint = Color.White)
-                            Column(horizontalAlignment = Alignment.End) {
-                                Text("Tú recibes:", color = Color(0xAAFFFFFF), fontSize = 12.sp)
-                                Text("${otherReq.requesterShiftDate}", color = Color.White, fontWeight = FontWeight.Bold)
-                                Text("(${otherReq.requesterShiftName})", color = Color.White, fontSize = 12.sp)
-                            }
+        items(myRequests) { req ->
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color(0x2254C7EC)),
+                border = BorderStroke(1.dp, Color(0x4454C7EC))
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text("Ofreces el turno del:", color = Color(0xCCFFFFFF), fontSize = 12.sp)
+                            Text("${req.requesterShiftDate} (${req.requesterShiftName})", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         }
-
-                        Spacer(Modifier.height(16.dp))
-                        Button(
-                            onClick = { onRequestMatch(myReq, otherReq) },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("SOLICITAR INTERCAMBIO")
-                        }
+                        Badge(containerColor = Color(0xFF54C7EC), contentColor = Color.Black) { Text("ACTIVA") }
+                    }
+                    Spacer(Modifier.height(16.dp))
+                    Button(
+                        onClick = { onSeeCandidates(req) },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC), contentColor = Color.Black),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Default.Search, null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("VER CANDIDATOS COMPATIBLES")
                     }
                 }
             }
@@ -530,7 +816,7 @@ fun MatchSuggestionsTab(
     }
 }
 
-// --- 5. DIÁLOGOS Y UTILS ---
+// --- 6. DIÁLOGOS Y UTILS ---
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -539,7 +825,6 @@ fun CreateShiftRequestDialog(
     onDismiss: () -> Unit,
     onConfirm: (List<String>, RequestMode) -> Unit
 ) {
-    // Ya no necesitamos estado para offeredDates ni DatePicker
     var selectedMode by remember { mutableStateOf(RequestMode.FLEXIBLE) }
 
     AlertDialog(
@@ -548,25 +833,16 @@ fun CreateShiftRequestDialog(
         title = { Text("Solicitar Cambio Abierto", color = Color.White) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                // Tarjeta informativa del turno a soltar
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Color(0x2254C7EC)),
                     border = BorderStroke(1.dp, Color(0x4454C7EC))
                 ) {
                     Column(modifier = Modifier.padding(12.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("Vas a ofrecer tu turno del:", color = Color(0xCCFFFFFF), fontSize = 12.sp)
-                        Text(
-                            "${shift.date} (${shift.shiftName})",
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
-                        )
+                        Text("${shift.date} (${shift.shiftName})", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
                 }
-
                 HorizontalDivider(color = Color.White.copy(0.1f))
-
-                // Selección de Modo
                 Column {
                     Text("Preferencia de Cambio:", color = Color.White, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(8.dp))
@@ -575,26 +851,19 @@ fun CreateShiftRequestDialog(
                             selected = selectedMode == RequestMode.FLEXIBLE,
                             onClick = { selectedMode = RequestMode.FLEXIBLE },
                             label = { Text("Flexible") },
-                            leadingIcon = if (selectedMode == RequestMode.FLEXIBLE) {
-                                { Icon(Icons.Default.Check, null, modifier = Modifier.size(16.dp)) }
-                            } else null,
+                            leadingIcon = if (selectedMode == RequestMode.FLEXIBLE) {{ Icon(Icons.Filled.Done, null, modifier = Modifier.size(16.dp)) }} else null,
                             modifier = Modifier.weight(1f)
                         )
                         FilterChip(
                             selected = selectedMode == RequestMode.STRICT,
                             onClick = { selectedMode = RequestMode.STRICT },
-                            label = { Text("Estricto") }, // Estricto prioriza deudas
-                            leadingIcon = if (selectedMode == RequestMode.STRICT) {
-                                { Icon(Icons.Default.Check, null, modifier = Modifier.size(16.dp)) }
-                            } else null,
+                            label = { Text("Estricto") },
+                            leadingIcon = if (selectedMode == RequestMode.STRICT) {{ Icon(Icons.Filled.Done, null, modifier = Modifier.size(16.dp)) }} else null,
                             modifier = Modifier.weight(1f)
                         )
                     }
                     Text(
-                        text = if(selectedMode == RequestMode.FLEXIBLE)
-                            "Se buscará cualquier compañero compatible."
-                        else
-                            "Se priorizará a quienes te deben turnos.",
+                        text = if(selectedMode == RequestMode.FLEXIBLE) "Se buscará cualquier compañero compatible." else "Se priorizará a quienes te deben turnos.",
                         color = Color.Gray,
                         fontSize = 12.sp,
                         lineHeight = 14.sp
@@ -604,10 +873,7 @@ fun CreateShiftRequestDialog(
         },
         confirmButton = {
             Button(
-                onClick = {
-                    // Enviamos una lista vacía para indicar "Cualquier fecha"
-                    onConfirm(emptyList(), selectedMode)
-                },
+                onClick = { onConfirm(emptyList(), selectedMode) },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC), contentColor = Color.Black),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -615,51 +881,62 @@ fun CreateShiftRequestDialog(
             }
         },
         dismissButton = {
-            TextButton(
-                onClick = onDismiss,
-                modifier = Modifier.fillMaxWidth()
-            ) { Text("Cancelar") }
+            TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) { Text("Cancelar") }
         }
     )
 }
 
-// Utils de Color (Adaptado de MainMenuScreen)
 fun getShiftColor(shiftName: String?): Color {
     if (shiftName == null) return Color.Transparent
     val name = shiftName.lowercase()
     return when {
-        name.contains("noche") -> Color(0xFF9C27B0) // Violeta
-        name.contains("mañana") -> Color(0xFFFFA500) // Naranja
-        name.contains("tarde") -> Color(0xFF2196F3)  // Azul
-        name.contains("vacaciones") -> Color(0xFFE91E63) // Rosa
-        else -> Color(0xFF4CAF50) // Verde default
+        name.contains("noche") -> Color(0xFF9C27B0)
+        name.contains("mañana") -> Color(0xFFFFA500)
+        name.contains("tarde") -> Color(0xFF2196F3)
+        name.contains("vacaciones") -> Color(0xFFE91E63)
+        else -> Color(0xFF4CAF50)
     }
 }
 
-fun performMatchProposal(
+fun performDirectProposal(
     database: FirebaseDatabase,
     plantId: String,
     myReq: ShiftChangeRequest,
-    otherReq: ShiftChangeRequest,
+    targetShift: PlantShift,
     onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit
 ) {
-    // 1. Actualizar estado de AMBAS peticiones a PENDING_PARTNER
+    val targetReqId = database.getReference("plants/$plantId/shift_requests").push().key ?: UUID.randomUUID().toString()
+
+    val targetReq = ShiftChangeRequest(
+        id = targetReqId,
+        type = RequestType.SWAP,
+        status = RequestStatus.PENDING_PARTNER,
+        requesterId = targetShift.userId,
+        requesterName = targetShift.userName,
+        requesterRole = targetShift.userRole,
+        requesterShiftDate = targetShift.date.toString(),
+        requesterShiftName = targetShift.shiftName,
+        targetUserId = myReq.requesterId
+    )
+
     val updates = mapOf(
         "plants/$plantId/shift_requests/${myReq.id}/status" to RequestStatus.PENDING_PARTNER,
-        "plants/$plantId/shift_requests/${myReq.id}/targetUserId" to otherReq.requesterId,
-        "plants/$plantId/shift_requests/${otherReq.id}/status" to RequestStatus.PENDING_PARTNER,
-        "plants/$plantId/shift_requests/${otherReq.id}/targetUserId" to myReq.requesterId
+        "plants/$plantId/shift_requests/${myReq.id}/targetUserId" to targetShift.userId,
+        "plants/$plantId/shift_requests/$targetReqId" to targetReq
     )
 
     database.reference.updateChildren(updates).addOnSuccessListener {
-        // Notificar al otro usuario
         onSaveNotification(
-            otherReq.requesterId,
-            "SHIFT_MATCH_PROPOSAL",
-            "${myReq.requesterName} quiere intercambiar su turno del ${myReq.requesterShiftDate} por el tuyo.",
+            targetShift.userId,
+            "SHIFT_PROPOSAL",
+            "${myReq.requesterName} te propone cambiar tu turno del ${targetShift.date} por el suyo del ${myReq.requesterShiftDate}.",
             "ShiftChangeScreen",
-            myReq.id,
+            targetReqId,
             {}
         )
     }
+}
+
+fun deleteShiftRequest(database: FirebaseDatabase, plantId: String, requestId: String) {
+    database.getReference("plants/$plantId/shift_requests/$requestId").removeValue()
 }

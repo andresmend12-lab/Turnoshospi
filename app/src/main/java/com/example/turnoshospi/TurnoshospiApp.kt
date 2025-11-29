@@ -398,8 +398,14 @@ fun TurnoshospiApp(
                     onCreatePlant = { navigateTo(AppScreen.CreatePlant) },
                     onEditProfile = { showProfileEditor = true },
                     onOpenPlant = {
-                        navigateTo(AppScreen.MyPlant)
-                        refreshUserPlant()
+                        // Verificamos si ya hay una planta cargada
+                        if (userPlant != null) {
+                            selectedPlantForDetail = userPlant // Preparamos la planta para mostrar sus detalles
+                            navigateTo(AppScreen.PlantDetail)  // Vamos directo al detalle
+                        } else {
+                            navigateTo(AppScreen.MyPlant)      // Si no tiene planta, vamos a la pantalla de selección/unión
+                        }
+                        refreshUserPlant() // Mantenemos la actualización de datos en segundo plano
                     },
                     onOpenSettings = { navigateTo(AppScreen.Settings) },
                     onSignOut = onSignOut,
