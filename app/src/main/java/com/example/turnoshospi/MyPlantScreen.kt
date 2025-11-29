@@ -190,18 +190,7 @@ fun MyPlantScreen(
                     isSupervisor = isSupervisor,
                     onOpenPlantDetail = onOpenPlantDetail
                 )
-                Button(
-                    onClick = onRefresh,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC))
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = null,
-                        tint = Color.Black
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = stringResource(id = R.string.refresh_plant_action))
-                }
+
             } else {
                 EmptyPlantCard(
                     plantIdInput = plantIdInput,

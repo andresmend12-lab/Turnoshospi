@@ -1,51 +1,32 @@
 package com.example.turnoshospi
 
+import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 object ShiftRulesEngine {
 
-    // --- Definición de Tipos de Turno ---
+    // --- Enum de Dureza y Tipos ---
+    enum class Hardness { NIGHT, WEEKEND, HOLIDAY, NORMAL }
     enum class ShiftType { MORNING, AFTERNOON, NIGHT, OFF }
 
-    // --- REGLA 1: Reglas de Rol ---
-    fun canUserParticipate(userRole: String): Boolean {
-        val normalized = userRole.trim().lowercase()
-        // Los supervisores no pueden participar
-        if (normalized.contains("supervisor")) return false
-        // Solo enfermeros y auxiliares
-        return normalized.contains("enfermer") || normalized.contains("auxiliar")
+    // --- Modelos Auxiliares para el Engine ---
+    // Representa una deuda: "debtor" le debe a "creditor" X turnos de tipo "hardness"
+    data class DebtEntry(val debtorId: String, val creditorId: String, val hardness: Hardness, val amount: Int)
+
+    // --- REGLA 0: Cálculo de Dureza ---
+    fun calculateShiftHardness(date: LocalDate, shiftName: String): Hardness {
+        val name = shiftName.trim().lowercase()
+        if (name.contains("noche")) return Hardness.NIGHT
+
+        // Aquí podrías inyectar un calendario de festivos real
+        val dayOfWeek = date.dayOfWeek
+        if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) return Hardness.WEEKEND
+
+        // Si tuvieras lista de festivos: if (isHoliday(date)) return Hardness.HOLIDAY
+
+        return Hardness.NORMAL
     }
-
-    fun areRolesCompatible(roleA: String, roleB: String): Boolean {
-        val rA = roleA.trim().lowercase()
-        val rB = roleB.trim().lowercase()
-
-        return when {
-            rA.contains("enfermer") && rB.contains("enfermer") -> true
-            rA.contains("auxiliar") && rB.contains("auxiliar") -> true
-            else -> false
-        }
-    }
-
-    // --- REGLA 2 y 4: Validación de Solicitud Inicial ---
-    fun validateCreateRequest(
-        requestDate: LocalDate,
-        hasShiftThatDay: Boolean,
-        isShiftBlocked: Boolean,
-        offeredDates: List<String>
-    ): String? {
-        val today = LocalDate.now()
-
-        if (!hasShiftThatDay) return "No tienes un turno asignado este día para cambiar."
-        if (requestDate.isBefore(today)) return "No puedes cambiar un turno pasado."
-        if (isShiftBlocked) return "Este turno está bloqueado o cerrado por el supervisor."
-        // Nota: La validación de offeredDates se hace en la UI al confirmar el diálogo
-
-        return null // Todo OK
-    }
-
-    // --- REGLA 3: Reglas Laborales Imprescindibles ---
 
     private fun getShiftType(shiftName: String): ShiftType {
         val name = shiftName.lowercase()
@@ -57,7 +38,22 @@ object ShiftRulesEngine {
         }
     }
 
-    // Valida si un usuario puede aceptar un turno específico en una fecha
+    // --- REGLA 1: Roles ---
+    fun canUserParticipate(userRole: String): Boolean {
+        val normalized = userRole.trim().lowercase()
+        return !normalized.contains("supervisor") &&
+                (normalized.contains("enfermer") || normalized.contains("auxiliar"))
+    }
+
+    fun areRolesCompatible(roleA: String, roleB: String): Boolean {
+        val rA = roleA.trim().lowercase()
+        val rB = roleB.trim().lowercase()
+        return (rA.contains("enfermer") && rB.contains("enfermer")) ||
+                (rA.contains("auxiliar") && rB.contains("auxiliar"))
+    }
+
+    // --- REGLA 2: Validación Laboral (Salientes, Doble turno, Racha) ---
+    // Devuelve NULL si es válido, o un String con el error
     fun validateWorkRules(
         targetDate: LocalDate,
         targetShiftName: String,
@@ -65,81 +61,88 @@ object ShiftRulesEngine {
     ): String? {
         val targetType = getShiftType(targetShiftName)
 
-        // 1. Un usuario no puede trabajar dos turnos el mismo día
+        // 1. Ya tiene turno ese día
         if (userSchedule.containsKey(targetDate)) {
-            return "Ya tienes un turno asignado el ${targetDate}."
+            return "Ya tienes un turno asignado el $targetDate."
         }
 
-        // 2. Prohibidos encadenamientos incompatibles y Regla de Saliente
+        // 2. Regla de Saliente (Noches)
         val yesterday = targetDate.minusDays(1)
         val tomorrow = targetDate.plusDays(1)
-
         val shiftYesterday = userSchedule[yesterday]?.let { getShiftType(it) } ?: ShiftType.OFF
         val shiftTomorrow = userSchedule[tomorrow]?.let { getShiftType(it) } ?: ShiftType.OFF
 
-        // Si ayer fue noche, hoy es SALIENTE. No se puede trabajar NADA.
+        // Ayer fue noche -> Hoy es SALIENTE (Descanso obligatorio)
         if (shiftYesterday == ShiftType.NIGHT) {
-            return "Vienes de una noche (Saliente). Debes descansar hoy."
+            return "Vienes de una noche (Saliente). Debes descansar."
         }
-
-        // Si hoy trabajo NOCHE, mañana es SALIENTE.
+        // Hoy es noche -> Mañana es SALIENTE
         if (targetType == ShiftType.NIGHT && shiftTomorrow != ShiftType.OFF) {
-            return "Si trabajas noche hoy, mañana debes librar (tienes turno asignado)."
+            return "Si trabajas noche, mañana debes librar."
         }
 
-        // 3. No superar 6 días seguidos (Regla del 7º día)
-        if (calculateConsecutiveDays(targetDate, userSchedule) >= 6) {
-            return "Este cambio generaría 7 o más días seguidos de trabajo."
+        // 3. Regla de los 6 días (Max 6 seguidos)
+        // Simulamos que añadimos el turno para verificar la racha resultante
+        val simulatedSchedule = userSchedule.toMutableMap()
+        simulatedSchedule[targetDate] = targetShiftName
+
+        if (calculateConsecutiveDays(targetDate, simulatedSchedule) > 6) {
+            return "Superarías el límite de 6 días seguidos de trabajo."
         }
 
-        return null // Cumple reglas laborales
+        return null
     }
 
-    private fun calculateConsecutiveDays(targetDate: LocalDate, schedule: Map<LocalDate, String>): Int {
-        var consecutive = 0
+    private fun calculateConsecutiveDays(pivotDate: LocalDate, schedule: Map<LocalDate, String>): Int {
+        var count = 1 // El día pivote cuenta
 
         // Hacia atrás
-        var current = targetDate.minusDays(1)
+        var current = pivotDate.minusDays(1)
         while (schedule.containsKey(current)) {
-            consecutive++
+            count++
             current = current.minusDays(1)
         }
 
         // Hacia adelante
-        current = targetDate.plusDays(1)
+        current = pivotDate.plusDays(1)
         while (schedule.containsKey(current)) {
-            consecutive++
+            count++
             current = current.plusDays(1)
         }
 
-        return consecutive + 1 // +1 por el día objetivo
+        return count
     }
 
-    // --- REGLA 5: Matching ---
-    fun findMatch(
-        myRequest: ShiftChangeRequest,
-        otherRequest: ShiftChangeRequest,
-        mySchedule: Map<LocalDate, String>,
-        otherSchedule: Map<LocalDate, String>
+    // --- REGLA 3: Matching (Algoritmo Principal) ---
+    // Verifica si "Candidate" puede hacer swap con "Requester"
+    fun checkMatch(
+        requesterRequest: ShiftChangeRequest, // La solicitud original (A quiere soltar X)
+        candidateRequest: ShiftChangeRequest, // La solicitud del candidato (B quiere soltar Y)
+        requesterSchedule: Map<LocalDate, String>,
+        candidateSchedule: Map<LocalDate, String>
     ): Boolean {
-        // 1. Roles iguales
-        if (!areRolesCompatible(myRequest.requesterRole, otherRequest.requesterRole)) return false
+        // A. Filtro de Rol
+        if (!areRolesCompatible(requesterRequest.requesterRole, candidateRequest.requesterRole)) return false
 
-        // 2. Cruce de fechas (Simplificado: Swap directo)
-        // Yo tomo su turno (fecha de su request), Él toma mi turno (fecha de mi request)
-        val dateIWillWork = LocalDate.parse(otherRequest.originalDate)
-        val dateHeWillWork = LocalDate.parse(myRequest.originalDate)
+        // B. Verificación de Intención (Wildcard / Comodín)
+        // Si offeredDates está vacía, significa que el usuario acepta CUALQUIER fecha.
+        val requesterWantsB = requesterRequest.offeredDates.isEmpty() ||
+                requesterRequest.offeredDates.contains(candidateRequest.requesterShiftDate)
 
-        // Verificar si la fecha que yo suelto está en sus ofrecidas y viceversa
-        val isSwapDesired = myRequest.offeredDates.contains(otherRequest.originalDate) &&
-                otherRequest.offeredDates.contains(myRequest.originalDate)
+        val candidateWantsA = candidateRequest.offeredDates.isEmpty() ||
+                candidateRequest.offeredDates.contains(requesterRequest.requesterShiftDate)
 
-        if (!isSwapDesired) return false
+        if (!requesterWantsB || !candidateWantsA) return false
 
-        // 3. Validar reglas laborales
-        val validForMe = validateWorkRules(dateIWillWork, otherRequest.originalShift, mySchedule) == null
-        val validForHim = validateWorkRules(dateHeWillWork, myRequest.originalShift, otherSchedule) == null
+        // C. Validación Laboral Cruzada (Swap Puro)
+        val dateA = LocalDate.parse(requesterRequest.requesterShiftDate)
+        val dateB = LocalDate.parse(candidateRequest.requesterShiftDate)
 
-        return validForMe && validForHim
+        // Validar si Requester puede trabajar en FechaB (turno de Candidate)
+        val errorForRequester = validateWorkRules(dateB, candidateRequest.requesterShiftName, requesterSchedule)
+        // Validar si Candidate puede trabajar en FechaA (turno de Requester)
+        val errorForCandidate = validateWorkRules(dateA, requesterRequest.requesterShiftName, candidateSchedule)
+
+        return errorForRequester == null && errorForCandidate == null
     }
 }

@@ -23,7 +23,7 @@
     <string name="side_menu_title">Menú</string>
     <string name="menu_create_plant">Crear nueva planta</string>
     <string name="menu_create_plant_desc">Configura una planta desde cero.</string>
-    <string name="menu_my_plants">Mis plantas</string>
+    <string name="menu_my_plants">Mi planta</string>
     <string name="menu_my_plants_desc">Consulta y edita tus plantas existentes.</string>
     <string name="menu_settings">Configuración</string>
     <string name="menu_settings_desc">Ajustes de cuenta y preferencias.</string>
