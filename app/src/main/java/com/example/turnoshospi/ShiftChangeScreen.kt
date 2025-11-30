@@ -128,13 +128,14 @@ fun ShiftChangeScreen(
             }
 
             // 2. CARGAR TURNOS (Una vez tenemos el mapa de personal)
-            val startDate = LocalDate.now().minusDays(1)
+            // Cargamos un poco antes para tener contexto en la preview (15 días antes)
+            val startDate = LocalDate.now().minusDays(15)
             val startKey = "turnos-$startDate"
 
             database.getReference("plants/$plantId/turnos")
                 .orderByKey()
                 .startAt(startKey)
-                .limitToFirst(62) // Cargar 2 meses aprox
+                .limitToFirst(90) // Cargar 3 meses aprox
                 .addValueEventListener(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
                         myShiftsMap.clear()
@@ -322,6 +323,8 @@ fun ShiftChangeScreen(
                             currentUserId = currentUserId,
                             currentUserName = currentUserName,
                             isSupervisor = isSupervisor,
+                            userSchedules = userSchedules,
+                            mySchedule = myShiftsMap,
                             openRequests = myPersonalRequests,
                             peerPendingRequests = emptyList(),
                             historyRequests = allRequests.filter { it.status == RequestStatus.APPROVED }, // Ocultar rechazados aquí también
@@ -390,6 +393,8 @@ fun ShiftChangeScreen(
                                     currentUserId = currentUserId,
                                     currentUserName = currentUserName,
                                     isSupervisor = isSupervisor,
+                                    userSchedules = userSchedules,
+                                    mySchedule = myShiftsMap,
                                     openRequests = openRequests,
                                     peerPendingRequests = peerPendingRequests,
                                     historyRequests = historyRequests,
@@ -483,6 +488,8 @@ fun ShiftManagementTab(
     currentUserId: String,
     currentUserName: String,
     isSupervisor: Boolean,
+    userSchedules: Map<String, Map<LocalDate, String>>,
+    mySchedule: Map<LocalDate, String>,
     openRequests: List<ShiftChangeRequest>,
     peerPendingRequests: List<ShiftChangeRequest>,
     historyRequests: List<ShiftChangeRequest>,
@@ -493,6 +500,10 @@ fun ShiftManagementTab(
     onApproveBySupervisor: (ShiftChangeRequest) -> Unit,
     onRejectBySupervisor: (ShiftChangeRequest) -> Unit
 ) {
+    // Estado para mostrar preview desde las tarjetas de gestión
+    var previewReq by remember { mutableStateOf<ShiftChangeRequest?>(null) }
+    var isPreviewSupervisorMode by remember { mutableStateOf(false) }
+
     LazyColumn(verticalArrangement = Arrangement.spacedBy(24.dp), contentPadding = PaddingValues(16.dp)) {
 
         // 1. SUPERVISOR (Prioridad Máxima)
@@ -506,6 +517,23 @@ fun ShiftManagementTab(
                         Text("${req.requesterName} (${req.requesterShiftDate})", color = Color(0xCCFFFFFF), fontSize = 13.sp)
                         Icon(Icons.Default.SwapHoriz, null, tint = Color.White, modifier = Modifier.size(16.dp))
                         Text("${req.targetUserName} (${req.targetShiftDate})", color = Color(0xCCFFFFFF), fontSize = 13.sp)
+
+                        Spacer(Modifier.height(12.dp))
+
+                        // BOTÓN DE PREVIEW SUPERVISOR
+                        Button(
+                            onClick = {
+                                previewReq = req
+                                isPreviewSupervisorMode = true
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E293B)),
+                            modifier = Modifier.fillMaxWidth().height(35.dp),
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Icon(Icons.Default.Visibility, null, modifier = Modifier.size(16.dp), tint = Color(0xFF54C7EC))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Ver Simulación", color = Color(0xFF54C7EC), fontSize = 12.sp)
+                        }
 
                         Spacer(Modifier.height(12.dp))
                         Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
@@ -562,6 +590,24 @@ fun ShiftManagementTab(
                                 Text("Destino", color = Color.Gray, fontSize = 10.sp)
                                 Text(req.targetUserName ?: "?", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                                 Text(req.targetShiftDate ?: "?", color = Color(0xCCFFFFFF), fontSize = 12.sp)
+                            }
+                        }
+
+                        // BOTÓN PREVIEW PARA COMPAÑERO QUE DEBE ACEPTAR
+                        if (amITarget && !isAwaitingSupervisor) {
+                            Spacer(Modifier.height(12.dp))
+                            Button(
+                                onClick = {
+                                    previewReq = req
+                                    isPreviewSupervisorMode = false
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E293B)),
+                                modifier = Modifier.fillMaxWidth().height(35.dp),
+                                contentPadding = PaddingValues(0.dp)
+                            ) {
+                                Icon(Icons.Default.Visibility, null, modifier = Modifier.size(16.dp), tint = Color(0xFF54C7EC))
+                                Spacer(Modifier.width(8.dp))
+                                Text("Ver Simulación", color = Color(0xFF54C7EC), fontSize = 12.sp)
                             }
                         }
 
@@ -655,6 +701,70 @@ fun ShiftManagementTab(
                 Text("No tienes actividad reciente.", color = Color.Gray, modifier = Modifier.fillMaxWidth().padding(32.dp), textAlign = TextAlign.Center)
             }
         }
+    }
+
+    // LÓGICA DE VISUALIZACIÓN DE PREVIEW EN EL DIALOGO
+    if (previewReq != null) {
+        val req = previewReq!!
+
+        val dateReq = LocalDate.parse(req.requesterShiftDate)
+        val dateTarget = if(req.targetShiftDate != null) LocalDate.parse(req.targetShiftDate) else null
+
+        // Preparar datos para las dos filas (Arriba y Abajo)
+        // Usamos una data class auxiliar Quintuple definida al final
+        val (row1Schedule, row1Name, row1DateOut, row1DateIn, row1ShiftIn) = if (isPreviewSupervisorMode) {
+            // Supervisor: Fila 1 = Requester
+            Quintuple(
+                userSchedules[req.requesterId] ?: emptyMap(),
+                req.requesterName,
+                dateReq, // Pierde este día
+                dateTarget, // Gana este día
+                req.targetShiftName // Gana este turno
+            )
+        } else {
+            // Partner Mode (Target User View): Fila 1 = YO (Target)
+            Quintuple(
+                mySchedule,
+                "Yo",
+                dateTarget, // Pierdo mi turno
+                dateReq, // Gano su turno
+                req.requesterShiftName // Gano su turno
+            )
+        }
+
+        val (row2Schedule, row2Name, row2DateOut, row2DateIn, row2ShiftIn) = if (isPreviewSupervisorMode) {
+            // Supervisor: Fila 2 = Target
+            Quintuple(
+                userSchedules[req.targetUserId] ?: emptyMap(),
+                req.targetUserName ?: "?",
+                dateTarget, // Pierde este día
+                dateReq, // Gana este día
+                req.requesterShiftName // Gana este turno
+            )
+        } else {
+            // Partner Mode: Fila 2 = EL OTRO (Requester)
+            Quintuple(
+                userSchedules[req.requesterId] ?: emptyMap(),
+                req.requesterName,
+                dateReq, // Él pierde su turno
+                dateTarget, // Él gana mi turno
+                req.targetShiftName // Él gana mi turno
+            )
+        }
+
+        SchedulePreviewDialog(
+            onDismiss = { previewReq = null },
+            row1Schedule = row1Schedule,
+            row1Name = row1Name,
+            row1DateToRemove = row1DateOut,
+            row1DateToAdd = row1DateIn,
+            row1ShiftToAdd = row1ShiftIn,
+            row2Schedule = row2Schedule,
+            row2Name = row2Name,
+            row2DateToRemove = row2DateOut,
+            row2DateToAdd = row2DateIn,
+            row2ShiftToAdd = row2ShiftIn
+        )
     }
 }
 
@@ -929,20 +1039,22 @@ fun FullPlantShiftsList(
 
     if (showPreviewDialog && previewCandidate != null) {
         val candidate = previewCandidate!!
-        val myDate = LocalDate.parse(request.requesterShiftDate)
+        val dateReq = LocalDate.parse(request.requesterShiftDate)
 
-        val mySchedule = currentUserSchedule
-        val theirSchedule = userSchedules[candidate.userId] ?: emptyMap()
-
+        // Simulación: Yo propongo (Row 1), a Candidato (Row 2)
         SchedulePreviewDialog(
             onDismiss = { showPreviewDialog = false },
-            mySchedule = mySchedule,
-            theirSchedule = theirSchedule,
-            theirName = candidate.userName,
-            dateImGiving = myDate,
-            shiftImGiving = request.requesterShiftName,
-            dateImTaking = candidate.date,
-            shiftImTaking = candidate.shiftName
+            row1Schedule = currentUserSchedule,
+            row1Name = "Yo",
+            row1DateToRemove = dateReq,     // Doy mi turno
+            row1DateToAdd = candidate.date, // Recibo su turno
+            row1ShiftToAdd = candidate.shiftName,
+
+            row2Schedule = userSchedules[candidate.userId] ?: emptyMap(),
+            row2Name = candidate.userName,
+            row2DateToRemove = candidate.date, // Él da su turno
+            row2DateToAdd = dateReq,           // Él recibe mi turno
+            row2ShiftToAdd = request.requesterShiftName
         )
     }
 }
@@ -957,7 +1069,7 @@ fun PlantShiftCard(
     onAction: () -> Unit,
     onPreview: () -> Unit // Callback para preview
 ) {
-    val shiftColor = getShiftColor(shift.shiftName)
+    val shiftColor = getShiftColorExact(shift.shiftName)
 
     val initials = shift.userName.split(" ")
         .take(2)
@@ -1066,175 +1178,111 @@ fun PlantShiftCard(
 }
 
 // ============================================================================================
-// COMPONENTE: DIÁLOGO DE PREVIEW (Simulación)
+// COMPONENTE: DIÁLOGO DE PREVIEW (Actualizado a 15 días, Colores y "L")
 // ============================================================================================
 
 @Composable
 fun SchedulePreviewDialog(
     onDismiss: () -> Unit,
-    mySchedule: Map<LocalDate, String>,
-    theirSchedule: Map<LocalDate, String>,
-    theirName: String,
-    dateImGiving: LocalDate?,
-    shiftImGiving: String?,
-    dateImTaking: LocalDate,
-    shiftImTaking: String
+    row1Schedule: Map<LocalDate, String>,
+    row1Name: String,
+    row1DateToRemove: LocalDate?,
+    row1DateToAdd: LocalDate?,
+    row1ShiftToAdd: String?,
+    row2Schedule: Map<LocalDate, String>,
+    row2Name: String,
+    row2DateToRemove: LocalDate?,
+    row2DateToAdd: LocalDate?,
+    row2ShiftToAdd: String?
 ) {
-    // Calculamos los rangos a mostrar basados en las fechas relevantes
-    // Rango 1: Alrededor de la fecha que TOMO
-    val rangesToShow = remember(dateImTaking, dateImGiving) {
-        val ranges = mutableListOf<List<LocalDate>>()
+    // Calculamos el rango: 7 días antes y 7 días después de la fecha más temprana involucrada
+    val pivotDate = listOfNotNull(row1DateToRemove, row1DateToAdd, row2DateToRemove, row2DateToAdd).minOrNull() ?: LocalDate.now()
 
-        // Rango para la fecha que TOMO
-        val takeStart = dateImTaking.minusDays(3)
-        val takeRange = (0..6).map { takeStart.plusDays(it.toLong()) }
-        ranges.add(takeRange)
-
-        // Rango para la fecha que DOY (si existe)
-        if (dateImGiving != null) {
-            val giveStart = dateImGiving.minusDays(3)
-            val giveRange = (0..6).map { giveStart.plusDays(it.toLong()) }
-
-            // Si los rangos se solapan significativamente o son cercanos, los fusionamos
-            val daysDiff = ChronoUnit.DAYS.between(dateImTaking, dateImGiving)
-            if (kotlin.math.abs(daysDiff) > 7) {
-                ranges.add(giveRange)
-            } else {
-                // Fusionar: Crear un rango que cubra ambos + margen
-                val minDate = if (dateImTaking.isBefore(dateImGiving)) dateImTaking else dateImGiving
-                val maxDate = if (dateImTaking.isAfter(dateImGiving)) dateImTaking else dateImGiving
-                val mergedStart = minDate.minusDays(3)
-                val mergedEnd = maxDate.plusDays(3)
-                val daysCount = ChronoUnit.DAYS.between(mergedStart, mergedEnd) + 1
-                val mergedRange = (0 until daysCount).map { mergedStart.plusDays(it) }
-
-                ranges.clear()
-                ranges.add(mergedRange)
-            }
-        }
-
-        // Ordenar cronológicamente
-        ranges.sortBy { it.first() }
-        ranges
+    val daysToShow = remember(pivotDate) {
+        val start = pivotDate.minusDays(7)
+        (0..14).map { start.plusDays(it.toLong()) } // 15 días total
     }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = Color(0xFF0F172A),
-        title = { Text("Simulación de Cambio", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold) },
+        title = { Text("Simulación del Cambio", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold) },
         text = {
-            // Usamos verticalScroll para soportar múltiples rangos si es necesario
             Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
+                val start = daysToShow.first()
+                val end = daysToShow.last()
+                val headerText = "${start.dayOfMonth}/${start.monthValue} - ${end.dayOfMonth}/${end.monthValue}"
 
-                rangesToShow.forEachIndexed { index, days ->
-                    // Separador si hay más de un bloque
-                    if (index > 0) {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        HorizontalDivider(thickness = 1.dp, color = Color.White.copy(0.2f))
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
+                Text(text = "Periodo: $headerText", color = Color(0xFF54C7EC), fontSize = 12.sp, modifier = Modifier.padding(bottom = 8.dp))
 
-                    // Título del rango
-                    val start = days.first()
-                    val end = days.last()
-                    val headerText = "Del ${start.dayOfMonth} al ${end.dayOfMonth} de ${start.month.getDisplayName(TextStyle.SHORT, Locale("es", "ES")).lowercase()}"
-
-                    Text(
-                        text = headerText,
-                        color = Color(0xFF54C7EC),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-
-                    // Componente reutilizable para pintar el rango
-                    ScheduleWeekView(
-                        days = days,
-                        mySchedule = mySchedule,
-                        theirSchedule = theirSchedule,
-                        theirName = theirName,
-                        dateImGiving = dateImGiving,
-                        shiftImGiving = shiftImGiving,
-                        dateImTaking = dateImTaking,
-                        shiftImTaking = shiftImTaking
-                    )
-                }
+                ScheduleWeekView(
+                    days = daysToShow,
+                    row1Schedule = row1Schedule,
+                    row1Name = row1Name,
+                    row1DateToRemove = row1DateToRemove,
+                    row1DateToAdd = row1DateToAdd,
+                    row1ShiftToAdd = row1ShiftToAdd,
+                    row2Schedule = row2Schedule,
+                    row2Name = row2Name,
+                    row2DateToRemove = row2DateToRemove,
+                    row2DateToAdd = row2DateToAdd,
+                    row2ShiftToAdd = row2ShiftToAdd
+                )
             }
         },
-        confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Cerrar") }
-        }
+        confirmButton = { TextButton(onClick = onDismiss) { Text("Cerrar") } }
     )
 }
 
 @Composable
 fun ScheduleWeekView(
     days: List<LocalDate>,
-    mySchedule: Map<LocalDate, String>,
-    theirSchedule: Map<LocalDate, String>,
-    theirName: String,
-    dateImGiving: LocalDate?,
-    shiftImGiving: String?,
-    dateImTaking: LocalDate,
-    shiftImTaking: String
+    row1Schedule: Map<LocalDate, String>,
+    row1Name: String,
+    row1DateToRemove: LocalDate?,
+    row1DateToAdd: LocalDate?,
+    row1ShiftToAdd: String?,
+    row2Schedule: Map<LocalDate, String>,
+    row2Name: String,
+    row2DateToRemove: LocalDate?,
+    row2DateToAdd: LocalDate?,
+    row2ShiftToAdd: String?
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        // Cabecera Días (Scroll horizontal si son muchos días)
-        Row(
-            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(bottom = 8.dp),
-            verticalAlignment = Alignment.Bottom
-        ) {
-            // Layout tabla
+        Row(modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(bottom = 8.dp)) {
             Column {
-                // Header Dias
+                // Header Días
                 Row {
-                    Spacer(modifier = Modifier.width(50.dp)) // Espacio para nombre
+                    Spacer(modifier = Modifier.width(60.dp))
                     days.forEach { date ->
-                        val isTarget = date == dateImTaking || date == dateImGiving
-                        val textColor = if (isTarget) Color(0xFF54C7EC) else Color.Gray
-
-                        Column(
-                            modifier = Modifier.width(40.dp), // Ancho fijo por celda
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale("es", "ES")).uppercase().take(1),
-                                color = textColor,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 10.sp
-                            )
-                            Text(
-                                text = "${date.dayOfMonth}",
-                                color = textColor,
-                                fontWeight = FontWeight.ExtraBold,
-                                fontSize = 11.sp
-                            )
+                        val isRelevant = date == row1DateToRemove || date == row1DateToAdd
+                        val textColor = if (isRelevant) Color(0xFF54C7EC) else Color.Gray
+                        Column(modifier = Modifier.width(36.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(text = date.dayOfWeek.getDisplayName(TextStyle.NARROW, Locale("es", "ES")).uppercase(), color = textColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Text(text = "${date.dayOfMonth}", color = textColor, fontSize = 10.sp)
                         }
                     }
                 }
-
                 HorizontalDivider(color = Color.White.copy(0.1f))
 
-                // Fila Mía
+                // Fila 1
                 ScheduleRow(
-                    label = "Yo",
+                    label = row1Name,
                     days = days,
-                    originalSchedule = mySchedule,
-                    dateRemoved = dateImGiving,
-                    dateAdded = dateImTaking,
-                    shiftAdded = shiftImTaking
+                    schedule = row1Schedule,
+                    dateToRemove = row1DateToRemove,
+                    dateToAdd = row1DateToAdd,
+                    shiftToAdd = row1ShiftToAdd
                 )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                // Fila Suya
+                Spacer(modifier = Modifier.height(6.dp))
+                // Fila 2
                 ScheduleRow(
-                    label = theirName.split(" ").first().take(6),
+                    label = row2Name,
                     days = days,
-                    originalSchedule = theirSchedule,
-                    dateRemoved = dateImTaking,
-                    dateAdded = dateImGiving,
-                    shiftAdded = shiftImGiving ?: ""
+                    schedule = row2Schedule,
+                    dateToRemove = row2DateToRemove,
+                    dateToAdd = row2DateToAdd,
+                    shiftToAdd = row2ShiftToAdd
                 )
             }
         }
@@ -1245,121 +1293,55 @@ fun ScheduleWeekView(
 fun ScheduleRow(
     label: String,
     days: List<LocalDate>,
-    originalSchedule: Map<LocalDate, String>,
-    dateRemoved: LocalDate?,
-    dateAdded: LocalDate?,
-    shiftAdded: String
+    schedule: Map<LocalDate, String>,
+    dateToRemove: LocalDate?,
+    dateToAdd: LocalDate?,
+    shiftToAdd: String?
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-    ) {
-        Text(
-            text = label,
-            modifier = Modifier.width(50.dp),
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-            fontSize = 11.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+        Text(text = label, modifier = Modifier.width(60.dp), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
 
         days.forEach { date ->
-            // --- 1. Calcular turno actual (Simulación) ---
-            var shiftName = originalSchedule[date] ?: ""
-            var isModified = false
-            var isAdded = false
-            var isRemoved = false
+            // 1. Determinar el turno final (Simulado)
+            var finalShift = schedule[date] ?: ""
+            var isChanged = false
 
-            if (date == dateRemoved) {
-                shiftName = "" // Se quita
-                isModified = true
-                isRemoved = true
+            if (date == dateToRemove) {
+                finalShift = "" // Se queda libre
+                isChanged = true
             }
-            if (date == dateAdded) {
-                shiftName = shiftAdded // Se añade
-                isModified = true
-                isAdded = true
+            if (date == dateToAdd) {
+                finalShift = shiftToAdd ?: ""
+                isChanged = true
             }
 
-            // --- 2. Calcular estado "Saliente" (Mirando día anterior) ---
+            // 2. Calcular estado Saliente (mirando el día anterior SIMULADO)
             val prevDate = date.minusDays(1)
-            var prevShiftName = originalSchedule[prevDate] ?: ""
-            var prevIsAdded = false
-            var prevIsRemoved = false
+            var prevShift = schedule[prevDate] ?: ""
+            if (prevDate == dateToRemove) prevShift = ""
+            if (prevDate == dateToAdd) prevShift = shiftToAdd ?: ""
 
-            // Aplicar simulación también al día anterior para saber si HOY cambia el estado de saliente
-            if (prevDate == dateRemoved) {
-                prevShiftName = "" // Ayer se quitó el turno
-                prevIsRemoved = true
-            }
-            if (prevDate == dateAdded) {
-                prevShiftName = shiftAdded // Ayer se añadió turno
-                prevIsAdded = true
-            }
+            val isSaliente = prevShift.contains("Noche", true) && finalShift.isBlank()
 
-            // Estado actual del día (Saliente si ayer hubo noche y hoy no hay turno)
-            val isSaliente = prevShiftName.contains("Noche", true) && shiftName.isEmpty()
-
-            // Estado original del día (para detectar si perdimos un saliente)
-            val originalPrevShift = originalSchedule[prevDate] ?: ""
-            val wasSaliente = originalPrevShift.contains("Noche", true) && (originalSchedule[date] ?: "").isEmpty()
-
-            // Detectar CAMBIOS en el estado de Saliente
-            val isNewSaliente = isSaliente && prevIsAdded // Se añadió noche ayer -> Ganamos saliente hoy
-            val isLostSaliente = wasSaliente && !isSaliente && prevIsRemoved // Se quitó noche ayer -> Perdimos saliente hoy
-
-            val cellColor = when {
-                isAdded -> Color(0xFF4CAF50) // Verde
-                isRemoved -> Color(0xFFE91E63) // Rojo
-                isNewSaliente -> Color(0xFF4CAF50) // Verde (Ganamos Saliente)
-                isLostSaliente -> Color(0xFFE91E63) // Rojo (Perdimos Saliente)
-                shiftName.isNotEmpty() -> Color(0xFF1E293B) // Azul oscuro (normal)
-                isSaliente -> Color(0xFF1E293B) // Azul oscuro (Igual que M/T/N para "S")
-                else -> Color.Transparent // Libre (Guión)
-            }
-
-            // Texto corto para turno (M, T, N, S, "-")
-            // VISUALIZACIÓN MEDIA JORNADA (MM / MT)
-            val text = when {
-                shiftName.contains("Media", true) && shiftName.contains("Mañana", true) -> "MM"
-                shiftName.contains("Media", true) && shiftName.contains("Tarde", true) -> "MT"
-                shiftName.contains("Mañana", true) -> "M"
-                shiftName.contains("Tarde", true) -> "T"
-                shiftName.contains("Noche", true) -> "N"
-                shiftName.isNotEmpty() -> shiftName.take(1)
+            // 3. Color y Texto (Estilo MainMenu)
+            val cellColor = getShiftColorExact(finalShift, isSaliente)
+            val displayText = when {
+                finalShift.isNotBlank() -> finalShift.take(1).uppercase() // M, T, N
                 isSaliente -> "S"
-                else -> "-" // Guión para días libres
+                else -> "L" // Libre
             }
 
-            // Color del texto
-            val textColor = when {
-                // Para celdas con fondo de color (cambios), usamos blanco para contraste
-                isAdded || isRemoved || isNewSaliente || isLostSaliente -> Color.White
-                // Para días sin turno (S o -), usamos Gris para que se vea "desactivado" o secundario
-                text == "-" -> Color.Gray // El guion sigue en gris
-                else -> Color.White // "S", "M", "T", "N" en blanco
-            }
-
+            // 4. Render
             Box(
                 modifier = Modifier
-                    .width(40.dp) // Ancho fijo celda
-                    .height(30.dp)
-                    .padding(1.dp)
+                    .width(36.dp)
+                    .height(36.dp)
+                    .padding(2.dp)
                     .background(cellColor, RoundedCornerShape(4.dp))
-                    .border(
-                        if(isModified || isNewSaliente || isLostSaliente) 1.dp else 0.dp,
-                        if(isModified || isNewSaliente || isLostSaliente) Color.White else Color.Transparent,
-                        RoundedCornerShape(4.dp)
-                    ),
+                    .border(if (isChanged) 1.dp else 0.dp, if (isChanged) Color.White else Color.Transparent, RoundedCornerShape(4.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text,
-                    color = textColor,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 10.sp
-                )
+                Text(text = displayText, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
             }
         }
     }
@@ -1407,8 +1389,8 @@ fun MyShiftsCalendarTab(
                                     val date = currentMonth.atDay(dayIndex)
                                     val shift = shiftsMap[date]
                                     val isSelected = date == selectedDate
-                                    val color = getShiftColor(shift?.shiftName)
-                                    Box(modifier = Modifier.weight(1f).height(48.dp).padding(2.dp).background(if(shift != null) color else Color.Transparent, CircleShape).border(if (isSelected) 0.dp else 1.dp, if (isSelected) Color.White.copy(alpha = 0.1f) else Color.White.copy(alpha = 0.1f), CircleShape).clickable { selectedDate = date }, contentAlignment = Alignment.Center) {
+                                    val color = getShiftColorExact(shift?.shiftName ?: "")
+                                    Box(modifier = Modifier.weight(1f).height(48.dp).padding(2.dp).background(color, CircleShape).border(if (isSelected) 0.dp else 1.dp, if (isSelected) Color.White.copy(alpha = 0.1f) else Color.White.copy(alpha = 0.1f), CircleShape).clickable { selectedDate = date }, contentAlignment = Alignment.Center) {
                                         Text("$dayIndex", color = if (shift != null) Color.White else Color(0xFFAAAAAA), fontWeight = if(shift!=null) FontWeight.Bold else FontWeight.Normal, fontSize = 18.sp)
                                     }
                                 } else { Spacer(modifier = Modifier.weight(1f)) }
@@ -1515,15 +1497,21 @@ fun CreateShiftRequestDialog(
 // HELPERS Y LÓGICA DE NEGOCIO
 // ============================================================================================
 
-fun getShiftColor(shiftName: String?): Color {
-    if (shiftName == null) return Color.Transparent
-    val name = shiftName.lowercase()
+// Helper para colores exactos (estilo MainMenuScreen)
+fun getShiftColorExact(shiftName: String, isSaliente: Boolean = false): Color {
+    if (isSaliente) return Color(0xFF1A237E) // Dark Blue (Saliente)
+    if (shiftName.isBlank()) return Color(0xFF4CAF50) // Green (Libre)
+
+    val lower = shiftName.lowercase()
     return when {
-        name.contains("noche") -> Color(0xFF9C27B0)
-        name.contains("mañana") -> Color(0xFFFFA500)
-        name.contains("tarde") -> Color(0xFF2196F3)
-        name.contains("vacaciones") -> Color(0xFFE91E63)
-        else -> Color(0xFF4CAF50)
+        lower.contains("vacaciones") -> Color(0xFFE91E63) // Pink
+        lower.contains("noche") -> Color(0xFF9C27B0) // Violet
+        lower.contains("media") && lower.contains("mañana") -> Color(0xFFFFCC80) // Light Orange
+        lower.contains("mañana") -> Color(0xFFFFA500) // Orange
+        lower.contains("media") && lower.contains("tarde") -> Color(0xFF40E0D0) // Turquoise
+        lower.contains("tarde") -> Color(0xFF2196F3) // Blue
+        lower.contains("día") || lower.contains("dia") -> Color(0xFFFFA500)
+        else -> Color(0xFF4CAF50) // Green default (si no encaja en nada)
     }
 }
 
@@ -1559,18 +1547,6 @@ fun rejectSwapProposal(
     plantId: String,
     requestId: String
 ) {
-    // Si se rechaza, la solicitud se borra (según nueva lógica)
-    // O si prefieres que vuelva a búsqueda:
-    /*
-    val updates = mapOf(
-        "plants/$plantId/shift_requests/$requestId/status" to RequestStatus.SEARCHING,
-        "plants/$plantId/shift_requests/$requestId/targetUserId" to null,
-        "plants/$plantId/shift_requests/$requestId/targetUserName" to null,
-        "plants/$plantId/shift_requests/$requestId/targetShiftDate" to null,
-        "plants/$plantId/shift_requests/$requestId/targetShiftName" to null
-    )
-    database.reference.updateChildren(updates)
-    */
     deleteShiftRequest(database, plantId, requestId)
 }
 
@@ -1680,3 +1656,6 @@ fun approveSwapBySupervisor(
 fun deleteShiftRequest(database: FirebaseDatabase, plantId: String, requestId: String) {
     database.getReference("plants/$plantId/shift_requests/$requestId").removeValue()
 }
+
+// Data Class auxiliar para la previsualización
+data class Quintuple<A, B, C, D, E>(val first: A, val second: B, val third: C, val fourth: D, val fifth: E)

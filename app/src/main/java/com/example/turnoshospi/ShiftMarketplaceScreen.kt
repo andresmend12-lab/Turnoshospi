@@ -75,13 +75,12 @@ fun ShiftMarketplaceScreen(
 
     // Función para cargar el horario del solicitante
     fun fetchWeeklySchedule(userId: String, date: LocalDate) {
-        val startOfWeek = date.minusDays(date.dayOfWeek.value.toLong() - 1)
-        // CAMBIO: Cargar desde un día antes para calcular Salientes (S)
-        val startDateToLoad = startOfWeek.minusDays(1)
-        val endOfWeek = startOfWeek.plusDays(6)
+        // Cargamos 15 días (7 antes y 7 después) para igualar la lógica de la preview general
+        val pivotStart = date.minusDays(7)
+        val pivotEnd = date.plusDays(7)
 
-        val startKey = "turnos-$startDateToLoad"
-        val endKey = "turnos-$endOfWeek"
+        val startKey = "turnos-$pivotStart"
+        val endKey = "turnos-$pivotEnd"
 
         database.getReference("plants/$plantId/turnos")
             .orderByKey()
@@ -363,16 +362,24 @@ fun ShiftMarketplaceScreen(
         val req = previewRequest!!
         val pivotDate = LocalDate.parse(req.requesterShiftDate)
 
-        // Usamos el diálogo compartido definido en ShiftChangeScreen.kt
+        // Usamos el diálogo compartido (definido en ShiftChangeScreen.kt)
+        // Mapeamos los parámetros a la nueva firma genérica row1 / row2
         SchedulePreviewDialog(
             onDismiss = { showPreviewDialog = false },
-            mySchedule = myShiftsMap,
-            theirSchedule = requesterScheduleForPreview,
-            theirName = req.requesterName,
-            dateImGiving = null,
-            shiftImGiving = null,
-            dateImTaking = pivotDate,
-            shiftImTaking = req.requesterShiftName
+
+            // FILA 1: YO (Coverer)
+            row1Schedule = myShiftsMap,
+            row1Name = "Yo",
+            row1DateToRemove = null, // En marketplace solo cubro, no pierdo turno
+            row1DateToAdd = pivotDate, // Gano el turno
+            row1ShiftToAdd = req.requesterShiftName,
+
+            // FILA 2: ÉL (Requester)
+            row2Schedule = requesterScheduleForPreview,
+            row2Name = req.requesterName,
+            row2DateToRemove = pivotDate, // Él pierde el turno
+            row2DateToAdd = null,
+            row2ShiftToAdd = null
         )
     }
 }
