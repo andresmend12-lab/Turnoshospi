@@ -21,6 +21,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
@@ -30,6 +31,9 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.ThumbDown
+import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
@@ -53,8 +57,6 @@ import java.time.format.TextStyle
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 import java.util.UUID
-
-// NOTA: Los modelos de datos se encuentran en ShiftModels.kt
 
 // --- PANTALLA PRINCIPAL ---
 
@@ -92,6 +94,11 @@ fun ShiftChangeScreen(
     // Diálogos
     var showCreateDialog by remember { mutableStateOf(false) }
     var selectedShiftForRequest by remember { mutableStateOf<MyShiftDisplay?>(null) }
+
+    // Check Supervisor
+    val isSupervisor = remember(currentUser) {
+        currentUser?.role?.contains("Supervisor", ignoreCase = true) == true
+    }
 
     // --- CARGA DE DATOS ---
     LaunchedEffect(plantId, currentUser) {
@@ -175,7 +182,11 @@ fun ShiftChangeScreen(
                 override fun onDataChange(snapshot: DataSnapshot) {
                     allRequests.clear()
                     snapshot.children.mapNotNull { it.getValue(ShiftChangeRequest::class.java) }
-                        .filter { it.status == RequestStatus.SEARCHING || it.status == RequestStatus.PENDING_PARTNER }
+                        .filter {
+                            it.status == RequestStatus.SEARCHING ||
+                                    it.status == RequestStatus.PENDING_PARTNER ||
+                                    it.status == RequestStatus.AWAITING_SUPERVISOR
+                        }
                         .forEach { allRequests.add(it) }
                 }
                 override fun onCancelled(error: DatabaseError) {}
@@ -247,7 +258,7 @@ fun ShiftChangeScreen(
                             onProposeSwap = { candidateShift ->
                                 performDirectProposal(database, plantId, selectedRequestForSuggestions!!, candidateShift, onSaveNotification)
                                 selectedRequestForSuggestions = null
-                                Toast.makeText(context, "Propuesta enviada a ${candidateShift.userName}", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Solicitud enviada. Esperando aceptación del compañero.", Toast.LENGTH_LONG).show()
                             }
                         )
                     } else {
@@ -260,11 +271,50 @@ fun ShiftChangeScreen(
                                 }
                             )
                             1 -> ShiftManagementTab(
+                                currentUserId = currentUserId,
+                                isSupervisor = isSupervisor,
                                 myRequests = allRequests.filter { it.requesterId == currentUserId },
-                                incomingRequests = allRequests.filter { it.targetUserId == currentUserId },
+                                incomingRequests = allRequests.filter { it.targetUserId == currentUserId && it.status == RequestStatus.PENDING_PARTNER },
+                                supervisorRequests = if(isSupervisor) allRequests.filter { it.status == RequestStatus.AWAITING_SUPERVISOR } else emptyList(),
                                 onDeleteRequest = { req ->
                                     deleteShiftRequest(database, plantId, req.id)
                                     Toast.makeText(context, "Solicitud borrada", Toast.LENGTH_SHORT).show()
+                                },
+                                onAcceptByPartner = { req ->
+                                    updateRequestStatus(database, plantId, req.id, RequestStatus.AWAITING_SUPERVISOR)
+                                    onSaveNotification(
+                                        req.requesterId, // Avisar al creador
+                                        "SHIFT_UPDATE",
+                                        "Tu compañero ha aceptado el cambio. Pendiente de Supervisor.",
+                                        "ShiftChangeScreen",
+                                        req.id, {}
+                                    )
+                                },
+                                onRejectByPartner = { req ->
+                                    // Al rechazar, volvemos a SEARCHING y borramos el target
+                                    rejectSwapProposal(database, plantId, req.id)
+                                    onSaveNotification(
+                                        req.requesterId,
+                                        "SHIFT_REJECTED",
+                                        "El compañero rechazó el cambio. Tu solicitud vuelve a estar abierta.",
+                                        "ShiftChangeScreen",
+                                        req.id, {}
+                                    )
+                                },
+                                onApproveBySupervisor = { req ->
+                                    approveSwapBySupervisor(database, plantId, req, {
+                                        onSaveNotification(req.requesterId, "SHIFT_APPROVED", "Cambio aprobado por supervisor.", "ShiftChangeScreen", req.id, {})
+                                        if (req.targetUserId != null) {
+                                            onSaveNotification(req.targetUserId, "SHIFT_APPROVED", "Cambio aprobado por supervisor.", "ShiftChangeScreen", req.id, {})
+                                        }
+                                        Toast.makeText(context, "Cambio ejecutado y aprobado.", Toast.LENGTH_SHORT).show()
+                                    }, { err ->
+                                        Toast.makeText(context, "Error: $err", Toast.LENGTH_SHORT).show()
+                                    })
+                                },
+                                onRejectBySupervisor = { req ->
+                                    updateRequestStatus(database, plantId, req.id, RequestStatus.REJECTED)
+                                    onSaveNotification(req.requesterId, "SHIFT_REJECTED", "El supervisor rechazó el cambio.", "ShiftChangeScreen", req.id, {})
                                 }
                             )
                             2 -> MyRequestsForSuggestionsTab(
@@ -558,10 +608,7 @@ fun PlantShiftCard(
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        // Cambiamos a Column o mantenemos Row pero con mejor distribución para evitar scroll horizontal
-        // Usamos intrinsic size para que el indicador de color se adapte
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
-            // Indicador de color del turno
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -910,7 +957,7 @@ fun ScheduleRow(
                 isNewSaliente -> Color(0xFF4CAF50) // Verde (Ganamos Saliente)
                 isLostSaliente -> Color(0xFFE91E63) // Rojo (Perdimos Saliente)
                 shiftName.isNotEmpty() -> Color(0xFF1E293B) // Azul oscuro (normal)
-                isSaliente -> Color(0xFF1E293B) // Azul oscuro (Igual que M/T/N para "S") - CORRECCIÓN AQUÍ
+                isSaliente -> Color(0xFF1E293B) // Azul oscuro (Igual que M/T/N para "S")
                 else -> Color.Transparent // Libre (Guión)
             }
 
@@ -921,7 +968,7 @@ fun ScheduleRow(
                 shiftName.contains("Noche", true) -> "N"
                 shiftName.isNotEmpty() -> shiftName.take(1)
                 isSaliente -> "S"
-                else -> "-" // Guión para días libres - CORRECCIÓN AQUÍ
+                else -> "-" // Guión para días libres
             }
 
             // Color del texto
@@ -1032,27 +1079,89 @@ fun MyShiftsCalendarTab(
 
 @Composable
 fun ShiftManagementTab(
+    currentUserId: String,
+    isSupervisor: Boolean,
     myRequests: List<ShiftChangeRequest>,
     incomingRequests: List<ShiftChangeRequest>,
-    onDeleteRequest: (ShiftChangeRequest) -> Unit
+    supervisorRequests: List<ShiftChangeRequest>,
+    onDeleteRequest: (ShiftChangeRequest) -> Unit,
+    onAcceptByPartner: (ShiftChangeRequest) -> Unit,
+    onRejectByPartner: (ShiftChangeRequest) -> Unit,
+    onApproveBySupervisor: (ShiftChangeRequest) -> Unit,
+    onRejectBySupervisor: (ShiftChangeRequest) -> Unit
 ) {
     LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        if (incomingRequests.isNotEmpty()) {
-            item { Text("Solicitudes Recibidas", color = Color(0xFF54C7EC), fontWeight = FontWeight.Bold) }
-            items(incomingRequests) { req ->
-                Card(colors = CardDefaults.cardColors(containerColor = Color(0x224CAF50))) {
-                    Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text("Propuesta de Cambio", color = Color.White, fontWeight = FontWeight.Bold)
-                            Text("De: ${req.requesterName}", color = Color(0xCCFFFFFF), fontSize = 12.sp)
-                        }
-                        IconButton(onClick = { onDeleteRequest(req) }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Borrar", tint = Color(0xFFFFB4AB))
+
+        // --- SECCIÓN SUPERVISOR ---
+        if (isSupervisor && supervisorRequests.isNotEmpty()) {
+            item { Text("Pendientes de Aprobación (Supervisor)", color = Color(0xFFE91E63), fontWeight = FontWeight.Bold) }
+            items(supervisorRequests) { req ->
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0x22E91E63))) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text("Confirmación de Cambio", color = Color.White, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(4.dp))
+                        // Mostrar detalles del cambio completo (A <-> B)
+                        Text("${req.requesterName} (${req.requesterShiftDate})", color = Color(0xCCFFFFFF), fontSize = 13.sp)
+                        Icon(Icons.Default.SwapHoriz, null, tint = Color.White, modifier = Modifier.size(16.dp))
+                        Text("${req.targetUserName} (${req.targetShiftDate})", color = Color(0xCCFFFFFF), fontSize = 13.sp)
+
+                        Spacer(Modifier.height(12.dp))
+                        Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                            TextButton(onClick = { onRejectBySupervisor(req) }) {
+                                Text("Rechazar", color = Color(0xFFFFB4AB))
+                            }
+                            Button(
+                                onClick = { onApproveBySupervisor(req) },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                            ) {
+                                Text("Aprobar Cambio")
+                            }
                         }
                     }
                 }
             }
         }
+
+        // --- SECCIÓN PARTNER (SOLICITUDES ENTRANTES) ---
+        if (incomingRequests.isNotEmpty()) {
+            item { Text("Solicitudes Recibidas", color = Color(0xFF54C7EC), fontWeight = FontWeight.Bold) }
+            items(incomingRequests) { req ->
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0x224CAF50))) {
+                    Column(Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text("Propuesta de Cambio", color = Color.White, fontWeight = FontWeight.Bold)
+                                Text("De: ${req.requesterName}", color = Color(0xCCFFFFFF), fontSize = 12.sp)
+                                Text("Quiere tu turno del: ${req.targetShiftDate}", color = Color(0xCCFFFFFF), fontSize = 12.sp)
+                            }
+                        }
+                        Spacer(Modifier.height(12.dp))
+                        Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                            OutlinedButton(
+                                onClick = { onRejectByPartner(req) },
+                                border = BorderStroke(1.dp, Color(0xFFFFB4AB)),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFFB4AB))
+                            ) {
+                                Icon(Icons.Default.Close, null, modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(4.dp))
+                                Text("Rechazar")
+                            }
+                            Spacer(Modifier.width(8.dp))
+                            Button(
+                                onClick = { onAcceptByPartner(req) },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC), contentColor = Color.Black)
+                            ) {
+                                Icon(Icons.Default.Check, null, modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(4.dp))
+                                Text("Aceptar")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // --- SECCIÓN MIS SOLICITUDES ---
         item {
             Text("Mis Solicitudes (${myRequests.size})", color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
         }
@@ -1063,17 +1172,30 @@ fun ShiftManagementTab(
                 val statusColor = when(req.status) {
                     RequestStatus.SEARCHING -> Color(0xFFFFA000)
                     RequestStatus.PENDING_PARTNER -> Color(0xFF2196F3)
+                    RequestStatus.AWAITING_SUPERVISOR -> Color(0xFFE91E63)
+                    RequestStatus.APPROVED -> Color(0xFF4CAF50)
+                    RequestStatus.REJECTED -> Color.Red
                     else -> Color.Gray
                 }
+                val statusText = when(req.status) {
+                    RequestStatus.SEARCHING -> "Buscando candidato..."
+                    RequestStatus.PENDING_PARTNER -> "Esperando a ${req.targetUserName ?: "compañero"}"
+                    RequestStatus.AWAITING_SUPERVISOR -> "Esperando Supervisor"
+                    else -> req.status.name
+                }
+
                 Card(colors = CardDefaults.cardColors(containerColor = Color(0x22FFFFFF))) {
                     Column(Modifier.padding(16.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.Refresh, null, tint = statusColor, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(8.dp))
-                            Text(req.status.name, color = statusColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text(statusText, color = statusColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             Spacer(Modifier.weight(1f))
-                            IconButton(onClick = { onDeleteRequest(req) }) {
-                                Icon(Icons.Default.Delete, contentDescription = "Borrar", tint = Color(0xFFFFB4AB))
+                            // Solo permitir borrar si no está aprobada/rechazada final
+                            if (req.status != RequestStatus.APPROVED && req.status != RequestStatus.REJECTED) {
+                                IconButton(onClick = { onDeleteRequest(req) }) {
+                                    Icon(Icons.Default.Delete, contentDescription = "Borrar", tint = Color(0xFFFFB4AB))
+                                }
                             }
                         }
                         Spacer(Modifier.height(8.dp))
@@ -1226,6 +1348,9 @@ fun getShiftColor(shiftName: String?): Color {
     }
 }
 
+// --- 7. FUNCIONES DE LÓGICA DE NEGOCIO ---
+
+// Propuesta directa (Usuario A -> Usuario B)
 fun performDirectProposal(
     database: FirebaseDatabase,
     plantId: String,
@@ -1233,24 +1358,13 @@ fun performDirectProposal(
     targetShift: PlantShift,
     onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit
 ) {
-    val targetReqId = database.getReference("plants/$plantId/shift_requests").push().key ?: UUID.randomUUID().toString()
-
-    val targetReq = ShiftChangeRequest(
-        id = targetReqId,
-        type = RequestType.SWAP,
-        status = RequestStatus.PENDING_PARTNER,
-        requesterId = targetShift.userId,
-        requesterName = targetShift.userName,
-        requesterRole = targetShift.userRole,
-        requesterShiftDate = targetShift.date.toString(),
-        requesterShiftName = targetShift.shiftName,
-        targetUserId = myReq.requesterId
-    )
-
+    // Actualizamos la solicitud existente con los datos del objetivo
     val updates = mapOf(
         "plants/$plantId/shift_requests/${myReq.id}/status" to RequestStatus.PENDING_PARTNER,
         "plants/$plantId/shift_requests/${myReq.id}/targetUserId" to targetShift.userId,
-        "plants/$plantId/shift_requests/$targetReqId" to targetReq
+        "plants/$plantId/shift_requests/${myReq.id}/targetUserName" to targetShift.userName,
+        "plants/$plantId/shift_requests/${myReq.id}/targetShiftDate" to targetShift.date.toString(),
+        "plants/$plantId/shift_requests/${myReq.id}/targetShiftName" to targetShift.shiftName
     )
 
     database.reference.updateChildren(updates).addOnSuccessListener {
@@ -1259,10 +1373,102 @@ fun performDirectProposal(
             "SHIFT_PROPOSAL",
             "${myReq.requesterName} te propone cambiar tu turno del ${targetShift.date} por el suyo del ${myReq.requesterShiftDate}.",
             "ShiftChangeScreen",
-            targetReqId,
+            myReq.id,
             {}
         )
     }
+}
+
+// Rechazo por parte del Partner (Vuelve a SEARCHING)
+fun rejectSwapProposal(
+    database: FirebaseDatabase,
+    plantId: String,
+    requestId: String
+) {
+    val updates = mapOf(
+        "plants/$plantId/shift_requests/$requestId/status" to RequestStatus.SEARCHING,
+        "plants/$plantId/shift_requests/$requestId/targetUserId" to null,
+        "plants/$plantId/shift_requests/$requestId/targetUserName" to null,
+        "plants/$plantId/shift_requests/$requestId/targetShiftDate" to null,
+        "plants/$plantId/shift_requests/$requestId/targetShiftName" to null
+    )
+    database.reference.updateChildren(updates)
+}
+
+// Actualización genérica de estado
+fun updateRequestStatus(
+    database: FirebaseDatabase,
+    plantId: String,
+    requestId: String,
+    newStatus: RequestStatus
+) {
+    database.reference.child("plants/$plantId/shift_requests/$requestId/status").setValue(newStatus)
+}
+
+// Aprobación Final del Supervisor (Ejecuta el intercambio en DB)
+fun approveSwapBySupervisor(
+    database: FirebaseDatabase,
+    plantId: String,
+    req: ShiftChangeRequest,
+    onSuccess: () -> Unit,
+    onError: (String) -> Unit
+) {
+    if (req.targetUserId == null || req.targetShiftDate == null || req.targetShiftName == null) {
+        onError("Datos de intercambio incompletos.")
+        return
+    }
+
+    // Referencias a los dos días afectados
+    val requesterDayRef = database.reference.child("plants/$plantId/turnos/turnos-${req.requesterShiftDate}")
+    val targetDayRef = database.reference.child("plants/$plantId/turnos/turnos-${req.targetShiftDate}")
+
+    // Leemos ambos días para encontrar las rutas exactas
+    // Esto es complejo porque hay que leer dos nodos. Usaremos runTransaction en un nodo padre común si es posible,
+    // o lecturas anidadas. Para simplificar y evitar race conditions, leemos todo "turnos" si son fechas cercanas,
+    // pero es mucho dato. Mejor leemos individualmente y luego hacemos update atómico.
+
+    requesterDayRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        override fun onDataChange(snapA: DataSnapshot) {
+            targetDayRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapB: DataSnapshot) {
+
+                    // Helpers para buscar path
+                    fun findPath(snapshot: DataSnapshot, shiftName: String, userName: String): String? {
+                        val shiftRef = snapshot.child(shiftName)
+                        val groups = listOf("nurses", "auxiliaries")
+                        for (group in groups) {
+                            shiftRef.child(group).children.forEach { slot ->
+                                if (slot.child("primary").value.toString() == userName) return "$shiftName/$group/${slot.key}/primary"
+                                if (slot.child("secondary").value.toString() == userName) return "$shiftName/$group/${slot.key}/secondary"
+                            }
+                        }
+                        return null
+                    }
+
+                    val pathA = findPath(snapA, req.requesterShiftName, req.requesterName)
+                    val pathB = findPath(snapB, req.targetShiftName!!, req.targetUserName!!)
+
+                    if (pathA != null && pathB != null) {
+                        val updates = mutableMapOf<String, Any?>()
+                        // Intercambio de nombres
+                        updates["plants/$plantId/turnos/turnos-${req.requesterShiftDate}/$pathA"] = req.targetUserName
+                        updates["plants/$plantId/turnos/turnos-${req.targetShiftDate}/$pathB"] = req.requesterName
+
+                        // Cerrar solicitud
+                        updates["plants/$plantId/shift_requests/${req.id}/status"] = RequestStatus.APPROVED
+
+                        database.reference.updateChildren(updates)
+                            .addOnSuccessListener { onSuccess() }
+                            .addOnFailureListener { onError(it.message ?: "Error al guardar") }
+                    } else {
+                        onError("No se encontraron los turnos originales (quizás cambiaron).")
+                    }
+                }
+                override fun onCancelled(e: DatabaseError) { onError(e.message) }
+            })
+        }
+        override fun onCancelled(e: DatabaseError) { onError(e.message) }
+    })
 }
 
 fun deleteShiftRequest(database: FirebaseDatabase, plantId: String, requestId: String) {

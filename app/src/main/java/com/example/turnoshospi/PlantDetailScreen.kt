@@ -37,6 +37,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -44,6 +45,7 @@ import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.BeachAccess
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.FactCheck
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
@@ -395,6 +397,7 @@ fun PlantDetailScreen(
                     DrawerHeader(displayName = plant?.name ?: "", welcomeStringId = R.string.side_menu_title)
 
                     if (isSupervisor) {
+                        // OPCIONES DE SUPERVISOR
                         NavigationDrawerItem(
                             modifier = Modifier.padding(horizontal = 12.dp),
                             label = {
@@ -448,6 +451,26 @@ fun PlantDetailScreen(
                             colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
                         )
 
+                        // --- GESTIÓN DE CAMBIOS (SOLO SUPERVISOR) ---
+                        // Reemplaza a Bolsa y Cambios para el supervisor
+                        NavigationDrawerItem(
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            label = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.FactCheck, contentDescription = null, tint = Color(0xFFFFA726), modifier = Modifier.size(20.dp))
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text("Gestión de Cambios", color = Color.White)
+                                }
+                            },
+                            selected = false,
+                            onClick = {
+                                isMenuOpen = false
+                                onOpenShiftChange() // Reutilizamos esta pantalla, que ya tiene lógica para supervisor
+                            },
+                            colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
+                        )
+
+
                         // --- OPCIÓN COMPARTIR PLANTA ---
                         HorizontalDivider(color = Color.White.copy(alpha = 0.2f), modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp))
                         NavigationDrawerItem(
@@ -472,7 +495,7 @@ fun PlantDetailScreen(
 
                     HorizontalDivider(color = Color.White.copy(alpha = 0.2f), modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp))
 
-                    // --- NEW: OPCIÓN DE VACACIONES ---
+                    // --- OPCIÓN DE VACACIONES (Para todos) ---
                     if (currentMembership?.staffId != null) {
                         NavigationDrawerItem(
                             modifier = Modifier.padding(horizontal = 12.dp),
@@ -489,7 +512,7 @@ fun PlantDetailScreen(
                         )
                     }
 
-                    // --- OPCIONES PARA TODOS ---
+                    // --- OPCIONES COMUNES ---
 
                     NavigationDrawerItem(
                         modifier = Modifier.padding(horizontal = 12.dp),
@@ -508,42 +531,45 @@ fun PlantDetailScreen(
                         colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
                     )
 
-                    NavigationDrawerItem(
-                        modifier = Modifier.padding(horizontal = 12.dp),
-                        label = {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.SwapHoriz, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text("Cambio de turnos", color = Color.White)
-                            }
-                        },
-                        selected = false,
-                        onClick = {
-                            isMenuOpen = false
-                            onOpenShiftChange()
-                        },
-                        colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
-                    )
+                    // --- SI NO ES SUPERVISOR, VE LAS OPCIONES NORMALES ---
+                    if (!isSupervisor) {
+                        NavigationDrawerItem(
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            label = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.SwapHoriz, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text("Cambio de turnos", color = Color.White)
+                                }
+                            },
+                            selected = false,
+                            onClick = {
+                                isMenuOpen = false
+                                onOpenShiftChange()
+                            },
+                            colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
+                        )
 
-                    // --- BOLSA DE TURNOS ---
-                    NavigationDrawerItem(
-                        modifier = Modifier.padding(horizontal = 12.dp),
-                        label = {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Assignment, null, tint = Color(0xFFFFC107), modifier = Modifier.size(20.dp))
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text("Bolsa de Turnos", color = Color.White)
-                            }
-                        },
-                        selected = false,
-                        onClick = {
-                            isMenuOpen = false
-                            onOpenShiftMarketplace()
-                        },
-                        colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
-                    )
+                        // --- BOLSA DE TURNOS ---
+                        NavigationDrawerItem(
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            label = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.Assignment, null, tint = Color(0xFFFFC107), modifier = Modifier.size(20.dp))
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text("Bolsa de Turnos", color = Color.White)
+                                }
+                            },
+                            selected = false,
+                            onClick = {
+                                isMenuOpen = false
+                                onOpenShiftMarketplace()
+                            },
+                            colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
+                        )
+                    }
 
-                    // --- OPCIÓN ESTADÍSTICAS ---
+                    // --- OPCIÓN ESTADÍSTICAS (Para todos) ---
                     NavigationDrawerItem(
                         modifier = Modifier.padding(horizontal = 12.dp),
                         label = {

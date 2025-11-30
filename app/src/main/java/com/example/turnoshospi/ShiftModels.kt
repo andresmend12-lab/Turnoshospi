@@ -22,7 +22,11 @@ data class ShiftChangeRequest(
     val requesterShiftDate: String = "",
     val requesterShiftName: String = "",
     val offeredDates: List<String> = emptyList(),
+    // Target fields added for swap logic
     val targetUserId: String? = null,
+    val targetUserName: String? = null,
+    val targetShiftDate: String? = null,
+    val targetShiftName: String? = null,
     val timestamp: Long = System.currentTimeMillis()
 )
 
