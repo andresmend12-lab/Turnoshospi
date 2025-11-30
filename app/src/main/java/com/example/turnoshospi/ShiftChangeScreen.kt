@@ -1324,7 +1324,10 @@ fun ScheduleRow(
             val isSaliente = prevShift.contains("Noche", true) && finalShift.isBlank()
 
             // 3. Color y Texto (Estilo MainMenu)
-            val cellColor = getShiftColorExact(finalShift, isSaliente)
+            // MODIFICADO: Solo mostrar color si el día está involucrado en el cambio (isChanged)
+            val baseColor = getShiftColorExact(finalShift, isSaliente)
+            val cellColor = if (isChanged) baseColor else Color.Transparent
+
             val displayText = when {
                 finalShift.isNotBlank() -> finalShift.take(1).uppercase() // M, T, N
                 isSaliente -> "S"

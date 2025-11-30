@@ -14,25 +14,36 @@ import kotlin.random.Random
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
 
+    // USAR EL MISMO ID QUE EN MAIN ACTIVITY Y MANIFEST
+    companion object {
+        const val CHANNEL_ID = "turnoshospi_sound_v2"
+    }
+
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        Log.d("FCM", "New token: $token")
-        // Aquí podrías guardar el token en tu base de datos si es necesario actualizarlo
-        // getSharedPreferences("app_prefs", MODE_PRIVATE).edit().putString("fcm_token", token).apply()
+        Log.d("FCM", "Refreshed token: $token")
+        // Nota: MainActivity ya se encarga de guardar el token si hay usuario logueado.
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
+        Log.d("FCM", "Mensaje recibido de: ${remoteMessage.from}")
 
-        // 1. Extraer datos del payload (Data Message)
-        // Se asume que la Cloud Function envía: "screen", "plantId", "argument" (requestId)
+        // 1. Extraer datos (Prioridad a DATA para manejar la navegación)
         val data = remoteMessage.data
-        val title = remoteMessage.notification?.title ?: data["title"] ?: "Turnos Hospi"
-        val body = remoteMessage.notification?.body ?: data["body"] ?: "Nueva notificación"
+        if (data.isNotEmpty()) {
+            Log.d("FCM", "Payload de datos: $data")
+        }
 
-        val screenDest = data["screen"]
+        // Si la Cloud Function envía 'notification' y la app está en foreground, firebase llena esto.
+        // Si envía solo 'data', construimos nosotros el título/cuerpo.
+        val title = remoteMessage.notification?.title ?: data["title"] ?: "Turnos Hospi"
+        val body = remoteMessage.notification?.body ?: data["body"] ?: "Tienes un nuevo mensaje"
+
+        // Datos de navegación
+        val screenDest = data["screen"] // Debe ser "DirectChat"
         val plantId = data["plantId"]
-        val argument = data["argument"] // Puede ser el requestId
+        val argument = data["argument"] // ID del otro usuario (para chat)
 
         sendNotification(title, body, screenDest, plantId, argument)
     }
@@ -44,40 +55,45 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         plantId: String?,
         arg: String?
     ) {
-        val intent = Intent(this, MainActivity::class.java)
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-
-        // PASAR DATOS PARA NAVEGACIÓN
-        if (screen != null) intent.putExtra("nav_screen", screen)
-        if (plantId != null) intent.putExtra("nav_plant_id", plantId)
-        if (arg != null) intent.putExtra("nav_argument", arg)
+        val intent = Intent(this, MainActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            // Pasar datos exactos para que MainActivity los capture en onNewIntent o onCreate
+            if (screen != null) putExtra("nav_screen", screen)
+            if (plantId != null) putExtra("nav_plant_id", plantId)
+            if (arg != null) putExtra("nav_argument", arg)
+        }
 
         val pendingIntent = PendingIntent.getActivity(
             this,
-            0,
+            Random.nextInt(), // RequestCode único para que no se sobrescriban extras si hay varias notif
             intent,
             PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val channelId = "turnos_channel_id"
-        val notificationBuilder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.mipmap.ic_launcher) // Asegúrate de tener este icono o usa uno válido
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        // Crear el canal si no existe (aunque MainActivity ya lo crea, es bueno por seguridad)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                "Avisos de Turnos",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Notificaciones de chats y cambios de turno"
+                enableVibration(true)
+                setShowBadge(true)
+            }
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.mipmap.ic_launcher) // Asegúrate que este icono sea blanco y transparente (regla de Android)
             .setContentTitle(title)
             .setContentText(messageBody)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
-
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) { // Fixed: Build.VERSION_CODES.O
-            val channel = NotificationChannel(
-                channelId,
-                "Notificaciones de Turnos",
-                NotificationManager.IMPORTANCE_HIGH
-            )
-            notificationManager.createNotificationChannel(channel)
-        }
+            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
 
         notificationManager.notify(Random.nextInt(), notificationBuilder.build())
     }
