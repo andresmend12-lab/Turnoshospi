@@ -223,7 +223,8 @@ fun ShiftChangeScreen(
             .fillMaxSize()
             .padding(paddingValues)) {
 
-            if (selectedRequestForSuggestions == null) {
+            // CAMBIO: Se ocultan las pestañas si es supervisor
+            if (selectedRequestForSuggestions == null && !isSupervisor) {
                 TabRow(
                     selectedTabIndex = selectedTab,
                     containerColor = Color.Transparent,
@@ -261,7 +262,76 @@ fun ShiftChangeScreen(
                                 Toast.makeText(context, "Solicitud enviada. Esperando aceptación del compañero.", Toast.LENGTH_LONG).show()
                             }
                         )
+                    } else if (isSupervisor) {
+                        // CAMBIO: Si es supervisor, mostramos directamente la gestión de cambios
+                        ShiftManagementTab(
+                            currentUserId = currentUserId,
+                            isSupervisor = isSupervisor,
+                            myRequests = allRequests.filter { it.requesterId == currentUserId },
+                            incomingRequests = allRequests.filter { it.targetUserId == currentUserId && it.status == RequestStatus.PENDING_PARTNER },
+                            supervisorRequests = if (isSupervisor) allRequests.filter { it.status == RequestStatus.AWAITING_SUPERVISOR } else emptyList(),
+                            onDeleteRequest = { req ->
+                                deleteShiftRequest(database, plantId, req.id)
+                                Toast.makeText(context, "Solicitud borrada", Toast.LENGTH_SHORT).show()
+                            },
+                            onAcceptByPartner = { req ->
+                                updateRequestStatus(database, plantId, req.id, RequestStatus.AWAITING_SUPERVISOR)
+                                onSaveNotification(
+                                    req.requesterId, // Avisar al creador
+                                    "SHIFT_UPDATE",
+                                    "Tu compañero ha aceptado el cambio. Pendiente de Supervisor.",
+                                    "ShiftChangeScreen",
+                                    req.id, {}
+                                )
+                            },
+                            onRejectByPartner = { req ->
+                                // Al rechazar, volvemos a SEARCHING y borramos el target
+                                rejectSwapProposal(database, plantId, req.id)
+                                onSaveNotification(
+                                    req.requesterId,
+                                    "SHIFT_REJECTED",
+                                    "El compañero rechazó el cambio. Tu solicitud vuelve a estar abierta.",
+                                    "ShiftChangeScreen",
+                                    req.id, {}
+                                )
+                            },
+                            onApproveBySupervisor = { req ->
+                                approveSwapBySupervisor(database, plantId, req, {
+                                    onSaveNotification(
+                                        req.requesterId,
+                                        "SHIFT_APPROVED",
+                                        "Cambio aprobado por supervisor.",
+                                        "ShiftChangeScreen",
+                                        req.id, {}
+                                    )
+                                    if (req.targetUserId != null) {
+                                        onSaveNotification(
+                                            req.targetUserId,
+                                            "SHIFT_APPROVED",
+                                            "Cambio aprobado por supervisor.",
+                                            "ShiftChangeScreen",
+                                            req.id, {}
+                                        )
+                                    }
+                                    Toast.makeText(context, "Cambio ejecutado y aprobado.", Toast.LENGTH_SHORT)
+                                        .show()
+                                }, { err ->
+                                    Toast.makeText(context, "Error: $err", Toast.LENGTH_SHORT).show()
+                                })
+                            },
+                            onRejectBySupervisor = { req ->
+                                updateRequestStatus(database, plantId, req.id, RequestStatus.REJECTED)
+                                onSaveNotification(
+                                    req.requesterId,
+                                    "SHIFT_REJECTED",
+                                    "El supervisor rechazó el cambio.",
+                                    "ShiftChangeScreen",
+                                    req.id, {}
+                                )
+                            }
+                        )
                     } else {
+                        // CAMBIO: Si NO es supervisor, seguimos con la lógica de pestañas
                         when (selectedTab) {
                             0 -> MyShiftsCalendarTab(
                                 shifts = myShiftsList,
