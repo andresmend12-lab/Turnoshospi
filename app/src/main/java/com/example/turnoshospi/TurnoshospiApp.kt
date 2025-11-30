@@ -235,13 +235,13 @@ fun TurnoshospiApp(
                 userNotifications = notifications.map {
                     AppNotification(
                         id = it.id,
-                        title = it.title,
+                        title = getTitleForType(it.type), // Fixed: Use helper for title
                         message = it.message,
                         timestamp = it.timestamp,
                         read = it.isRead,
-                        screen = it.screen,
-                        plantId = it.plantId,
-                        argument = it.argument
+                        screen = it.targetScreen, // Fixed: Map targetScreen
+                        plantId = it.targetId, // Fixed: Map targetId to plantId
+                        argument = it.targetId // Fixed: Map targetId to argument
                     )
                 }
             }
