@@ -58,7 +58,9 @@ import java.time.temporal.ChronoUnit
 import java.util.Locale
 import java.util.UUID
 
-// --- PANTALLA PRINCIPAL ---
+// ============================================================================================
+// PANTALLA PRINCIPAL: ShiftChangeScreen
+// ============================================================================================
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,12 +77,12 @@ fun ShiftChangeScreen(
     val context = LocalContext.current
     val database = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
 
-    // Estados Globales
+    // --- ESTADOS DE DATOS ---
     val myShiftsMap = remember { mutableStateMapOf<LocalDate, String>() }
     val myShiftsList = remember { mutableStateListOf<MyShiftDisplay>() }
     val allRequests = remember { mutableStateListOf<ShiftChangeRequest>() }
 
-    // Estados para "Sugerencias"
+    // Datos para el buscador ("Sugerencias")
     val plantStaffMap = remember { mutableStateMapOf<String, RegisteredUser>() }
     val staffNameMap = remember { mutableStateMapOf<String, String>() }
     val allPlantShifts = remember { mutableStateListOf<PlantShift>() }
@@ -88,24 +90,30 @@ fun ShiftChangeScreen(
 
     var isLoading by remember { mutableStateOf(true) }
 
-    // Navegación interna
+    // --- ESTADOS DE NAVEGACIÓN INTERNA ---
     var selectedRequestForSuggestions by remember { mutableStateOf<ShiftChangeRequest?>(null) }
 
-    // Diálogos
+    // --- DIÁLOGOS ---
     var showCreateDialog by remember { mutableStateOf(false) }
     var selectedShiftForRequest by remember { mutableStateOf<MyShiftDisplay?>(null) }
 
-    // Check Supervisor
+    // --- IDENTIDAD ---
     val isSupervisor = remember(currentUser) {
         currentUser?.role?.contains("Supervisor", ignoreCase = true) == true
     }
+    // Nombre completo para comparaciones de "Fallback" (si el ID es UNREGISTERED)
+    val currentUserName = remember(currentUser) {
+        if (currentUser != null) "${currentUser.firstName} ${currentUser.lastName}".trim() else ""
+    }
 
-    // --- CARGA DE DATOS ---
+    // ========================================================================================
+    // CARGA DE DATOS (Secuencial para evitar Race Conditions con IDs)
+    // ========================================================================================
     LaunchedEffect(plantId, currentUser) {
         if (currentUser == null) return@LaunchedEffect
         val myName = "${currentUser.firstName} ${currentUser.lastName}".trim()
 
-        // 1. Cargar Personal (Normalización de nombres)
+        // 1. CARGAR PERSONAL (Mapeo Nombre -> ID)
         database.getReference("plants/$plantId/personal_de_planta").get().addOnSuccessListener { snap ->
             plantStaffMap.clear()
             staffNameMap.clear()
@@ -118,102 +126,106 @@ fun ShiftChangeScreen(
                     }
                 }
             }
+
+            // 2. CARGAR TURNOS (Una vez tenemos el mapa de personal)
+            val startDate = LocalDate.now().minusDays(1)
+            val startKey = "turnos-$startDate"
+
+            database.getReference("plants/$plantId/turnos")
+                .orderByKey()
+                .startAt(startKey)
+                .limitToFirst(62) // Cargar 2 meses aprox
+                .addValueEventListener(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        myShiftsMap.clear()
+                        myShiftsList.clear()
+                        allPlantShifts.clear()
+                        userSchedules.clear()
+
+                        snapshot.children.forEach { dateSnapshot ->
+                            val dateKey = dateSnapshot.key?.removePrefix("turnos-") ?: return@forEach
+                            try {
+                                val date = LocalDate.parse(dateKey)
+                                dateSnapshot.children.forEach { shiftSnap ->
+                                    val shiftNameOriginal = shiftSnap.key ?: ""
+
+                                    // Función auxiliar para procesar cada slot (Enfermeros/Auxiliares)
+                                    fun processSlot(slot: DataSnapshot, rolePrefix: String) {
+                                        val name = slot.child("primary").value.toString()
+                                        val secondaryName = slot.child("secondary").value.toString()
+                                        val isHalfDay = slot.child("halfDay").value as? Boolean == true
+
+                                        val displayShiftName = if (isHalfDay) "Media $shiftNameOriginal" else shiftNameOriginal
+
+                                        // -> Procesar Primary
+                                        if (name.isNotBlank() && name != "null" && !name.equals("sin asignar", ignoreCase = true)) {
+                                            // INTENTAR OBTENER ID REAL
+                                            val uid = staffNameMap[name.trim().lowercase()]
+                                            val finalId = uid ?: "UNREGISTERED_$name"
+                                            val role = if (plantStaffMap[finalId] != null) plantStaffMap[finalId]!!.role else rolePrefix
+
+                                            // Guardar en Schedule Global
+                                            if (!userSchedules.containsKey(finalId)) {
+                                                userSchedules[finalId] = mutableMapOf()
+                                            }
+                                            userSchedules[finalId]!![date] = displayShiftName
+
+                                            // Añadir a lista general
+                                            allPlantShifts.add(PlantShift(finalId, name, role, date, displayShiftName))
+
+                                            // Si es MI turno
+                                            if (name.equals(myName, true)) {
+                                                myShiftsMap[date] = displayShiftName
+                                                if (!date.isBefore(LocalDate.now())) {
+                                                    myShiftsList.add(MyShiftDisplay(dateKey, displayShiftName, date))
+                                                }
+                                            }
+                                        }
+
+                                        // -> Procesar Secondary
+                                        if (secondaryName.isNotBlank() && secondaryName != "null" && !secondaryName.equals("sin asignar", ignoreCase = true)) {
+                                            val uid = staffNameMap[secondaryName.trim().lowercase()]
+                                            val finalId = uid ?: "UNREGISTERED_$secondaryName"
+                                            val role = if (plantStaffMap[finalId] != null) plantStaffMap[finalId]!!.role else rolePrefix
+
+                                            if (!userSchedules.containsKey(finalId)) {
+                                                userSchedules[finalId] = mutableMapOf()
+                                            }
+                                            userSchedules[finalId]!![date] = displayShiftName
+
+                                            allPlantShifts.add(PlantShift(finalId, secondaryName, role, date, displayShiftName))
+
+                                            if (secondaryName.equals(myName, true)) {
+                                                myShiftsMap[date] = displayShiftName
+                                                if (!date.isBefore(LocalDate.now())) {
+                                                    myShiftsList.add(MyShiftDisplay(dateKey, displayShiftName, date))
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    shiftSnap.child("nurses").children.forEach { processSlot(it, "Enfermero/a") }
+                                    shiftSnap.child("auxiliaries").children.forEach { processSlot(it, "Auxiliar") }
+                                }
+                            } catch (_: Exception) {}
+                        }
+                        // Ordenar listas
+                        myShiftsList.sortBy { it.fullDate }
+                        allPlantShifts.sortBy { it.date }
+                        isLoading = false
+                    }
+                    override fun onCancelled(error: DatabaseError) { isLoading = false }
+                })
         }
 
-        // 2. Cargar TODOS los turnos
-        val startDate = LocalDate.now().minusDays(1)
-        val startKey = "turnos-$startDate"
-
-        database.getReference("plants/$plantId/turnos")
-            .orderByKey()
-            .startAt(startKey)
-            .limitToFirst(62)
-            .addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    myShiftsMap.clear()
-                    myShiftsList.clear()
-                    allPlantShifts.clear()
-                    userSchedules.clear()
-
-                    snapshot.children.forEach { dateSnapshot ->
-                        val dateKey = dateSnapshot.key?.removePrefix("turnos-") ?: return@forEach
-                        try {
-                            val date = LocalDate.parse(dateKey)
-                            dateSnapshot.children.forEach { shiftSnap ->
-                                val shiftNameOriginal = shiftSnap.key ?: ""
-
-                                fun processSlot(slot: DataSnapshot, rolePrefix: String) {
-                                    val name = slot.child("primary").value.toString()
-                                    val secondaryName = slot.child("secondary").value.toString()
-                                    val isHalfDay = slot.child("halfDay").value as? Boolean == true
-
-                                    val displayShiftName = if (isHalfDay) "Media $shiftNameOriginal" else shiftNameOriginal
-
-                                    // PROCESAR PRIMARY
-                                    if (name.isNotBlank() && name != "null" && !name.equals("sin asignar", ignoreCase = true)) {
-                                        val uid = staffNameMap[name.trim().lowercase()]
-                                        val finalId = uid ?: "UNREGISTERED_$name"
-                                        val role = if (plantStaffMap[finalId] != null) plantStaffMap[finalId]!!.role else rolePrefix
-
-                                        if (!userSchedules.containsKey(finalId)) {
-                                            userSchedules[finalId] = mutableMapOf()
-                                        }
-                                        userSchedules[finalId]!![date] = displayShiftName
-
-                                        allPlantShifts.add(PlantShift(finalId, name, role, date, displayShiftName))
-
-                                        if (name.equals(myName, true)) {
-                                            myShiftsMap[date] = displayShiftName
-                                            if (!date.isBefore(LocalDate.now())) {
-                                                myShiftsList.add(MyShiftDisplay(dateKey, displayShiftName, date))
-                                            }
-                                        }
-                                    }
-
-                                    // PROCESAR SECONDARY
-                                    if (secondaryName.isNotBlank() && secondaryName != "null" && !secondaryName.equals("sin asignar", ignoreCase = true)) {
-                                        val uid = staffNameMap[secondaryName.trim().lowercase()]
-                                        val finalId = uid ?: "UNREGISTERED_$secondaryName"
-                                        val role = if (plantStaffMap[finalId] != null) plantStaffMap[finalId]!!.role else rolePrefix
-
-                                        if (!userSchedules.containsKey(finalId)) {
-                                            userSchedules[finalId] = mutableMapOf()
-                                        }
-                                        userSchedules[finalId]!![date] = displayShiftName
-
-                                        allPlantShifts.add(PlantShift(finalId, secondaryName, role, date, displayShiftName))
-
-                                        if (secondaryName.equals(myName, true)) {
-                                            myShiftsMap[date] = displayShiftName
-                                            if (!date.isBefore(LocalDate.now())) {
-                                                myShiftsList.add(MyShiftDisplay(dateKey, displayShiftName, date))
-                                            }
-                                        }
-                                    }
-                                }
-
-                                shiftSnap.child("nurses").children.forEach { processSlot(it, "Enfermero/a") }
-                                shiftSnap.child("auxiliaries").children.forEach { processSlot(it, "Auxiliar") }
-                            }
-                        } catch (_: Exception) {}
-                    }
-                    myShiftsList.sortBy { it.fullDate }
-                    allPlantShifts.sortBy { it.date }
-                    isLoading = false
-                }
-                override fun onCancelled(error: DatabaseError) { isLoading = false }
-            })
-
-        // 3. Cargar Solicitudes
+        // 3. CARGAR SOLICITUDES (Independiente)
         database.getReference("plants/$plantId/shift_requests")
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     allRequests.clear()
                     snapshot.children.mapNotNull { it.getValue(ShiftChangeRequest::class.java) }
                         .filter {
-                            it.status == RequestStatus.SEARCHING ||
-                                    it.status == RequestStatus.PENDING_PARTNER ||
-                                    it.status == RequestStatus.AWAITING_SUPERVISOR
+                            it.status != RequestStatus.DRAFT // Solo cargar activas o historial
                         }
                         .forEach { allRequests.add(it) }
                 }
@@ -221,10 +233,14 @@ fun ShiftChangeScreen(
             })
     }
 
+    // Manejo del botón atrás nativo
     BackHandler(enabled = selectedRequestForSuggestions != null) {
         selectedRequestForSuggestions = null
     }
 
+    // ========================================================================================
+    // UI PRINCIPAL
+    // ========================================================================================
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
@@ -251,7 +267,7 @@ fun ShiftChangeScreen(
             .fillMaxSize()
             .padding(paddingValues)) {
 
-            // SI NO ES SUPERVISOR, MOSTRAMOS LOS TABS
+            // TABS (Solo si no soy Supervisor)
             if (selectedRequestForSuggestions == null && !isSupervisor) {
                 TabRow(
                     selectedTabIndex = selectedTab,
@@ -277,7 +293,9 @@ fun ShiftChangeScreen(
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = Color(0xFF54C7EC))
                 } else {
                     if (selectedRequestForSuggestions != null) {
-                        // VISTA DE LISTA CON FILTROS
+                        // -----------------------------------------------------------
+                        // VISTA: BUSCADOR DE CANDIDATOS (Para una solicitud específica)
+                        // -----------------------------------------------------------
                         FullPlantShiftsList(
                             request = selectedRequestForSuggestions!!,
                             allShifts = allPlantShifts,
@@ -291,24 +309,33 @@ fun ShiftChangeScreen(
                             }
                         )
                     } else if (isSupervisor) {
-                        // VISTA SUPERVISOR: GESTIÓN DIRECTA
+                        // -----------------------------------------------------------
+                        // VISTA: SUPERVISOR (Gestión Total)
+                        // -----------------------------------------------------------
+                        val supervisorRequests = allRequests.filter { it.status == RequestStatus.AWAITING_SUPERVISOR }
+                        val myPersonalRequests = allRequests.filter {
+                            (it.requesterId == currentUserId || it.requesterName.equals(currentUserName, ignoreCase = true)) &&
+                                    it.status == RequestStatus.SEARCHING
+                        }
+
                         ShiftManagementTab(
                             currentUserId = currentUserId,
+                            currentUserName = currentUserName,
                             isSupervisor = isSupervisor,
-                            myRequests = allRequests.filter { it.requesterId == currentUserId },
-                            supervisorRequests = allRequests.filter { it.status == RequestStatus.AWAITING_SUPERVISOR },
-                            // Supervisor ve TODOS los pendientes de partner
-                            inProgressRequests = allRequests.filter { it.status == RequestStatus.PENDING_PARTNER },
+                            openRequests = myPersonalRequests,
+                            peerPendingRequests = emptyList(),
+                            historyRequests = allRequests.filter { it.status == RequestStatus.APPROVED }, // Ocultar rechazados aquí también
+                            supervisorRequests = supervisorRequests,
                             onDeleteRequest = { req ->
                                 deleteShiftRequest(database, plantId, req.id)
                                 Toast.makeText(context, "Solicitud borrada", Toast.LENGTH_SHORT).show()
                             },
-                            onAcceptByPartner = { }, // Supervisor no acepta por el partner
+                            onAcceptByPartner = { },
                             onRejectByPartner = { },
                             onApproveBySupervisor = { req ->
                                 approveSwapBySupervisor(database, plantId, req, {
                                     onSaveNotification(req.requesterId, "SHIFT_APPROVED", "Cambio aprobado por supervisor.", "ShiftChangeScreen", req.id, {})
-                                    if (req.targetUserId != null) {
+                                    if (req.targetUserId != null && !req.targetUserId.startsWith("UNREGISTERED")) {
                                         onSaveNotification(req.targetUserId, "SHIFT_APPROVED", "Cambio aprobado por supervisor.", "ShiftChangeScreen", req.id, {})
                                     }
                                     Toast.makeText(context, "Cambio ejecutado y aprobado.", Toast.LENGTH_SHORT).show()
@@ -322,7 +349,9 @@ fun ShiftChangeScreen(
                             }
                         )
                     } else {
-                        // VISTA USUARIO NORMAL: TABS
+                        // -----------------------------------------------------------
+                        // VISTA: USUARIO NORMAL (Tabs)
+                        // -----------------------------------------------------------
                         when (selectedTab) {
                             0 -> MyShiftsCalendarTab(
                                 shifts = myShiftsList,
@@ -331,45 +360,76 @@ fun ShiftChangeScreen(
                                     showCreateDialog = true
                                 }
                             )
-                            1 -> ShiftManagementTab(
-                                currentUserId = currentUserId,
-                                isSupervisor = isSupervisor,
-                                myRequests = allRequests.filter { it.requesterId == currentUserId },
-                                supervisorRequests = emptyList(),
-                                // Usuario normal ve los que le implican (Requester o Target) y están pendientes
-                                inProgressRequests = allRequests.filter {
-                                    (it.requesterId == currentUserId || it.targetUserId == currentUserId) &&
-                                            it.status == RequestStatus.PENDING_PARTNER
-                                },
-                                onDeleteRequest = { req ->
-                                    deleteShiftRequest(database, plantId, req.id)
-                                    Toast.makeText(context, "Solicitud borrada", Toast.LENGTH_SHORT).show()
-                                },
-                                onAcceptByPartner = { req ->
-                                    updateRequestStatus(database, plantId, req.id, RequestStatus.AWAITING_SUPERVISOR)
-                                    onSaveNotification(
-                                        req.requesterId,
-                                        "SHIFT_UPDATE",
-                                        "Tu compañero ha aceptado el cambio. Pendiente de Supervisor.",
-                                        "ShiftChangeScreen",
-                                        req.id, {}
-                                    )
-                                },
-                                onRejectByPartner = { req ->
-                                    rejectSwapProposal(database, plantId, req.id)
-                                    onSaveNotification(
-                                        req.requesterId,
-                                        "SHIFT_REJECTED",
-                                        "El compañero rechazó el cambio. Tu solicitud vuelve a estar abierta.",
-                                        "ShiftChangeScreen",
-                                        req.id, {}
-                                    )
-                                },
-                                onApproveBySupervisor = { },
-                                onRejectBySupervisor = { }
-                            )
+                            1 -> {
+                                // --- LÓGICA DE FILTRADO (LAS 3 LISTAS) ---
+
+                                // 1. Mis Búsquedas (Iniciadas por mí, estado SEARCHING)
+                                val openRequests = allRequests.filter {
+                                    val isMe = it.requesterId == currentUserId || it.requesterName.equals(currentUserName, ignoreCase = true)
+                                    isMe && it.status == RequestStatus.SEARCHING
+                                }
+
+                                // 2. En Proceso (Pendientes Compañero O Pendientes Supervisor)
+                                val peerPendingRequests = allRequests.filter {
+                                    val isRequester = it.requesterId == currentUserId || it.requesterName.equals(currentUserName, ignoreCase = true)
+                                    val isTarget = it.targetUserId == currentUserId || it.targetUserName.equals(currentUserName, ignoreCase = true)
+                                    val relevantStatus = it.status == RequestStatus.PENDING_PARTNER || it.status == RequestStatus.AWAITING_SUPERVISOR
+
+                                    relevantStatus && (isRequester || isTarget)
+                                }
+
+                                // 3. Historial (SOLO COMPLETADOS/APROBADOS) - Rechazados se ocultan
+                                val historyRequests = allRequests.filter {
+                                    val isRequester = it.requesterId == currentUserId || it.requesterName.equals(currentUserName, ignoreCase = true)
+                                    val isTarget = it.targetUserId == currentUserId || it.targetUserName.equals(currentUserName, ignoreCase = true)
+
+                                    (isRequester || isTarget) && (it.status == RequestStatus.APPROVED)
+                                }
+
+                                ShiftManagementTab(
+                                    currentUserId = currentUserId,
+                                    currentUserName = currentUserName,
+                                    isSupervisor = isSupervisor,
+                                    openRequests = openRequests,
+                                    peerPendingRequests = peerPendingRequests,
+                                    historyRequests = historyRequests,
+                                    supervisorRequests = emptyList(),
+                                    onDeleteRequest = { req ->
+                                        deleteShiftRequest(database, plantId, req.id)
+                                        Toast.makeText(context, "Solicitud borrada", Toast.LENGTH_SHORT).show()
+                                    },
+                                    onAcceptByPartner = { req ->
+                                        updateRequestStatus(database, plantId, req.id, RequestStatus.AWAITING_SUPERVISOR)
+                                        onSaveNotification(
+                                            req.requesterId,
+                                            "SHIFT_UPDATE",
+                                            "Tu compañero ha aceptado el cambio. Pendiente de Supervisor.",
+                                            "ShiftChangeScreen",
+                                            req.id, {}
+                                        )
+                                    },
+                                    onRejectByPartner = { req ->
+                                        deleteShiftRequest(database, plantId, req.id)
+                                        // Notificar solo si soy el destinatario rechazando (no si soy el solicitante cancelando)
+                                        if (req.targetUserId == currentUserId || req.targetUserName.equals(currentUserName, ignoreCase = true)) {
+                                            onSaveNotification(
+                                                req.requesterId,
+                                                "SHIFT_REJECTED",
+                                                "El compañero rechazó el cambio.",
+                                                "ShiftChangeScreen",
+                                                req.id, {}
+                                            )
+                                        }
+                                    },
+                                    onApproveBySupervisor = { },
+                                    onRejectBySupervisor = { }
+                                )
+                            }
                             2 -> MyRequestsForSuggestionsTab(
-                                myRequests = allRequests.filter { it.requesterId == currentUserId && it.status == RequestStatus.SEARCHING },
+                                myRequests = allRequests.filter {
+                                    (it.requesterId == currentUserId || it.requesterName.equals(currentUserName, ignoreCase = true)) &&
+                                            it.status == RequestStatus.SEARCHING
+                                },
                                 onSeeCandidates = { req ->
                                     selectedRequestForSuggestions = req
                                 }
@@ -381,6 +441,7 @@ fun ShiftChangeScreen(
         }
     }
 
+    // Dialog para crear solicitud desde el calendario
     if (showCreateDialog && selectedShiftForRequest != null) {
         val shift = selectedShiftForRequest!!
         CreateShiftRequestDialog(
@@ -407,13 +468,262 @@ fun ShiftChangeScreen(
                 database.getReference("plants/$plantId/shift_requests/$reqId").setValue(newRequest)
                 Toast.makeText(context, "Solicitud creada. Ve a 'Sugerencias' para buscar candidatos.", Toast.LENGTH_LONG).show()
                 showCreateDialog = false
-                selectedTab = 2
+                selectedTab = 2 // Ir a sugerencias
             }
         )
     }
 }
 
-// --- 3. LISTA DE TURNOS CON BARRA DE FILTROS ---
+// ============================================================================================
+// COMPONENTE: LISTA DE GESTIÓN (Las 3 Listas)
+// ============================================================================================
+
+@Composable
+fun ShiftManagementTab(
+    currentUserId: String,
+    currentUserName: String,
+    isSupervisor: Boolean,
+    openRequests: List<ShiftChangeRequest>,
+    peerPendingRequests: List<ShiftChangeRequest>,
+    historyRequests: List<ShiftChangeRequest>,
+    supervisorRequests: List<ShiftChangeRequest>,
+    onDeleteRequest: (ShiftChangeRequest) -> Unit,
+    onAcceptByPartner: (ShiftChangeRequest) -> Unit,
+    onRejectByPartner: (ShiftChangeRequest) -> Unit,
+    onApproveBySupervisor: (ShiftChangeRequest) -> Unit,
+    onRejectBySupervisor: (ShiftChangeRequest) -> Unit
+) {
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(24.dp), contentPadding = PaddingValues(16.dp)) {
+
+        // 1. SUPERVISOR (Prioridad Máxima)
+        if (isSupervisor && supervisorRequests.isNotEmpty()) {
+            item { Text("Pendientes de Aprobación (Supervisor)", color = Color(0xFFE91E63), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
+            items(supervisorRequests) { req ->
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0x22E91E63))) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text("Confirmación de Cambio", color = Color.White, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(4.dp))
+                        Text("${req.requesterName} (${req.requesterShiftDate})", color = Color(0xCCFFFFFF), fontSize = 13.sp)
+                        Icon(Icons.Default.SwapHoriz, null, tint = Color.White, modifier = Modifier.size(16.dp))
+                        Text("${req.targetUserName} (${req.targetShiftDate})", color = Color(0xCCFFFFFF), fontSize = 13.sp)
+
+                        Spacer(Modifier.height(12.dp))
+                        Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                            TextButton(onClick = { onRejectBySupervisor(req) }) { Text("Rechazar", color = Color(0xFFFFB4AB)) }
+                            Button(onClick = { onApproveBySupervisor(req) }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))) { Text("Aprobar Cambio") }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 2. EN PROCESO (ACCIÓN REQUERIDA O ESPERANDO)
+        if (peerPendingRequests.isNotEmpty()) {
+            item { Text("En Proceso", color = Color(0xFFFFA000), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
+            items(peerPendingRequests) { req ->
+                // Determinar si soy el destino por ID o por NOMBRE
+                val amITarget = req.targetUserId == currentUserId || req.targetUserName.equals(currentUserName, ignoreCase = true)
+                val isAwaitingSupervisor = req.status == RequestStatus.AWAITING_SUPERVISOR
+
+                // Color logic
+                val containerColor = when {
+                    isAwaitingSupervisor -> Color(0x22E91E63) // Rosa/Morado para espera de supervisor
+                    amITarget -> Color(0x224CAF50) // Verde si me toca responder
+                    else -> Color(0x22FFA000) // Naranja si estoy esperando
+                }
+
+                Card(colors = CardDefaults.cardColors(containerColor = containerColor)) {
+                    Column(Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (isAwaitingSupervisor) {
+                                Icon(Icons.Default.Info, null, tint = Color(0xFFE91E63), modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text("PENDIENTE DE APROBACIÓN DE SUPERVISOR", color = Color(0xFFE91E63), fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            } else if (amITarget) {
+                                Icon(Icons.Default.Info, null, tint = Color(0xFF4CAF50), modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text("¡TE HAN PROPUESTO UN CAMBIO!", color = Color(0xFF4CAF50), fontWeight = FontWeight.ExtraBold, fontSize = 12.sp)
+                            } else {
+                                Icon(Icons.Default.Refresh, null, tint = Color(0xFFFFA000), modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text("ESPERANDO RESPUESTA DE ${req.targetUserName?.uppercase() ?: "COMPAÑERO"}", color = Color(0xFFFFA000), fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            }
+                        }
+                        Spacer(Modifier.height(12.dp))
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text("Origen", color = Color.Gray, fontSize = 10.sp)
+                                Text(req.requesterName, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                                Text(req.requesterShiftDate, color = Color(0xCCFFFFFF), fontSize = 12.sp)
+                            }
+                            Icon(Icons.Default.SwapHoriz, null, tint = Color.White, modifier = Modifier.padding(horizontal = 8.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text("Destino", color = Color.Gray, fontSize = 10.sp)
+                                Text(req.targetUserName ?: "?", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                                Text(req.targetShiftDate ?: "?", color = Color(0xCCFFFFFF), fontSize = 12.sp)
+                            }
+                        }
+
+                        if (isAwaitingSupervisor) {
+                            // Permitir cancelar incluso esperando supervisor (opcional, pero buena UX)
+                            Spacer(Modifier.height(8.dp))
+                            TextButton(onClick = { onDeleteRequest(req) }, modifier = Modifier.align(Alignment.End)) {
+                                Text("Cancelar Solicitud", color = Color(0xFFFFB4AB), fontSize = 12.sp)
+                            }
+                        } else if (amITarget) {
+                            Spacer(Modifier.height(16.dp))
+                            Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                                OutlinedButton(
+                                    onClick = { onRejectByPartner(req) },
+                                    border = BorderStroke(1.dp, Color(0xFFFFB4AB)),
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFFB4AB))
+                                ) {
+                                    Text("Rechazar")
+                                }
+                                Spacer(Modifier.width(8.dp))
+                                Button(
+                                    onClick = { onAcceptByPartner(req) },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC), contentColor = Color.Black)
+                                ) {
+                                    Text("Aceptar Cambio")
+                                }
+                            }
+                        } else {
+                            Spacer(Modifier.height(8.dp))
+                            TextButton(onClick = { onRejectByPartner(req) }, modifier = Modifier.align(Alignment.End)) {
+                                Text("Cancelar Solicitud", color = Color(0xFFFFB4AB), fontSize = 12.sp)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 3. MIS BÚSQUEDAS (INICIADOS)
+        if (openRequests.isNotEmpty()) {
+            item { Text("Mis Búsquedas Activas (Sin Candidato)", color = Color(0xFF54C7EC), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
+            items(openRequests) { req ->
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0x1154C7EC)), border = BorderStroke(1.dp, Color(0x3354C7EC))) {
+                    Column(Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Search, null, tint = Color(0xFF54C7EC), modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Buscando candidato...", color = Color(0xFF54C7EC), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Spacer(Modifier.weight(1f))
+                            IconButton(onClick = { onDeleteRequest(req) }, modifier = Modifier.size(24.dp)) {
+                                Icon(Icons.Default.Delete, null, tint = Color(0xFFFFB4AB), modifier = Modifier.size(16.dp))
+                            }
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        Text("Ofreces: ${req.requesterShiftDate} (${req.requesterShiftName})", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text("Ve a la pestaña 'Sugerencias' para proponer cambio.", color = Color.Gray, fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp))
+                    }
+                }
+            }
+        }
+
+        // 4. HISTORIAL
+        if (historyRequests.isNotEmpty()) {
+            item { Text("Historial (Completados)", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp) }
+            items(historyRequests) { req ->
+                val statusText = "CAMBIO APROBADO"
+                val statusColor = Color(0xFF4CAF50) // Verde
+
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0x11FFFFFF))) {
+                    Column(Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(Modifier.size(8.dp).background(statusColor, CircleShape))
+                            Spacer(Modifier.width(8.dp))
+                            Text(statusText, color = statusColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(Modifier.height(8.dp))
+
+                        Text("${req.requesterName} ↔ ${req.targetUserName}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Text("${req.requesterShiftDate} por ${req.targetShiftDate}", color = Color.Gray, fontSize = 12.sp)
+
+                        // Botón de limpieza para historial antiguo
+                        Spacer(Modifier.height(8.dp))
+                        TextButton(onClick = { onDeleteRequest(req) }, modifier = Modifier.align(Alignment.End)) {
+                            Text("Borrar del Historial", color = Color.Gray, fontSize = 11.sp)
+                        }
+                    }
+                }
+            }
+        } else if (openRequests.isEmpty() && peerPendingRequests.isEmpty()) {
+            item {
+                Text("No tienes actividad reciente.", color = Color.Gray, modifier = Modifier.fillMaxWidth().padding(32.dp), textAlign = TextAlign.Center)
+            }
+        }
+    }
+}
+
+// ============================================================================================
+// COMPONENTE: LISTA DE SUGERENCIAS (Para buscar candidatos)
+// ============================================================================================
+
+@Composable
+fun MyRequestsForSuggestionsTab(
+    myRequests: List<ShiftChangeRequest>,
+    onSeeCandidates: (ShiftChangeRequest) -> Unit
+) {
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        item {
+            Text(
+                "Busca candidatos para tus turnos",
+                color = Color(0xFF54C7EC),
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Text(
+                "Selecciona uno de tus turnos ofertados para ver quién puede cambiártelo.",
+                color = Color.Gray,
+                fontSize = 12.sp
+            )
+        }
+
+        if (myRequests.isEmpty()) {
+            item {
+                Column(Modifier.fillMaxWidth().padding(top = 32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Default.Info, null, tint = Color.Gray, modifier = Modifier.size(48.dp))
+                    Text("No tienes ofertas activas.", color = Color.Gray)
+                    Text("Crea una en 'Mis Turnos' primero.", color = Color.Gray, fontSize = 12.sp)
+                }
+            }
+        }
+
+        items(myRequests) { req ->
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color(0x2254C7EC)),
+                border = BorderStroke(1.dp, Color(0x4454C7EC))
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text("Ofreces el turno del:", color = Color(0xCCFFFFFF), fontSize = 12.sp)
+                            Text("${req.requesterShiftDate} (${req.requesterShiftName})", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        }
+                        Badge(containerColor = Color(0xFF54C7EC), contentColor = Color.Black) { Text("ACTIVA") }
+                    }
+                    Spacer(Modifier.height(16.dp))
+                    Button(
+                        onClick = { onSeeCandidates(req) },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC), contentColor = Color.Black),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Default.Search, null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("VER CANDIDATOS COMPATIBLES")
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ============================================================================================
+// COMPONENTE: LISTADO COMPLETO CON FILTROS (Cuando seleccionas "Ver Candidatos")
+// ============================================================================================
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -637,7 +947,9 @@ fun FullPlantShiftsList(
     }
 }
 
-// --- 4. TARJETA DE TURNO ---
+// ============================================================================================
+// COMPONENTE: TARJETA DE TURNO (Individual)
+// ============================================================================================
 
 @Composable
 fun PlantShiftCard(
@@ -753,7 +1065,9 @@ fun PlantShiftCard(
     }
 }
 
-// --- DIALOGO DE PREVIEW (MEJORADO - DOBLE SEMANA Y SALIENTES) ---
+// ============================================================================================
+// COMPONENTE: DIÁLOGO DE PREVIEW (Simulación)
+// ============================================================================================
 
 @Composable
 fun SchedulePreviewDialog(
@@ -781,9 +1095,7 @@ fun SchedulePreviewDialog(
             val giveStart = dateImGiving.minusDays(3)
             val giveRange = (0..6).map { giveStart.plusDays(it.toLong()) }
 
-            // Si los rangos se solapan significativamente o son cercanos, los fusionamos?
-            // Por simplicidad y claridad, si están muy lejos, mostramos dos bloques.
-            // Si están cerca (menos de 7 días de diferencia), fusionamos en una sola vista.
+            // Si los rangos se solapan significativamente o son cercanos, los fusionamos
             val daysDiff = ChronoUnit.DAYS.between(dateImTaking, dateImGiving)
             if (kotlin.math.abs(daysDiff) > 7) {
                 ranges.add(giveRange)
@@ -872,11 +1184,6 @@ fun ScheduleWeekView(
             modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(bottom = 8.dp),
             verticalAlignment = Alignment.Bottom
         ) {
-            // Columna fija para nombres? No, aquí scrollamos todo junto mejor
-            // O mejor, el row de nombres es fijo y el contenido scrollea?
-            // Para rangos cortos (+/-3 días = 7 días) cabe en pantalla.
-            // Para rangos fusionados puede ser más largo.
-
             // Layout tabla
             Column {
                 // Header Dias
@@ -1030,7 +1337,6 @@ fun ScheduleRow(
                 // Para celdas con fondo de color (cambios), usamos blanco para contraste
                 isAdded || isRemoved || isNewSaliente || isLostSaliente -> Color.White
                 // Para días sin turno (S o -), usamos Gris para que se vea "desactivado" o secundario
-                // text == "S" || text == "-" -> Color.Gray // ANTES
                 text == "-" -> Color.Gray // El guion sigue en gris
                 else -> Color.White // "S", "M", "T", "N" en blanco
             }
@@ -1059,7 +1365,9 @@ fun ScheduleRow(
     }
 }
 
-// --- 5. TABS Y CALENDARIO (EXISTENTE) ---
+// ============================================================================================
+// COMPONENTE: CALENDARIO DE MIS TURNOS
+// ============================================================================================
 
 @Composable
 fun MyShiftsCalendarTab(
@@ -1131,209 +1439,9 @@ fun MyShiftsCalendarTab(
     }
 }
 
-@Composable
-fun ShiftManagementTab(
-    currentUserId: String,
-    isSupervisor: Boolean,
-    myRequests: List<ShiftChangeRequest>,
-    incomingRequests: List<ShiftChangeRequest> = emptyList(), // Deprecated but kept for compatibility if needed
-    supervisorRequests: List<ShiftChangeRequest>,
-    inProgressRequests: List<ShiftChangeRequest> = emptyList(),
-    onDeleteRequest: (ShiftChangeRequest) -> Unit,
-    onAcceptByPartner: (ShiftChangeRequest) -> Unit,
-    onRejectByPartner: (ShiftChangeRequest) -> Unit,
-    onApproveBySupervisor: (ShiftChangeRequest) -> Unit,
-    onRejectBySupervisor: (ShiftChangeRequest) -> Unit
-) {
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-
-        // --- SECCIÓN SUPERVISOR: PENDIENTES DE APROBACIÓN ---
-        if (isSupervisor && supervisorRequests.isNotEmpty()) {
-            item { Text("Pendientes de Aprobación (Supervisor)", color = Color(0xFFE91E63), fontWeight = FontWeight.Bold) }
-            items(supervisorRequests) { req ->
-                Card(colors = CardDefaults.cardColors(containerColor = Color(0x22E91E63))) {
-                    Column(Modifier.padding(16.dp)) {
-                        Text("Confirmación de Cambio", color = Color.White, fontWeight = FontWeight.Bold)
-                        Spacer(Modifier.height(4.dp))
-                        // Mostrar detalles del cambio completo (A <-> B)
-                        Text("${req.requesterName} (${req.requesterShiftDate})", color = Color(0xCCFFFFFF), fontSize = 13.sp)
-                        Icon(Icons.Default.SwapHoriz, null, tint = Color.White, modifier = Modifier.size(16.dp))
-                        Text("${req.targetUserName} (${req.targetShiftDate})", color = Color(0xCCFFFFFF), fontSize = 13.sp)
-
-                        Spacer(Modifier.height(12.dp))
-                        Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
-                            TextButton(onClick = { onRejectBySupervisor(req) }) {
-                                Text("Rechazar", color = Color(0xFFFFB4AB))
-                            }
-                            Button(
-                                onClick = { onApproveBySupervisor(req) },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
-                            ) {
-                                Text("Aprobar Cambio")
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // --- SECCIÓN CAMBIOS EN PROCESO (UNIFICADA) ---
-        // Aquí salen tanto los que yo espero como los que esperan por mí
-        if (inProgressRequests.isNotEmpty()) {
-            item { Text("Cambios en Proceso", color = Color(0xFFFFA000), fontWeight = FontWeight.Bold) }
-            items(inProgressRequests) { req ->
-                val amITarget = req.targetUserId == currentUserId
-                val containerColor = if (amITarget) Color(0x224CAF50) else Color(0x22FFA000)
-
-                Card(colors = CardDefaults.cardColors(containerColor = containerColor)) {
-                    Column(Modifier.padding(16.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (amITarget) {
-                                // Si soy el destino, ES UN AVISO DE ACCIÓN
-                                Icon(Icons.Default.Info, null, tint = Color(0xFF4CAF50), modifier = Modifier.size(16.dp))
-                                Spacer(Modifier.width(8.dp))
-                                Text("¡Te han propuesto un cambio!", color = Color(0xFF4CAF50), fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                            } else {
-                                // Si soy el origen, ES UN AVISO DE ESPERA
-                                Icon(Icons.Default.Refresh, null, tint = Color(0xFFFFA000), modifier = Modifier.size(16.dp))
-                                Spacer(Modifier.width(8.dp))
-                                Text("Esperando respuesta...", color = Color(0xFFFFA000), fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                            }
-                        }
-                        Spacer(Modifier.height(8.dp))
-                        Text("Propuesta de: ${req.requesterName}", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                        Text("Cambio por: ${req.targetUserName ?: "Sin asignar"} (${req.targetShiftDate})", color = Color(0xCCFFFFFF), fontSize = 13.sp)
-
-                        if (amITarget) {
-                            Spacer(Modifier.height(12.dp))
-                            Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
-                                OutlinedButton(
-                                    onClick = { onRejectByPartner(req) },
-                                    border = BorderStroke(1.dp, Color(0xFFFFB4AB)),
-                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFFB4AB))
-                                ) {
-                                    Text("Rechazar")
-                                }
-                                Spacer(Modifier.width(8.dp))
-                                Button(
-                                    onClick = { onAcceptByPartner(req) },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC), contentColor = Color.Black)
-                                ) {
-                                    Text("Aceptar")
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // --- SECCIÓN MIS SOLICITUDES (Borradores / Buscando) ---
-        item {
-            Text("Mis Solicitudes (${myRequests.size})", color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
-        }
-        if (myRequests.isEmpty()) {
-            item { Text("No tienes solicitudes activas.", color = Color.Gray) }
-        } else {
-            items(myRequests) { req ->
-                val statusColor = when(req.status) {
-                    RequestStatus.SEARCHING -> Color(0xFFFFA000)
-                    RequestStatus.PENDING_PARTNER -> Color(0xFF2196F3)
-                    RequestStatus.AWAITING_SUPERVISOR -> Color(0xFFE91E63)
-                    RequestStatus.APPROVED -> Color(0xFF4CAF50)
-                    RequestStatus.REJECTED -> Color.Red
-                    else -> Color.Gray
-                }
-                val statusText = when(req.status) {
-                    RequestStatus.SEARCHING -> "Buscando candidato..."
-                    RequestStatus.PENDING_PARTNER -> "Esperando a ${req.targetUserName ?: "compañero"}"
-                    RequestStatus.AWAITING_SUPERVISOR -> "Esperando Supervisor"
-                    else -> req.status.name
-                }
-
-                Card(colors = CardDefaults.cardColors(containerColor = Color(0x22FFFFFF))) {
-                    Column(Modifier.padding(16.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Refresh, null, tint = statusColor, modifier = Modifier.size(16.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text(statusText, color = statusColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                            Spacer(Modifier.weight(1f))
-                            // Solo permitir borrar si no está aprobada/rechazada final
-                            if (req.status != RequestStatus.APPROVED && req.status != RequestStatus.REJECTED) {
-                                IconButton(onClick = { onDeleteRequest(req) }) {
-                                    Icon(Icons.Default.Delete, contentDescription = "Borrar", tint = Color(0xFFFFB4AB))
-                                }
-                            }
-                        }
-                        Spacer(Modifier.height(8.dp))
-                        Text("Sueltas: ${req.requesterShiftDate} (${req.requesterShiftName})", color = Color.White, fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
-        }
-    }
-}
-
-// --- AGREGAR AL FINAL DE ShiftChangeScreen.kt ---
-
-@Composable
-fun MyRequestsForSuggestionsTab(
-    myRequests: List<ShiftChangeRequest>,
-    onSeeCandidates: (ShiftChangeRequest) -> Unit
-) {
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        item {
-            Text(
-                "Busca candidatos para tus turnos",
-                color = Color(0xFF54C7EC),
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            Text(
-                "Selecciona uno de tus turnos ofertados para ver quién puede cambiártelo.",
-                color = Color.Gray,
-                fontSize = 12.sp
-            )
-        }
-
-        if (myRequests.isEmpty()) {
-            item {
-                Column(Modifier.fillMaxWidth().padding(top = 32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Default.Info, null, tint = Color.Gray, modifier = Modifier.size(48.dp))
-                    Text("No tienes ofertas activas.", color = Color.Gray)
-                    Text("Crea una en 'Mis Turnos' primero.", color = Color.Gray, fontSize = 12.sp)
-                }
-            }
-        }
-
-        items(myRequests) { req ->
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0x2254C7EC)),
-                border = BorderStroke(1.dp, Color(0x4454C7EC))
-            ) {
-                Column(Modifier.padding(16.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text("Ofreces el turno del:", color = Color(0xCCFFFFFF), fontSize = 12.sp)
-                            Text("${req.requesterShiftDate} (${req.requesterShiftName})", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                        }
-                        Badge(containerColor = Color(0xFF54C7EC), contentColor = Color.Black) { Text("ACTIVA") }
-                    }
-                    Spacer(Modifier.height(16.dp))
-                    Button(
-                        onClick = { onSeeCandidates(req) },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC), contentColor = Color.Black),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(Icons.Default.Search, null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text("VER CANDIDATOS COMPATIBLES")
-                    }
-                }
-            }
-        }
-    }
-}
+// ============================================================================================
+// COMPONENTE: DIALOGO PARA CREAR SOLICITUD
+// ============================================================================================
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1403,6 +1511,10 @@ fun CreateShiftRequestDialog(
     )
 }
 
+// ============================================================================================
+// HELPERS Y LÓGICA DE NEGOCIO
+// ============================================================================================
+
 fun getShiftColor(shiftName: String?): Color {
     if (shiftName == null) return Color.Transparent
     val name = shiftName.lowercase()
@@ -1414,8 +1526,6 @@ fun getShiftColor(shiftName: String?): Color {
         else -> Color(0xFF4CAF50)
     }
 }
-
-// --- LÓGICA DE NEGOCIO ---
 
 fun performDirectProposal(
     database: FirebaseDatabase,
@@ -1449,6 +1559,9 @@ fun rejectSwapProposal(
     plantId: String,
     requestId: String
 ) {
+    // Si se rechaza, la solicitud se borra (según nueva lógica)
+    // O si prefieres que vuelva a búsqueda:
+    /*
     val updates = mapOf(
         "plants/$plantId/shift_requests/$requestId/status" to RequestStatus.SEARCHING,
         "plants/$plantId/shift_requests/$requestId/targetUserId" to null,
@@ -1457,6 +1570,8 @@ fun rejectSwapProposal(
         "plants/$plantId/shift_requests/$requestId/targetShiftName" to null
     )
     database.reference.updateChildren(updates)
+    */
+    deleteShiftRequest(database, plantId, requestId)
 }
 
 fun updateRequestStatus(
@@ -1520,31 +1635,28 @@ fun approveSwapBySupervisor(
                     if (infoA != null && infoB != null) {
                         val updates = mutableMapOf<String, Any?>()
 
-                        // LOGICA MEDIA JORNADA -> COMPLETA (Y VICEVERSA)
+                        // LOGICA DE INTERCAMBIO (COMPLETO / MEDIA JORNADA)
                         if (infoA.isHalfDay && !infoB.isHalfDay) {
-                            // A (Media) toma el turno de B (Completo). El turno de A se vuelve completo y B lo ocupa.
                             val partsA = infoA.path.split("/") // Turno/Group/Key/Role
                             val basePathA = "plants/$plantId/turnos/turnos-${req.requesterShiftDate}/${partsA[0]}/${partsA[1]}/${partsA[2]}"
 
                             updates["$basePathA/primary"] = req.targetUserName
-                            updates["$basePathA/secondary"] = "" // LIBERAR COMPAÑERO DE MEDIA JORNADA
+                            updates["$basePathA/secondary"] = ""
                             updates["$basePathA/halfDay"] = false
 
                             updates["plants/$plantId/turnos/turnos-${req.targetShiftDate}/${infoB.path}"] = req.requesterName
 
                         } else if (!infoA.isHalfDay && infoB.isHalfDay) {
-                            // A (Completo) toma el turno de B (Media). El turno de B se vuelve completo y A lo ocupa.
                             val partsB = infoB.path.split("/")
                             val basePathB = "plants/$plantId/turnos/turnos-${req.targetShiftDate}/${partsB[0]}/${partsB[1]}/${partsB[2]}"
 
                             updates["$basePathB/primary"] = req.requesterName
-                            updates["$basePathB/secondary"] = "" // LIBERAR COMPAÑERO DE MEDIA JORNADA
+                            updates["$basePathB/secondary"] = ""
                             updates["$basePathB/halfDay"] = false
 
                             updates["plants/$plantId/turnos/turnos-${req.requesterShiftDate}/${infoA.path}"] = req.targetUserName
 
                         } else {
-                            // Cambio Normal (Completo <-> Completo o Media <-> Media)
                             updates["plants/$plantId/turnos/turnos-${req.requesterShiftDate}/${infoA.path}"] = req.targetUserName
                             updates["plants/$plantId/turnos/turnos-${req.targetShiftDate}/${infoB.path}"] = req.requesterName
                         }

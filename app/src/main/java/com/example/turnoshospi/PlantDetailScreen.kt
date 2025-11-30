@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Environment
 import android.widget.Toast
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -242,12 +243,14 @@ fun PlantDetailScreen(
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
-                TopAppBar(
+                // CAMBIO: Usar CenterAlignedTopAppBar en lugar de TopAppBar normal
+                CenterAlignedTopAppBar(
                     title = {
                         Text(
                             text = plant?.name ?: stringResource(id = R.string.menu_my_plants),
                             color = Color.White,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
                         )
                     },
                     navigationIcon = {
@@ -259,13 +262,7 @@ fun PlantDetailScreen(
                                     tint = Color.White
                                 )
                             }
-                            IconButton(onClick = onBack) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = stringResource(id = R.string.close_label),
-                                    tint = Color.White
-                                )
-                            }
+
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
