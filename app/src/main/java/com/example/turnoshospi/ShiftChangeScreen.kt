@@ -46,6 +46,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties // IMPORTACIÓN AÑADIDA PARA CONTROLAR EL TAMAÑO DEL DIÁLOGO
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -1178,7 +1179,7 @@ fun PlantShiftCard(
 }
 
 // ============================================================================================
-// COMPONENTE: DIÁLOGO DE PREVIEW (Actualizado a 15 días, Colores y "L")
+// COMPONENTE: DIÁLOGO DE PREVIEW (Actualizado: Grande y con 2 Calendarios)
 // ============================================================================================
 
 @Composable
@@ -1195,28 +1196,70 @@ fun SchedulePreviewDialog(
     row2DateToAdd: LocalDate?,
     row2ShiftToAdd: String?
 ) {
-    // Calculamos el rango: 7 días antes y 7 días después de la fecha más temprana involucrada
-    val pivotDate = listOfNotNull(row1DateToRemove, row1DateToAdd, row2DateToRemove, row2DateToAdd).minOrNull() ?: LocalDate.now()
+    // 1. Identificar las dos fechas principales del cambio
+    // row1DateToRemove es la fecha que "suelta" el usuario 1 (ej. su turno original)
+    // row1DateToAdd es la fecha que "recibe" el usuario 1 (ej. el turno del compañero)
+    val date1 = row1DateToRemove ?: LocalDate.now()
+    val date2 = row1DateToAdd ?: date1
 
-    val daysToShow = remember(pivotDate) {
-        val start = pivotDate.minusDays(7)
-        (0..14).map { start.plusDays(it.toLong()) } // 15 días total
-    }
+    // 2. Generar dos rangos de días independientes (±3 días alrededor de cada fecha)
+    // Esto crea "dos pequeños calendarios" como solicitaste
+    val days1 = remember(date1) { (-3..3).map { date1.plusDays(it.toLong()) } }
+    val days2 = remember(date2) { (-3..3).map { date2.plusDays(it.toLong()) } }
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        // MODIFICACIÓN: Hacemos que el diálogo ocupe el 95% del ancho y 90% del alto
+        modifier = Modifier
+            .fillMaxWidth(0.95f)
+            .fillMaxHeight(0.9f),
+        properties = DialogProperties(usePlatformDefaultWidth = false), // Permite saltarse el ancho por defecto de Android
         containerColor = Color(0xFF0F172A),
-        title = { Text("Simulación del Cambio", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold) },
+        title = {
+            Text("Simulación del Cambio", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        },
         text = {
+            // Usamos una columna con scroll vertical para alojar los dos calendarios
             Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
-                val start = daysToShow.first()
-                val end = daysToShow.last()
-                val headerText = "${start.dayOfMonth}/${start.monthValue} - ${end.dayOfMonth}/${end.monthValue}"
 
-                Text(text = "Periodo: $headerText", color = Color(0xFF54C7EC), fontSize = 12.sp, modifier = Modifier.padding(bottom = 8.dp))
+                // --- BLOQUE 1: Alrededor de la primera fecha ---
+                Text(
+                    text = "Alrededor del ${date1.format(DateTimeFormatter.ofPattern("dd 'de' MMMM", Locale("es", "ES")))}",
+                    color = Color(0xFF54C7EC),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
 
                 ScheduleWeekView(
-                    days = daysToShow,
+                    days = days1,
+                    row1Schedule = row1Schedule,
+                    row1Name = row1Name,
+                    row1DateToRemove = row1DateToRemove,
+                    row1DateToAdd = row1DateToAdd,
+                    row1ShiftToAdd = row1ShiftToAdd,
+                    row2Schedule = row2Schedule,
+                    row2Name = row2Name,
+                    row2DateToRemove = row2DateToRemove,
+                    row2DateToAdd = row2DateToAdd,
+                    row2ShiftToAdd = row2ShiftToAdd
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+                HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // --- BLOQUE 2: Alrededor de la segunda fecha ---
+                Text(
+                    text = "Alrededor del ${date2.format(DateTimeFormatter.ofPattern("dd 'de' MMMM", Locale("es", "ES")))}",
+                    color = Color(0xFF54C7EC),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+                ScheduleWeekView(
+                    days = days2,
                     row1Schedule = row1Schedule,
                     row1Name = row1Name,
                     row1DateToRemove = row1DateToRemove,
@@ -1230,7 +1273,9 @@ fun SchedulePreviewDialog(
                 )
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Cerrar") } }
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text("Cerrar") }
+        }
     )
 }
 
@@ -1394,7 +1439,7 @@ fun MyShiftsCalendarTab(
                                     val isSelected = date == selectedDate
                                     val color = getShiftColorExact(shift?.shiftName ?: "")
                                     Box(modifier = Modifier.weight(1f).height(48.dp).padding(2.dp).background(color, CircleShape).border(if (isSelected) 0.dp else 1.dp, if (isSelected) Color.White.copy(alpha = 0.1f) else Color.White.copy(alpha = 0.1f), CircleShape).clickable { selectedDate = date }, contentAlignment = Alignment.Center) {
-                                        Text("$dayIndex", color = if (shift != null) Color.White else Color(0xFFAAAAAA), fontWeight = if(shift!=null) FontWeight.Bold else FontWeight.Normal, fontSize = 18.sp)
+                                        Text("$dayIndex", color = if (shift != null) Color.White else Color.White, fontWeight = if(shift!=null) FontWeight.Bold else FontWeight.Bold, fontSize = 18.sp)
                                     }
                                 } else { Spacer(modifier = Modifier.weight(1f)) }
                             }
