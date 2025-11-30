@@ -61,6 +61,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.UUID // Import UUID for Notification generation
 
 enum class AppScreen {
     MainMenu,
@@ -77,13 +78,16 @@ enum class AppScreen {
     Statistics,
     DirectChatList,
     DirectChat,
-    Notifications
+    Notifications // Added Notifications screen
 }
 
 data class Colleague(
     val name: String,
     val role: String
 )
+
+// NOTE: UserNotification is NOT redefined here to avoid conflict with MainActivity.kt.
+// We assume UserNotification is available in the package.
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -148,10 +152,10 @@ fun TurnoshospiApp(
         chatUnreadCounts.values.sum()
     }
 
-    // Estado para notificaciones
-    var userNotifications by remember { mutableStateOf<List<UserNotification>>(emptyList()) }
+    // Estado para notificaciones. Using AppNotification for UI logic.
+    var userNotifications by remember { mutableStateOf<List<AppNotification>>(emptyList()) }
     val unreadNotificationsCount = remember(userNotifications) {
-        userNotifications.count { !it.isRead }
+        userNotifications.count { !it.read }
     }
 
     val coroutineScope = rememberCoroutineScope()
@@ -225,9 +229,21 @@ fun TurnoshospiApp(
                 isLoadingProfile = false
             }
 
-            // Escuchar notificaciones del usuario
+            // Escuchar notificaciones del usuario (convertimos UserNotification a AppNotification)
             onListenToNotifications(user.uid) { notifications ->
-                userNotifications = notifications
+                // Map the UserNotification (from DB/MainActivity) to AppNotification (for UI)
+                userNotifications = notifications.map {
+                    AppNotification(
+                        id = it.id,
+                        title = it.title,
+                        message = it.message,
+                        timestamp = it.timestamp,
+                        read = it.isRead,
+                        screen = it.screen,
+                        plantId = it.plantId,
+                        argument = it.argument
+                    )
+                }
             }
 
             // Escuchar contadores de chat
@@ -254,8 +270,11 @@ fun TurnoshospiApp(
 
     // MANEJO DE DEEP LINKING (NAVEGACIÓN DESDE NOTIFICACIÓN)
     LaunchedEffect(pendingNavigation, user, userPlant) {
-        if (user != null && pendingNavigation != null && userPlant != null) {
+        if (user != null && pendingNavigation != null) {
             val screen = pendingNavigation["screen"]
+            val plantIdArg = pendingNavigation["plantId"]
+            // val arg = pendingNavigation["argument"]
+
             if (screen == "DirectChat") {
                 val otherId = pendingNavigation["otherUserId"]
                 val otherName = pendingNavigation["otherUserName"]
@@ -264,12 +283,44 @@ fun TurnoshospiApp(
                     selectedDirectChatUserId = otherId
                     selectedDirectChatUserName = otherName
 
-                    // Si ya estamos en el chat, no hacemos nada, si no, navegamos
                     if (currentScreen != AppScreen.DirectChat) {
                         navigateTo(AppScreen.DirectChat)
                     }
                 }
+            } else if (screen == "ShiftChangeScreen") {
+                // Navegar a Gestión de Cambios
+                // Necesitamos asegurar que tenemos la planta cargada o al menos el ID
+                if (plantIdArg != null) {
+                    // Si la planta cargada coincide o no importa, navegamos
+                    // Si no está cargada, podríamos intentar cargarla o asumir que userPlant es correcto si solo tiene una
+                    // Para simplificar, si userPlant coincide con plantIdArg o si plantIdArg es válido
+
+                    // Aseguramos que selectedPlantForDetail tenga el ID correcto para que ShiftChangeScreen funcione
+                    if (selectedPlantForDetail?.id != plantIdArg) {
+                        // Aquí idealmente cargaríamos la planta si no es la actual,
+                        // pero por ahora usaremos userPlant si coincide o un objeto dummy con ID
+                        if (userPlant?.id == plantIdArg) {
+                            selectedPlantForDetail = userPlant
+                        } else {
+                            // Fallback: crear objeto planta temporal solo con ID para que la pantalla cargue
+                            // Ojo: ShiftChangeScreen usa plantId string, así que con pasar el ID debería bastar
+                            // Pero selectedPlantForDetail se usa en otros lados.
+                            // Mejor estrategia: Navegar y dejar que ShiftChangeScreen use el ID
+                        }
+                    }
+
+                    // IMPORTANTE: ShiftChangeScreen usa 'selectedPlantForDetail?.id' en la navegación normal
+                    // Aquí forzamos que selectedPlantForDetail sea consistente si es null
+                    if (selectedPlantForDetail == null && userPlant?.id == plantIdArg) {
+                        selectedPlantForDetail = userPlant
+                    }
+
+                    if (currentScreen != AppScreen.ShiftChange) {
+                        navigateTo(AppScreen.ShiftChange)
+                    }
+                }
             }
+
             // Marcamos como manejada
             onNavigationHandled()
         }
@@ -555,7 +606,7 @@ fun TurnoshospiApp(
                 )
 
                 AppScreen.ShiftChange -> ShiftChangeScreen(
-                    plantId = selectedPlantForDetail?.id ?: "",
+                    plantId = selectedPlantForDetail?.id ?: userPlant?.id ?: "", // Asegurar ID
                     currentUser = existingProfile,
                     currentUserId = user?.uid ?: "",
                     onBack = { navigateBack() },
@@ -566,7 +617,7 @@ fun TurnoshospiApp(
                     plantId = selectedPlantForDetail?.id ?: userPlant?.id ?: "",
                     currentUserId = user?.uid ?: "",
                     currentUserName = "${existingProfile?.firstName} ${existingProfile?.lastName}".trim(),
-                    currentUserRole = existingProfile?.role ?: "", // <--- CORRECCIÓN AQUÍ
+                    currentUserRole = existingProfile?.role ?: "",
                     onBack = { navigateBack() },
                     onSaveNotification = onSaveNotification
                 )
@@ -609,6 +660,22 @@ fun TurnoshospiApp(
                     },
                     onDeleteAll = {
                         user?.uid?.let { uid -> onClearAllNotifications(uid) }
+                    },
+                    onNavigateToScreen = { screen, plantId, arg ->
+                        // Navegación interna desde la lista de notificaciones
+                        if (screen == "ShiftChangeScreen" && plantId != null) {
+                            // Cargar contexto de planta si es necesario
+                            if (selectedPlantForDetail == null || selectedPlantForDetail?.id != plantId) {
+                                if (userPlant?.id == plantId) selectedPlantForDetail = userPlant
+                            }
+                            navigateTo(AppScreen.ShiftChange)
+                        } else if (screen == "DirectChat" && arg != null) {
+                            // arg podría ser "otherId|otherName" o solo ID. Asumimos ID.
+                            // Para ser robustos, necesitaríamos más info, pero intentamos:
+                            selectedDirectChatUserId = arg
+                            // selectedDirectChatUserName = ??? (Se cargará en la pantalla o se muestra 'Usuario')
+                            navigateTo(AppScreen.DirectChat)
+                        }
                     }
                 )
             }
@@ -898,6 +965,18 @@ fun PlantSettingsScreen(
                 }
             }
         )
+    }
+}
+
+// Helper para títulos de notificación
+fun getTitleForType(type: String): String {
+    return when(type) {
+        "SHIFT_PROPOSAL" -> "Propuesta de Cambio"
+        "SHIFT_UPDATE" -> "Actualización de Turno"
+        "SHIFT_APPROVED" -> "¡Cambio Aprobado!"
+        "SHIFT_REJECTED" -> "Cambio Rechazado"
+        "SUPERVISOR_ACTION" -> "Solicitud para Supervisor"
+        else -> "Notificación"
     }
 }
 
