@@ -46,7 +46,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.DialogProperties // IMPORTACIÓN AÑADIDA PARA CONTROLAR EL TAMAÑO DEL DIÁLOGO
+import androidx.compose.ui.window.DialogProperties
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -1179,7 +1179,7 @@ fun PlantShiftCard(
 }
 
 // ============================================================================================
-// COMPONENTE: DIÁLOGO DE PREVIEW (Actualizado: Grande y con 2 Calendarios)
+// COMPONENTE: DIÁLOGO DE PREVIEW (Actualizado: Ajuste de Altura y Tamaños)
 // ============================================================================================
 
 @Composable
@@ -1196,37 +1196,32 @@ fun SchedulePreviewDialog(
     row2DateToAdd: LocalDate?,
     row2ShiftToAdd: String?
 ) {
-    // 1. Identificar las dos fechas principales del cambio
-    // row1DateToRemove es la fecha que "suelta" el usuario 1 (ej. su turno original)
-    // row1DateToAdd es la fecha que "recibe" el usuario 1 (ej. el turno del compañero)
     val date1 = row1DateToRemove ?: LocalDate.now()
     val date2 = row1DateToAdd ?: date1
 
-    // 2. Generar dos rangos de días independientes (±3 días alrededor de cada fecha)
-    // Esto crea "dos pequeños calendarios" como solicitaste
-    val days1 = remember(date1) { (-3..3).map { date1.plusDays(it.toLong()) } }
-    val days2 = remember(date2) { (-3..3).map { date2.plusDays(it.toLong()) } }
+    val days1 = remember(date1) { (-5..5).map { date1.plusDays(it.toLong()) } }
+    val days2 = remember(date2) { (-5..5).map { date2.plusDays(it.toLong()) } }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        // MODIFICACIÓN: Hacemos que el diálogo ocupe el 95% del ancho y 90% del alto
+        // CAMBIO: wrapContentHeight en lugar de fillMaxHeight(0.9f) para "recortar" abajo
         modifier = Modifier
             .fillMaxWidth(0.95f)
-            .fillMaxHeight(0.9f),
-        properties = DialogProperties(usePlatformDefaultWidth = false), // Permite saltarse el ancho por defecto de Android
+            .wrapContentHeight(),
+        properties = DialogProperties(usePlatformDefaultWidth = false),
         containerColor = Color(0xFF0F172A),
         title = {
-            Text("Simulación del Cambio", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            // AJUSTE: Tamaño proporcional más moderado
+            Text("Simulación del Cambio", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
         },
         text = {
-            // Usamos una columna con scroll vertical para alojar los dos calendarios
             Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
 
-                // --- BLOQUE 1: Alrededor de la primera fecha ---
+                // --- BLOQUE 1 ---
                 Text(
                     text = "Alrededor del ${date1.format(DateTimeFormatter.ofPattern("dd 'de' MMMM", Locale("es", "ES")))}",
                     color = Color(0xFF54C7EC),
-                    fontSize = 13.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
@@ -1249,11 +1244,11 @@ fun SchedulePreviewDialog(
                 HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // --- BLOQUE 2: Alrededor de la segunda fecha ---
+                // --- BLOQUE 2 ---
                 Text(
                     text = "Alrededor del ${date2.format(DateTimeFormatter.ofPattern("dd 'de' MMMM", Locale("es", "ES")))}",
                     color = Color(0xFF54C7EC),
-                    fontSize = 13.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
@@ -1274,7 +1269,7 @@ fun SchedulePreviewDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Cerrar") }
+            TextButton(onClick = onDismiss) { Text("Cerrar", fontSize = 14.sp) }
         }
     )
 }
@@ -1293,22 +1288,29 @@ fun ScheduleWeekView(
     row2DateToAdd: LocalDate?,
     row2ShiftToAdd: String?
 ) {
+    // CAMBIO: Celdas más pequeñas (38dp) y columna nombre más ancha (115dp)
+    val nameColumnWidth = 115.dp
+    val dayColumnWidth = 38.dp
+
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(bottom = 8.dp)) {
             Column {
                 // Header Días
                 Row {
-                    Spacer(modifier = Modifier.width(60.dp))
+                    Spacer(modifier = Modifier.width(nameColumnWidth))
                     days.forEach { date ->
                         val isRelevant = date == row1DateToRemove || date == row1DateToAdd
                         val textColor = if (isRelevant) Color(0xFF54C7EC) else Color.Gray
-                        Column(modifier = Modifier.width(36.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(text = date.dayOfWeek.getDisplayName(TextStyle.NARROW, Locale("es", "ES")).uppercase(), color = textColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                            Text(text = "${date.dayOfMonth}", color = textColor, fontSize = 10.sp)
+                        // AJUSTE: Fuentes proporcionales
+                        Column(modifier = Modifier.width(dayColumnWidth), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(text = date.dayOfWeek.getDisplayName(TextStyle.NARROW, Locale("es", "ES")).uppercase(), color = textColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text(text = "${date.dayOfMonth}", color = textColor, fontSize = 13.sp)
                         }
                     }
                 }
                 HorizontalDivider(color = Color.White.copy(0.1f))
+
+                Spacer(modifier = Modifier.height(6.dp))
 
                 // Fila 1
                 ScheduleRow(
@@ -1317,9 +1319,11 @@ fun ScheduleWeekView(
                     schedule = row1Schedule,
                     dateToRemove = row1DateToRemove,
                     dateToAdd = row1DateToAdd,
-                    shiftToAdd = row1ShiftToAdd
+                    shiftToAdd = row1ShiftToAdd,
+                    nameWidth = nameColumnWidth,
+                    cellWidth = dayColumnWidth
                 )
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 // Fila 2
                 ScheduleRow(
                     label = row2Name,
@@ -1327,7 +1331,9 @@ fun ScheduleWeekView(
                     schedule = row2Schedule,
                     dateToRemove = row2DateToRemove,
                     dateToAdd = row2DateToAdd,
-                    shiftToAdd = row2ShiftToAdd
+                    shiftToAdd = row2ShiftToAdd,
+                    nameWidth = nameColumnWidth,
+                    cellWidth = dayColumnWidth
                 )
             }
         }
@@ -1341,18 +1347,28 @@ fun ScheduleRow(
     schedule: Map<LocalDate, String>,
     dateToRemove: LocalDate?,
     dateToAdd: LocalDate?,
-    shiftToAdd: String?
+    shiftToAdd: String?,
+    nameWidth: androidx.compose.ui.unit.Dp,
+    cellWidth: androidx.compose.ui.unit.Dp
 ) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-        Text(text = label, modifier = Modifier.width(60.dp), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        // Nombre con más espacio
+        Text(
+            text = label,
+            modifier = Modifier.width(nameWidth).padding(end = 8.dp),
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            fontSize = 13.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
 
         days.forEach { date ->
-            // 1. Determinar el turno final (Simulado)
             var finalShift = schedule[date] ?: ""
             var isChanged = false
 
             if (date == dateToRemove) {
-                finalShift = "" // Se queda libre
+                finalShift = ""
                 isChanged = true
             }
             if (date == dateToAdd) {
@@ -1360,7 +1376,6 @@ fun ScheduleRow(
                 isChanged = true
             }
 
-            // 2. Calcular estado Saliente (mirando el día anterior SIMULADO)
             val prevDate = date.minusDays(1)
             var prevShift = schedule[prevDate] ?: ""
             if (prevDate == dateToRemove) prevShift = ""
@@ -1368,28 +1383,30 @@ fun ScheduleRow(
 
             val isSaliente = prevShift.contains("Noche", true) && finalShift.isBlank()
 
-            // 3. Color y Texto (Estilo MainMenu)
-            // MODIFICADO: Solo mostrar color si el día está involucrado en el cambio (isChanged)
             val baseColor = getShiftColorExact(finalShift, isSaliente)
             val cellColor = if (isChanged) baseColor else Color.Transparent
 
+            // LÓGICA MT/MM
+            val lowerShift = finalShift.lowercase()
             val displayText = when {
-                finalShift.isNotBlank() -> finalShift.take(1).uppercase() // M, T, N
+                lowerShift.contains("media") && lowerShift.contains("tarde") -> "MT"
+                lowerShift.contains("media") && lowerShift.contains("mañana") -> "MM"
+                finalShift.isNotBlank() -> finalShift.take(1).uppercase()
                 isSaliente -> "S"
-                else -> "L" // Libre
+                else -> "L"
             }
 
-            // 4. Render
+            // AJUSTE: Celdas de 38dp y fuente de 16sp (más legible pero no gigante)
             Box(
                 modifier = Modifier
-                    .width(36.dp)
-                    .height(36.dp)
+                    .width(cellWidth)
+                    .height(cellWidth)
                     .padding(2.dp)
-                    .background(cellColor, RoundedCornerShape(4.dp))
-                    .border(if (isChanged) 1.dp else 0.dp, if (isChanged) Color.White else Color.Transparent, RoundedCornerShape(4.dp)),
+                    .background(cellColor, RoundedCornerShape(6.dp))
+                    .border(if (isChanged) 1.5.dp else 0.dp, if (isChanged) Color.White else Color.Transparent, RoundedCornerShape(6.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = displayText, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                Text(text = displayText, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
         }
     }
