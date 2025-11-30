@@ -74,7 +74,7 @@ enum class AppScreen {
     GroupChat,
     ShiftChange,
     ShiftMarketplace,
-    Statistics, // NUEVO
+    Statistics,
     DirectChatList,
     DirectChat,
     Notifications
@@ -519,7 +519,7 @@ fun TurnoshospiApp(
                     onOpenChat = { navigateTo(AppScreen.GroupChat) },
                     onOpenShiftChange = { navigateTo(AppScreen.ShiftChange) },
                     onOpenShiftMarketplace = { navigateTo(AppScreen.ShiftMarketplace) },
-                    onOpenStatistics = { navigateTo(AppScreen.Statistics) }, // CORRECTO
+                    onOpenStatistics = { navigateTo(AppScreen.Statistics) },
                     onSaveNotification = onSaveNotification
                 )
                 AppScreen.Settings -> SettingsScreen(
@@ -566,6 +566,7 @@ fun TurnoshospiApp(
                     plantId = selectedPlantForDetail?.id ?: userPlant?.id ?: "",
                     currentUserId = user?.uid ?: "",
                     currentUserName = "${existingProfile?.firstName} ${existingProfile?.lastName}".trim(),
+                    currentUserRole = existingProfile?.role ?: "", // <--- CORRECCIÓN AQUÍ
                     onBack = { navigateBack() },
                     onSaveNotification = onSaveNotification
                 )

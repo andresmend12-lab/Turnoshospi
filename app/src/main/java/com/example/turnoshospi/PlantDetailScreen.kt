@@ -36,14 +36,19 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.filled.BeachAccess
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -392,28 +397,52 @@ fun PlantDetailScreen(
                     if (isSupervisor) {
                         NavigationDrawerItem(
                             modifier = Modifier.padding(horizontal = 12.dp),
-                            label = { Text(stringResource(id = R.string.plant_add_staff_option), color = Color.White) },
+                            label = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.Add, contentDescription = null, tint = Color(0xFF54C7EC), modifier = Modifier.size(20.dp))
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text(stringResource(id = R.string.plant_add_staff_option), color = Color.White)
+                                }
+                            },
                             selected = false,
                             onClick = { isMenuOpen = false; showAddStaffDialog = true },
                             colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
                         )
                         NavigationDrawerItem(
                             modifier = Modifier.padding(horizontal = 12.dp),
-                            label = { Text(stringResource(id = R.string.plant_staff_list_option), color = Color.White) },
+                            label = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.Person, contentDescription = null, tint = Color(0xFF54C7EC), modifier = Modifier.size(20.dp))
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text(stringResource(id = R.string.plant_staff_list_option), color = Color.White)
+                                }
+                            },
                             selected = false,
                             onClick = { isMenuOpen = false; showStaffListDialog = true },
                             colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
                         )
                         NavigationDrawerItem(
                             modifier = Modifier.padding(horizontal = 12.dp),
-                            label = { Text("Configuración de planta", color = Color.White) },
+                            label = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.Settings, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(20.dp))
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text("Configuración de planta", color = Color.White)
+                                }
+                            },
                             selected = false,
                             onClick = { isMenuOpen = false; onOpenPlantSettings() },
                             colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
                         )
                         NavigationDrawerItem(
                             modifier = Modifier.padding(horizontal = 12.dp),
-                            label = { Text("Importar Turnos", color = Color.White) },
+                            label = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.Edit, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(20.dp))
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text("Importar Turnos", color = Color.White)
+                                }
+                            },
                             selected = false,
                             onClick = { isMenuOpen = false; onOpenImportShifts() },
                             colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
@@ -447,7 +476,13 @@ fun PlantDetailScreen(
                     if (currentMembership?.staffId != null) {
                         NavigationDrawerItem(
                             modifier = Modifier.padding(horizontal = 12.dp),
-                            label = { Text("Días de Vacaciones", color = Color(0xFFE91E63), fontWeight = FontWeight.Bold) },
+                            label = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.BeachAccess, contentDescription = null, tint = Color(0xFFE91E63), modifier = Modifier.size(20.dp))
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text("Días de Vacaciones", color = Color.White)
+                                }
+                            },
                             selected = false,
                             onClick = { isMenuOpen = false; showVacationDialog = true },
                             colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
@@ -458,7 +493,13 @@ fun PlantDetailScreen(
 
                     NavigationDrawerItem(
                         modifier = Modifier.padding(horizontal = 12.dp),
-                        label = { Text("Chat de grupo", color = Color.White) },
+                        label = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text("Chat de grupo", color = Color.White)
+                            }
+                        },
                         selected = false,
                         onClick = {
                             isMenuOpen = false
@@ -469,7 +510,13 @@ fun PlantDetailScreen(
 
                     NavigationDrawerItem(
                         modifier = Modifier.padding(horizontal = 12.dp),
-                        label = { Text("Cambio de turnos", color = Color.White) },
+                        label = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.SwapHoriz, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text("Cambio de turnos", color = Color.White)
+                            }
+                        },
                         selected = false,
                         onClick = {
                             isMenuOpen = false
@@ -483,7 +530,7 @@ fun PlantDetailScreen(
                         modifier = Modifier.padding(horizontal = 12.dp),
                         label = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Star, null, tint = Color(0xFFFFC107), modifier = Modifier.size(18.dp))
+                                Icon(Icons.Default.Assignment, null, tint = Color(0xFFFFC107), modifier = Modifier.size(20.dp))
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Text("Bolsa de Turnos", color = Color.White)
                             }
@@ -501,8 +548,7 @@ fun PlantDetailScreen(
                         modifier = Modifier.padding(horizontal = 12.dp),
                         label = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                // Se usa DateRange como icono por defecto para estadísticas si BarChart no está disponible en la dependencia básica
-                                Icon(Icons.Default.DateRange, null, modifier = Modifier.size(18.dp), tint = Color(0xFF54C7EC))
+                                Icon(Icons.AutoMirrored.Filled.ShowChart, null, modifier = Modifier.size(20.dp), tint = Color(0xFF54C7EC))
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Text("Estadísticas", color = Color.White)
                             }
@@ -517,7 +563,13 @@ fun PlantDetailScreen(
 
                     NavigationDrawerItem(
                         modifier = Modifier.padding(horizontal = 12.dp),
-                        label = { Text(stringResource(id = R.string.back_to_menu), color = Color.White) },
+                        label = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(stringResource(id = R.string.back_to_menu), color = Color.White)
+                            }
+                        },
                         selected = false,
                         onClick = { isMenuOpen = false; onBack() },
                         colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)

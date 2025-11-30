@@ -24,14 +24,12 @@ import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
@@ -41,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.database.DataSnapshot
@@ -51,47 +50,13 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
+import java.time.temporal.ChronoUnit
 import java.util.Locale
 import java.util.UUID
 
-// --- 1. MODELOS DE DATOS ---
+// NOTA: Los modelos de datos se encuentran en ShiftModels.kt
 
-enum class RequestType { COVERAGE, SWAP }
-enum class RequestMode { STRICT, FLEXIBLE }
-enum class RequestStatus { DRAFT, SEARCHING, PENDING_PARTNER, AWAITING_SUPERVISOR, APPROVED, REJECTED }
-
-data class ShiftChangeRequest(
-    val id: String = "",
-    val type: RequestType = RequestType.SWAP,
-    val status: RequestStatus = RequestStatus.SEARCHING,
-    val mode: RequestMode = RequestMode.FLEXIBLE,
-    val hardnessLevel: ShiftRulesEngine.Hardness = ShiftRulesEngine.Hardness.NORMAL,
-    val requesterId: String = "",
-    val requesterName: String = "",
-    val requesterRole: String = "",
-    val requesterShiftDate: String = "",
-    val requesterShiftName: String = "",
-    val offeredDates: List<String> = emptyList(),
-    val targetUserId: String? = null,
-    val timestamp: Long = System.currentTimeMillis()
-)
-
-data class MyShiftDisplay(
-    val date: String,
-    val shiftName: String,
-    val fullDate: LocalDate,
-    val isHalfDay: Boolean = false
-)
-
-data class PlantShift(
-    val userId: String,
-    val userName: String,
-    val userRole: String,
-    val date: LocalDate,
-    val shiftName: String
-)
-
-// --- 2. PANTALLA PRINCIPAL ---
+// --- PANTALLA PRINCIPAL ---
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -146,13 +111,14 @@ fun ShiftChangeScreen(
             }
         }
 
-        // 2. Cargar TODOS los turnos (Desde HOY + 60 días)
-        val todayKey = "turnos-${LocalDate.now()}"
+        // 2. Cargar TODOS los turnos (Desde AYER para calcular salientes correctamente)
+        val startDate = LocalDate.now().minusDays(1)
+        val startKey = "turnos-$startDate"
 
         database.getReference("plants/$plantId/turnos")
             .orderByKey()
-            .startAt(todayKey)
-            .limitToFirst(60)
+            .startAt(startKey)
+            .limitToFirst(62) // +1 día extra por empezar ayer
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     myShiftsMap.clear()
@@ -183,7 +149,10 @@ fun ShiftChangeScreen(
 
                                         if (name.equals(myName, true)) {
                                             myShiftsMap[date] = shiftName
-                                            myShiftsList.add(MyShiftDisplay(dateKey, shiftName, date))
+                                            // Solo mostramos en la lista desde HOY en adelante
+                                            if (!date.isBefore(LocalDate.now())) {
+                                                myShiftsList.add(MyShiftDisplay(dateKey, shiftName, date))
+                                            }
                                         }
                                     }
                                 }
@@ -364,6 +333,10 @@ fun FullPlantShiftsList(
     var showPersonMenu by remember { mutableStateOf(false) }
     var showShiftMenu by remember { mutableStateOf(false) }
 
+    // Estado para el Dialog de Preview
+    var showPreviewDialog by remember { mutableStateOf(false) }
+    var previewCandidate by remember { mutableStateOf<PlantShift?>(null) }
+
     // Personas disponibles (mismo rol)
     val availablePeople = remember(allShifts, request.requesterRole) {
         allShifts
@@ -378,17 +351,13 @@ fun FullPlantShiftsList(
         val today = LocalDate.now()
         val myDate = LocalDate.parse(request.requesterShiftDate)
 
-        // Simular que SUELTO mi turno
         val mySimulatedSchedule = currentUserSchedule.filterKeys { it != myDate }
 
         allShifts.filter { shift ->
-            // 1. FILTROS MANDATORIOS (Reglas de Negocio)
             val isFuture = !shift.date.isBefore(today)
             val isCompatibleRole = ShiftRulesEngine.areRolesCompatible(request.requesterRole, shift.userRole)
             val isNotMe = shift.userId != currentUserId
 
-            // [FILTRO "MISMO TURNO" CORREGIDO Y REFORZADO]
-            // Comparamos Fecha IGUAL Y Nombre de Turno IGUAL (ignorando mayúsculas y espacios)
             val isSameExactShift = (
                     shift.date == myDate &&
                             shift.shiftName.trim().equals(request.requesterShiftName.trim(), ignoreCase = true)
@@ -396,17 +365,13 @@ fun FullPlantShiftsList(
 
             if (!isFuture || !isCompatibleRole || !isNotMe || isSameExactShift) return@filter false
 
-            // 2. FILTROS OPCIONALES (Botones UI)
             if (filterDate != null && shift.date != filterDate) return@filter false
             if (filterPerson != null && shift.userName != filterPerson) return@filter false
             if (filterShiftType != null && !shift.shiftName.contains(filterShiftType!!, ignoreCase = true)) return@filter false
 
-            // 3. REGLAS DE TRABAJO (Salientes / Noches)
-            // A. ¿Puedo yo hacer su turno?
             val errorForMe = ShiftRulesEngine.validateWorkRules(shift.date, shift.shiftName, mySimulatedSchedule)
             if (errorForMe != null) return@filter false
 
-            // B. ¿Puede él hacer mi turno?
             val candidateSchedule = userSchedules[shift.userId] ?: emptyMap()
             val candidateSimulatedSchedule = candidateSchedule.filterKeys { it != shift.date }
 
@@ -540,11 +505,34 @@ fun FullPlantShiftsList(
                 items(filteredShifts) { shift ->
                     PlantShiftCard(
                         shift = shift,
-                        onAction = { onProposeSwap(shift) }
+                        onAction = { onProposeSwap(shift) },
+                        onPreview = {
+                            previewCandidate = shift
+                            showPreviewDialog = true
+                        }
                     )
                 }
             }
         }
+    }
+
+    if (showPreviewDialog && previewCandidate != null) {
+        val candidate = previewCandidate!!
+        val myDate = LocalDate.parse(request.requesterShiftDate)
+
+        val mySchedule = currentUserSchedule
+        val theirSchedule = userSchedules[candidate.userId] ?: emptyMap()
+
+        SchedulePreviewDialog(
+            onDismiss = { showPreviewDialog = false },
+            mySchedule = mySchedule,
+            theirSchedule = theirSchedule,
+            theirName = candidate.userName,
+            dateImGiving = myDate,
+            shiftImGiving = request.requesterShiftName,
+            dateImTaking = candidate.date,
+            shiftImTaking = candidate.shiftName
+        )
     }
 }
 
@@ -553,7 +541,8 @@ fun FullPlantShiftsList(
 @Composable
 fun PlantShiftCard(
     shift: PlantShift,
-    onAction: () -> Unit
+    onAction: () -> Unit,
+    onPreview: () -> Unit // Callback para preview
 ) {
     val shiftColor = getShiftColor(shift.shiftName)
 
@@ -569,7 +558,10 @@ fun PlantShiftCard(
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
+        // Cambiamos a Column o mantenemos Row pero con mejor distribución para evitar scroll horizontal
+        // Usamos intrinsic size para que el indicador de color se adapte
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
+            // Indicador de color del turno
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -577,60 +569,396 @@ fun PlantShiftCard(
                     .background(shiftColor)
             )
 
-            Row(
+            Column(
                 modifier = Modifier
-                    .padding(12.dp)
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    .padding(8.dp) // Reducimos padding
+                    .fillMaxWidth()
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(Color(0xFF334155), CircleShape),
-                    contentAlignment = Alignment.Center
+                // Fila Superior: Avatar + Nombre
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(text = initials, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp) // Avatar más pequeño
+                            .background(Color(0xFF334155), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = initials, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    }
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = shift.userName,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = shift.userRole,
+                            color = Color(0xFF64748B),
+                            fontSize = 11.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
 
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = shift.userName,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
-                        maxLines = 1
-                    )
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Schedule, null, tint = Color(0xFF94A3B8), modifier = Modifier.size(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Fila Inferior: Info Turno + Botones
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // Info Turno
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Default.Schedule, null, tint = Color(0xFF94A3B8), modifier = Modifier.size(14.dp))
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = "${shift.date} • ${shift.shiftName}",
                             color = Color(0xFF94A3B8),
-                            fontSize = 13.sp
+                            fontSize = 12.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
-                    Text(
-                        text = shift.userRole,
-                        color = Color(0xFF64748B),
-                        fontSize = 12.sp
-                    )
-                }
 
-                Button(
-                    onClick = onAction,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC)),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
-                    modifier = Modifier.height(32.dp)
-                ) {
-                    Text("Elegir", color = Color.Black, fontSize = 12.sp)
+                    // Botones (Compactos)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(
+                            onClick = onPreview,
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF54C7EC)),
+                            border = BorderStroke(1.dp, Color(0xFF54C7EC)),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+                            modifier = Modifier.height(28.dp)
+                        ) {
+                            Text("Preview", fontSize = 11.sp)
+                        }
+
+                        Button(
+                            onClick = onAction,
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC)),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                            modifier = Modifier.height(28.dp)
+                        ) {
+                            Text("Elegir", color = Color.Black, fontSize = 11.sp)
+                        }
+                    }
                 }
             }
         }
     }
 }
 
-// --- 5. TABS Y CALENDARIO ---
+// --- DIALOGO DE PREVIEW (MEJORADO - DOBLE SEMANA Y SALIENTES) ---
+
+@Composable
+fun SchedulePreviewDialog(
+    onDismiss: () -> Unit,
+    mySchedule: Map<LocalDate, String>,
+    theirSchedule: Map<LocalDate, String>,
+    theirName: String,
+    dateImGiving: LocalDate?,
+    shiftImGiving: String?,
+    dateImTaking: LocalDate,
+    shiftImTaking: String
+) {
+    // Calculamos los rangos a mostrar basados en las fechas relevantes
+    // Rango 1: Alrededor de la fecha que TOMO
+    val rangesToShow = remember(dateImTaking, dateImGiving) {
+        val ranges = mutableListOf<List<LocalDate>>()
+
+        // Rango para la fecha que TOMO
+        val takeStart = dateImTaking.minusDays(3)
+        val takeRange = (0..6).map { takeStart.plusDays(it.toLong()) }
+        ranges.add(takeRange)
+
+        // Rango para la fecha que DOY (si existe)
+        if (dateImGiving != null) {
+            val giveStart = dateImGiving.minusDays(3)
+            val giveRange = (0..6).map { giveStart.plusDays(it.toLong()) }
+
+            // Si los rangos se solapan significativamente o son cercanos, los fusionamos?
+            // Por simplicidad y claridad, si están muy lejos, mostramos dos bloques.
+            // Si están cerca (menos de 7 días de diferencia), fusionamos en una sola vista.
+            val daysDiff = ChronoUnit.DAYS.between(dateImTaking, dateImGiving)
+            if (kotlin.math.abs(daysDiff) > 7) {
+                ranges.add(giveRange)
+            } else {
+                // Fusionar: Crear un rango que cubra ambos + margen
+                val minDate = if (dateImTaking.isBefore(dateImGiving)) dateImTaking else dateImGiving
+                val maxDate = if (dateImTaking.isAfter(dateImGiving)) dateImTaking else dateImGiving
+                val mergedStart = minDate.minusDays(3)
+                val mergedEnd = maxDate.plusDays(3)
+                val daysCount = ChronoUnit.DAYS.between(mergedStart, mergedEnd) + 1
+                val mergedRange = (0 until daysCount).map { mergedStart.plusDays(it) }
+
+                ranges.clear()
+                ranges.add(mergedRange)
+            }
+        }
+
+        // Ordenar cronológicamente
+        ranges.sortBy { it.first() }
+        ranges
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Color(0xFF0F172A),
+        title = { Text("Simulación de Cambio", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold) },
+        text = {
+            // Usamos verticalScroll para soportar múltiples rangos si es necesario
+            Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
+
+                rangesToShow.forEachIndexed { index, days ->
+                    // Separador si hay más de un bloque
+                    if (index > 0) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        HorizontalDivider(thickness = 1.dp, color = Color.White.copy(0.2f))
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+
+                    // Título del rango
+                    val start = days.first()
+                    val end = days.last()
+                    val headerText = "Del ${start.dayOfMonth} al ${end.dayOfMonth} de ${start.month.getDisplayName(TextStyle.SHORT, Locale("es", "ES")).lowercase()}"
+
+                    Text(
+                        text = headerText,
+                        color = Color(0xFF54C7EC),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+
+                    // Componente reutilizable para pintar el rango
+                    ScheduleWeekView(
+                        days = days,
+                        mySchedule = mySchedule,
+                        theirSchedule = theirSchedule,
+                        theirName = theirName,
+                        dateImGiving = dateImGiving,
+                        shiftImGiving = shiftImGiving,
+                        dateImTaking = dateImTaking,
+                        shiftImTaking = shiftImTaking
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text("Cerrar") }
+        }
+    )
+}
+
+@Composable
+fun ScheduleWeekView(
+    days: List<LocalDate>,
+    mySchedule: Map<LocalDate, String>,
+    theirSchedule: Map<LocalDate, String>,
+    theirName: String,
+    dateImGiving: LocalDate?,
+    shiftImGiving: String?,
+    dateImTaking: LocalDate,
+    shiftImTaking: String
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // Cabecera Días (Scroll horizontal si son muchos días)
+        Row(
+            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(bottom = 8.dp),
+            verticalAlignment = Alignment.Bottom
+        ) {
+            // Columna fija para nombres? No, aquí scrollamos todo junto mejor
+            // O mejor, el row de nombres es fijo y el contenido scrollea?
+            // Para rangos cortos (+/-3 días = 7 días) cabe en pantalla.
+            // Para rangos fusionados puede ser más largo.
+
+            // Layout tabla
+            Column {
+                // Header Dias
+                Row {
+                    Spacer(modifier = Modifier.width(50.dp)) // Espacio para nombre
+                    days.forEach { date ->
+                        val isTarget = date == dateImTaking || date == dateImGiving
+                        val textColor = if (isTarget) Color(0xFF54C7EC) else Color.Gray
+
+                        Column(
+                            modifier = Modifier.width(40.dp), // Ancho fijo por celda
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale("es", "ES")).uppercase().take(1),
+                                color = textColor,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 10.sp
+                            )
+                            Text(
+                                text = "${date.dayOfMonth}",
+                                color = textColor,
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 11.sp
+                            )
+                        }
+                    }
+                }
+
+                HorizontalDivider(color = Color.White.copy(0.1f))
+
+                // Fila Mía
+                ScheduleRow(
+                    label = "Yo",
+                    days = days,
+                    originalSchedule = mySchedule,
+                    dateRemoved = dateImGiving,
+                    dateAdded = dateImTaking,
+                    shiftAdded = shiftImTaking
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Fila Suya
+                ScheduleRow(
+                    label = theirName.split(" ").first().take(6),
+                    days = days,
+                    originalSchedule = theirSchedule,
+                    dateRemoved = dateImTaking,
+                    dateAdded = dateImGiving,
+                    shiftAdded = shiftImGiving ?: ""
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ScheduleRow(
+    label: String,
+    days: List<LocalDate>,
+    originalSchedule: Map<LocalDate, String>,
+    dateRemoved: LocalDate?,
+    dateAdded: LocalDate?,
+    shiftAdded: String
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+    ) {
+        Text(
+            text = label,
+            modifier = Modifier.width(50.dp),
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            fontSize = 11.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        days.forEach { date ->
+            // --- 1. Calcular turno actual (Simulación) ---
+            var shiftName = originalSchedule[date] ?: ""
+            var isModified = false
+            var isAdded = false
+            var isRemoved = false
+
+            if (date == dateRemoved) {
+                shiftName = "" // Se quita
+                isModified = true
+                isRemoved = true
+            }
+            if (date == dateAdded) {
+                shiftName = shiftAdded // Se añade
+                isModified = true
+                isAdded = true
+            }
+
+            // --- 2. Calcular estado "Saliente" (Mirando día anterior) ---
+            val prevDate = date.minusDays(1)
+            var prevShiftName = originalSchedule[prevDate] ?: ""
+            var prevIsAdded = false
+            var prevIsRemoved = false
+
+            // Aplicar simulación también al día anterior para saber si HOY cambia el estado de saliente
+            if (prevDate == dateRemoved) {
+                prevShiftName = "" // Ayer se quitó el turno
+                prevIsRemoved = true
+            }
+            if (prevDate == dateAdded) {
+                prevShiftName = shiftAdded // Ayer se añadió turno
+                prevIsAdded = true
+            }
+
+            // Estado actual del día (Saliente si ayer hubo noche y hoy no hay turno)
+            val isSaliente = prevShiftName.contains("Noche", true) && shiftName.isEmpty()
+
+            // Estado original del día (para detectar si perdimos un saliente)
+            val originalPrevShift = originalSchedule[prevDate] ?: ""
+            val wasSaliente = originalPrevShift.contains("Noche", true) && (originalSchedule[date] ?: "").isEmpty()
+
+            // Detectar CAMBIOS en el estado de Saliente
+            val isNewSaliente = isSaliente && prevIsAdded // Se añadió noche ayer -> Ganamos saliente hoy
+            val isLostSaliente = wasSaliente && !isSaliente && prevIsRemoved // Se quitó noche ayer -> Perdimos saliente hoy
+
+            val cellColor = when {
+                isAdded -> Color(0xFF4CAF50) // Verde
+                isRemoved -> Color(0xFFE91E63) // Rojo
+                isNewSaliente -> Color(0xFF4CAF50) // Verde (Ganamos Saliente)
+                isLostSaliente -> Color(0xFFE91E63) // Rojo (Perdimos Saliente)
+                shiftName.isNotEmpty() -> Color(0xFF1E293B) // Azul oscuro (normal)
+                isSaliente -> Color(0xFF1E293B) // Azul oscuro (Igual que M/T/N para "S") - CORRECCIÓN AQUÍ
+                else -> Color.Transparent // Libre (Guión)
+            }
+
+            // Texto corto para turno (M, T, N, S, "-")
+            val text = when {
+                shiftName.contains("Mañana", true) -> "M"
+                shiftName.contains("Tarde", true) -> "T"
+                shiftName.contains("Noche", true) -> "N"
+                shiftName.isNotEmpty() -> shiftName.take(1)
+                isSaliente -> "S"
+                else -> "-" // Guión para días libres - CORRECCIÓN AQUÍ
+            }
+
+            // Color del texto
+            val textColor = when {
+                // Para celdas con fondo de color (cambios), usamos blanco para contraste
+                isAdded || isRemoved || isNewSaliente || isLostSaliente -> Color.White
+                // Para días sin turno (S o -), usamos Gris para que se vea "desactivado" o secundario
+                // text == "S" || text == "-" -> Color.Gray // ANTES
+                text == "-" -> Color.Gray // El guion sigue en gris
+                else -> Color.White // "S", "M", "T", "N" en blanco
+            }
+
+            Box(
+                modifier = Modifier
+                    .width(40.dp) // Ancho fijo celda
+                    .height(30.dp)
+                    .padding(1.dp)
+                    .background(cellColor, RoundedCornerShape(4.dp))
+                    .border(
+                        if(isModified || isNewSaliente || isLostSaliente) 1.dp else 0.dp,
+                        if(isModified || isNewSaliente || isLostSaliente) Color.White else Color.Transparent,
+                        RoundedCornerShape(4.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text,
+                    color = textColor,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 10.sp
+                )
+            }
+        }
+    }
+}
+
+// --- 5. TABS Y CALENDARIO (EXISTENTE) ---
 
 @Composable
 fun MyShiftsCalendarTab(
