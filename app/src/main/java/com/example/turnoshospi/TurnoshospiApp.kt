@@ -608,12 +608,33 @@ fun TurnoshospiApp(
                     onSaveNotification = onSaveNotification
                 )
 
-                AppScreen.Statistics -> StatisticsScreen(
-                    plant = selectedPlantForDetail ?: userPlant,
-                    currentUserEmail = existingProfile?.email,
-                    currentUserName = plantMembership?.staffName ?: "${existingProfile?.firstName} ${existingProfile?.lastName}".trim(),
-                    onBack = { navigateBack() }
-                )
+                AppScreen.Statistics -> {
+                    val currentPlant = selectedPlantForDetail ?: userPlant
+                    // Lógica para determinar si el usuario es supervisor
+                    val isUserSupervisor = plantMembership?.staffRole == "Supervisor"
+
+                    // Mapear el personal de la planta a una lista de PlantMembership.
+                    val allPlantMemberships = remember(currentPlant) {
+                        currentPlant?.personal_de_planta?.map { (_, staff) ->
+                            PlantMembership(
+                                plantId = currentPlant.id,
+                                userId = staff.id.orEmpty(), // CORREGIDO: Usamos staff.id como valor placeholder para userId, ya que la propiedad original 'userId' no existe.
+                                staffId = staff.id,
+                                staffName = staff.name,
+                                staffRole = staff.role
+                            )
+                        }.orEmpty()
+                    }
+
+                    StatisticsScreen(
+                        plant = currentPlant,
+                        currentUserEmail = existingProfile?.email,
+                        currentUserName = plantMembership?.staffName ?: "${existingProfile?.firstName} ${existingProfile?.lastName}".trim(),
+                        isSupervisor = isUserSupervisor,
+                        allMemberships = allPlantMemberships,
+                        onBack = { navigateBack() }
+                    )
+                }
 
                 AppScreen.DirectChatList -> DirectChatListScreen(
                     plantId = selectedPlantForDetail?.id ?: userPlant?.id ?: "",

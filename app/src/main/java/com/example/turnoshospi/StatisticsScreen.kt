@@ -2,6 +2,7 @@ package com.example.turnoshospi
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -38,21 +39,32 @@ fun StatisticsScreen(
     plant: Plant?,
     currentUserEmail: String?,
     currentUserName: String?, // Nombre usado en los turnos
+    isSupervisor: Boolean, // NUEVO PARÁMETRO: Indica si el usuario actual es supervisor
+    allMemberships: List<PlantMembership>, // NUEVO PARÁMETRO: Lista de todo el personal de la planta
     onBack: () -> Unit
 ) {
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
-    var stats by remember { mutableStateOf<MonthlyStats?>(null) }
+    // Estadísticas personales para el usuario seleccionado (o para sí mismo si no es supervisor)
+    var personalStats by remember { mutableStateOf<MonthlyStats?>(null) }
+    // Estadísticas agregadas para todo el personal (solo para la vista inicial del supervisor)
+    var allStaffStats by remember { mutableStateOf<List<StaffMonthlyStats>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
+    // Nombre del miembro del personal seleccionado para la vista personalizada
+    var selectedStaffName by remember { mutableStateOf<String?>(null) }
 
-    // Necesitamos el nombre exacto con el que el usuario está guardado en los turnos.
-    // A veces es el nombre, a veces el email, depende de cómo se registró.
-    // Asumiremos que se pasa el nombre correcto (staffName) desde la navegación o membership.
-    val targetName = currentUserName ?: ""
+    // Determinar los nombres del personal para calcular (usado en la vista general del supervisor)
+    val staffNamesForPlant = remember(allMemberships) {
+        allMemberships.mapNotNull { it.staffName }.distinct()
+    }
+
+    // Determinar el nombre objetivo para el cálculo de estadísticas personales
+    val targetNameForCalculation = selectedStaffName ?: currentUserName ?: ""
 
     val database = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
 
-    LaunchedEffect(plant, currentMonth, targetName) {
-        if (plant == null || targetName.isBlank()) {
+    // El LaunchedEffect se ejecuta cuando cambian las variables clave
+    LaunchedEffect(plant, currentMonth, targetNameForCalculation, isSupervisor, selectedStaffName) {
+        if (plant == null || (!isSupervisor && targetNameForCalculation.isBlank())) {
             isLoading = false
             return@LaunchedEffect
         }
@@ -61,14 +73,46 @@ fun StatisticsScreen(
         val startStr = "turnos-${currentMonth.atDay(1)}"
         val endStr = "turnos-${currentMonth.atEndOfMonth()}"
 
+        // Reiniciar contenedores de estadísticas
+        personalStats = null
+        if (selectedStaffName == null) {
+            allStaffStats = emptyList() // Limpiar solo si estamos en la vista general o de usuario
+        }
+
+
         database.getReference("plants/${plant.id}/turnos")
             .orderByKey()
             .startAt(startStr)
             .endAt(endStr)
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    val calculatedStats = calculateStatsForMonth(snapshot, plant.shiftTimes, targetName)
-                    stats = calculatedStats
+
+                    if (isSupervisor && selectedStaffName == null) {
+                        // Supervisor: Vista General (calcular para todo el personal)
+                        val results = mutableListOf<StaffMonthlyStats>()
+                        for (staffName in staffNamesForPlant) {
+                            // Reutilizar la lógica existente para calcular las estadísticas de cada miembro
+                            val stats = calculateStatsForMonth(snapshot, plant.shiftTimes, staffName)
+                            if (stats.totalHours > 0.0) { // Mostrar solo personal con horas registradas
+                                results.add(StaffMonthlyStats(staffName, stats.totalHours, stats.totalShifts))
+                            }
+                        }
+                        // Ordenado de más a menos horas trabajadas (REQ. USUARIO)
+                        allStaffStats = results.sortedByDescending { it.totalHours }
+                        personalStats = null
+
+                    } else {
+                        // Usuario Regular O Supervisor: Vista Personal (selectedStaffName no es null)
+                        val name = selectedStaffName ?: currentUserName
+                        if (name != null) {
+                            // Usamos el nombre del usuario seleccionado o el nombre del usuario logeado
+                            personalStats = calculateStatsForMonth(snapshot, plant.shiftTimes, name)
+                        } else {
+                            personalStats = null
+                        }
+                        allStaffStats = emptyList() // Limpiar estadísticas generales si se está viendo personal
+                    }
+
                     isLoading = false
                 }
 
@@ -82,9 +126,21 @@ fun StatisticsScreen(
         containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
-                title = { Text("Estadísticas", color = Color.White, fontWeight = FontWeight.Bold) },
+                title = { Text(
+                    text = if (isSupervisor && selectedStaffName != null) "Estadísticas de ${selectedStaffName}" else "Estadísticas",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                ) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = {
+                        if (isSupervisor && selectedStaffName != null) {
+                            // Si es supervisor y hay un usuario seleccionado, volvemos a la vista general
+                            selectedStaffName = null
+                        } else {
+                            // En cualquier otro caso, volvemos a la pantalla anterior
+                            onBack()
+                        }
+                    }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver", tint = Color.White)
                     }
                 },
@@ -96,7 +152,7 @@ fun StatisticsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
+                .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Selector de Mes
@@ -108,7 +164,7 @@ fun StatisticsScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { currentMonth = currentMonth.minusMonths(1) }) {
+                IconButton(onClick = { currentMonth = currentMonth.minusMonths(1); selectedStaffName = null }) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
                 }
                 Text(
@@ -117,7 +173,7 @@ fun StatisticsScreen(
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
-                IconButton(onClick = { currentMonth = currentMonth.plusMonths(1) }) {
+                IconButton(onClick = { currentMonth = currentMonth.plusMonths(1); selectedStaffName = null }) {
                     Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Color.White)
                 }
             }
@@ -126,49 +182,154 @@ fun StatisticsScreen(
 
             if (isLoading) {
                 CircularProgressIndicator(color = Color(0xFF54C7EC))
-            } else if (stats == null || stats!!.totalHours == 0.0) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = 40.dp)) {
-                    Icon(Icons.Default.BarChart, null, tint = Color.Gray, modifier = Modifier.size(64.dp))
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text("No hay horas registradas este mes.", color = Color.Gray)
-                }
-            } else {
-                // Tarjeta Principal (Total)
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0F172A)),
-                    border = BorderStroke(1.dp, Color(0xFF54C7EC))
-                ) {
-                    Column(
-                        modifier = Modifier.padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text("Total Horas Trabajadas", color = Color(0xFF54C7EC), fontSize = 14.sp)
-                        Text(
-                            text = String.format("%.1f h", stats!!.totalHours),
-                            color = Color.White,
-                            fontSize = 48.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text("${stats!!.totalShifts} turnos realizados", color = Color.Gray)
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Text(
-                    "Desglose por Turno",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.align(Alignment.Start)
+            } else if (isSupervisor && selectedStaffName == null) {
+                // --- Supervisor Vista General de Personal ---
+                SupervisorGeneralStats(
+                    allStaffStats = allStaffStats,
+                    onStaffSelected = { name -> selectedStaffName = name },
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+            } else {
+                // --- Vista Personal (Usuario Regular O Supervisor con usuario seleccionado) ---
+                PersonalStatsView(
+                    stats = personalStats,
+                    targetName = selectedStaffName ?: currentUserName ?: "Personal",
+                    isSupervisorViewing = isSupervisor && selectedStaffName != null
+                )
+            }
+        }
+    }
+}
 
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(stats!!.breakdown.entries.toList().sortedByDescending { it.value.hours }) { (shiftName, data) ->
-                        StatRow(shiftName, data)
-                    }
-                }
+// ==============================================================================
+// COMPOSABLES DE VISTA
+// ==============================================================================
+
+@Composable
+fun SupervisorGeneralStats(
+    allStaffStats: List<StaffMonthlyStats>,
+    onStaffSelected: (String) -> Unit
+) {
+    if (allStaffStats.isEmpty()) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = 40.dp)) {
+            Icon(Icons.Default.BarChart, null, tint = Color.Gray, modifier = Modifier.size(64.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("No hay horas registradas para ningún personal este mes.", color = Color.Gray, textAlign = TextAlign.Center)
+        }
+        return
+    }
+
+    Text(
+        "Horas Totales del Personal (General)",
+        color = Color.White,
+        fontWeight = FontWeight.Bold,
+        fontSize = 20.sp,
+        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
+    )
+
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        // La lista ya está ordenada por horas de más a menos en el LaunchedEffect
+        items(allStaffStats) { stats ->
+            StaffStatRow(stats, onStaffSelected)
+        }
+    }
+}
+
+@Composable
+fun StaffStatRow(stats: StaffMonthlyStats, onStaffSelected: (String) -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onStaffSelected(stats.staffName) },
+        colors = CardDefaults.cardColors(containerColor = Color(0x11FFFFFF))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(stats.staffName, color = Color.White, fontWeight = FontWeight.Bold)
+                Text("${stats.totalShifts} turnos", color = Color.Gray, fontSize = 12.sp)
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = String.format("%.1f h", stats.totalHours),
+                    color = Color(0xFF54C7EC),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = "Ver estadísticas de ${stats.staffName}",
+                    tint = Color.Gray,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun PersonalStatsView(
+    stats: MonthlyStats?,
+    targetName: String,
+    isSupervisorViewing: Boolean,
+) {
+    // Si es la vista personal del supervisor, mostramos un encabezado.
+    if (isSupervisorViewing) {
+        Text(
+            "Desglose de Estadísticas",
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp,
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+        )
+    }
+
+    if (stats == null || stats.totalHours == 0.0) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = 40.dp)) {
+            Icon(Icons.Default.BarChart, null, tint = Color.Gray, modifier = Modifier.size(64.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("No hay horas registradas este mes para $targetName.", color = Color.Gray, textAlign = TextAlign.Center)
+        }
+    } else {
+        // Tarjeta Principal (Total)
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF0F172A)),
+            border = BorderStroke(1.dp, Color(0xFF54C7EC))
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Total Horas Trabajadas", color = Color(0xFF54C7EC), fontSize = 14.sp)
+                Text(
+                    text = String.format("%.1f h", stats.totalHours),
+                    color = Color.White,
+                    fontSize = 48.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text("${stats.totalShifts} turnos realizados", color = Color.Gray)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            "Desglose por Turno",
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.fillMaxWidth().wrapContentWidth(Alignment.Start)
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(stats.breakdown.entries.toList().sortedByDescending { it.value.hours }) { (shiftName, data) ->
+                StatRow(shiftName, data)
             }
         }
     }
@@ -200,7 +361,9 @@ fun StatRow(shiftName: String, data: ShiftStatData) {
     }
 }
 
-// --- Lógica de Cálculo ---
+// ==============================================================================
+// DATA CLASSES Y LÓGICA DE CÁLCULO (LÓGICA RESTAURADA A LA VERSIÓN ORIGINAL)
+// ==============================================================================
 
 data class MonthlyStats(
     val totalHours: Double,
@@ -211,6 +374,13 @@ data class MonthlyStats(
 data class ShiftStatData(
     var hours: Double = 0.0,
     var count: Int = 0
+)
+
+// NUEVA DATA CLASS para la vista general del supervisor
+data class StaffMonthlyStats(
+    val staffName: String,
+    val totalHours: Double,
+    val totalShifts: Int
 )
 
 fun calculateStatsForMonth(
@@ -228,11 +398,12 @@ fun calculateStatsForMonth(
             val shiftTime = shiftTimes[shiftName]
 
             if (shiftTime != null) {
+                // Se llama a la función calculateDuration original (solo dos parámetros)
                 val duration = calculateDuration(shiftTime.start, shiftTime.end)
                 var worked = false
                 var halfDay = false
 
-                // Revisar Enfermeros
+                // Revisar Enfermeros (Lógica restaurada)
                 shiftSnapshot.child("nurses").children.forEach { slot ->
                     val p = slot.child("primary").value as? String
                     val s = slot.child("secondary").value as? String
@@ -242,7 +413,7 @@ fun calculateStatsForMonth(
                     else if (h && s == userName) { worked = true; halfDay = true }
                 }
 
-                // Revisar Auxiliares (si no encontró ya)
+                // Revisar Auxiliares (Lógica restaurada)
                 if (!worked) {
                     shiftSnapshot.child("auxiliaries").children.forEach { slot ->
                         val p = slot.child("primary").value as? String
@@ -270,7 +441,7 @@ fun calculateStatsForMonth(
     return MonthlyStats(totalH, totalS, breakdown)
 }
 
-fun calculateDuration(start: String, end: String): Double {
+fun calculateDuration(start: String, end: String): Double { // Función restaurada
     if (start.isBlank() || end.isBlank()) return 0.0
     try {
         val startTime = LocalTime.parse(start)
