@@ -47,6 +47,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
+import com.example.turnoshospi.ui.theme.ShiftColors
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -69,6 +70,7 @@ fun ShiftChangeScreen(
     plantId: String,
     currentUser: UserProfile?,
     currentUserId: String,
+    shiftColors: ShiftColors,
     onBack: () -> Unit,
     onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit
 ) {
@@ -304,6 +306,7 @@ fun ShiftChangeScreen(
                             currentUserId = currentUserId,
                             userSchedules = userSchedules,
                             currentUserSchedule = myShiftsMap,
+                            shiftColors = shiftColors, // Pasamos colores
                             onProposeSwap = { candidateShift ->
                                 performDirectProposal(database, plantId, selectedRequestForSuggestions!!, candidateShift, onSaveNotification)
                                 selectedRequestForSuggestions = null
@@ -330,6 +333,7 @@ fun ShiftChangeScreen(
                             peerPendingRequests = emptyList(),
                             historyRequests = allRequests.filter { it.status == RequestStatus.APPROVED }, // Ocultar rechazados aquí también
                             supervisorRequests = supervisorRequests,
+                            shiftColors = shiftColors, // Pasamos colores
                             onDeleteRequest = { req ->
                                 deleteShiftRequest(database, plantId, req.id)
                                 Toast.makeText(context, "Solicitud borrada", Toast.LENGTH_SHORT).show()
@@ -359,6 +363,7 @@ fun ShiftChangeScreen(
                         when (selectedTab) {
                             0 -> MyShiftsCalendarTab(
                                 shifts = myShiftsList,
+                                shiftColors = shiftColors, // Pasamos colores
                                 onSelectShiftForChange = { shift ->
                                     selectedShiftForRequest = shift
                                     showCreateDialog = true
@@ -400,6 +405,7 @@ fun ShiftChangeScreen(
                                     peerPendingRequests = peerPendingRequests,
                                     historyRequests = historyRequests,
                                     supervisorRequests = emptyList(),
+                                    shiftColors = shiftColors, // Pasamos colores
                                     onDeleteRequest = { req ->
                                         deleteShiftRequest(database, plantId, req.id)
                                         Toast.makeText(context, "Solicitud borrada", Toast.LENGTH_SHORT).show()
@@ -495,6 +501,7 @@ fun ShiftManagementTab(
     peerPendingRequests: List<ShiftChangeRequest>,
     historyRequests: List<ShiftChangeRequest>,
     supervisorRequests: List<ShiftChangeRequest>,
+    shiftColors: ShiftColors,
     onDeleteRequest: (ShiftChangeRequest) -> Unit,
     onAcceptByPartner: (ShiftChangeRequest) -> Unit,
     onRejectByPartner: (ShiftChangeRequest) -> Unit,
@@ -764,7 +771,8 @@ fun ShiftManagementTab(
             row2Name = row2Name,
             row2DateToRemove = row2DateOut,
             row2DateToAdd = row2DateIn,
-            row2ShiftToAdd = row2ShiftIn
+            row2ShiftToAdd = row2ShiftIn,
+            shiftColors = shiftColors // <--- Param
         )
     }
 }
@@ -844,6 +852,7 @@ fun FullPlantShiftsList(
     currentUserId: String,
     userSchedules: Map<String, Map<LocalDate, String>>,
     currentUserSchedule: Map<LocalDate, String>,
+    shiftColors: ShiftColors,
     onProposeSwap: (PlantShift) -> Unit
 ) {
     // ESTADOS UI
@@ -1027,6 +1036,7 @@ fun FullPlantShiftsList(
                 items(filteredShifts) { shift ->
                     PlantShiftCard(
                         shift = shift,
+                        shiftColors = shiftColors, // Pasamos colores
                         onAction = { onProposeSwap(shift) },
                         onPreview = {
                             previewCandidate = shift
@@ -1055,7 +1065,8 @@ fun FullPlantShiftsList(
             row2Name = candidate.userName,
             row2DateToRemove = candidate.date, // Él da su turno
             row2DateToAdd = dateReq,           // Él recibe mi turno
-            row2ShiftToAdd = request.requesterShiftName
+            row2ShiftToAdd = request.requesterShiftName,
+            shiftColors = shiftColors // Param
         )
     }
 }
@@ -1067,10 +1078,12 @@ fun FullPlantShiftsList(
 @Composable
 fun PlantShiftCard(
     shift: PlantShift,
+    shiftColors: ShiftColors,
     onAction: () -> Unit,
     onPreview: () -> Unit // Callback para preview
 ) {
-    val shiftColor = getShiftColorExact(shift.shiftName)
+    // Usamos el color dinámico
+    val shiftColor = getShiftColorDynamic(shift.shiftName, false, shiftColors)
 
     val initials = shift.userName.split(" ")
         .take(2)
@@ -1194,7 +1207,8 @@ fun SchedulePreviewDialog(
     row2Name: String,
     row2DateToRemove: LocalDate?,
     row2DateToAdd: LocalDate?,
-    row2ShiftToAdd: String?
+    row2ShiftToAdd: String?,
+    shiftColors: ShiftColors // <--- Param
 ) {
     val date1 = row1DateToRemove ?: LocalDate.now()
     val date2 = row1DateToAdd ?: date1
@@ -1237,7 +1251,8 @@ fun SchedulePreviewDialog(
                     row2Name = row2Name,
                     row2DateToRemove = row2DateToRemove,
                     row2DateToAdd = row2DateToAdd,
-                    row2ShiftToAdd = row2ShiftToAdd
+                    row2ShiftToAdd = row2ShiftToAdd,
+                    shiftColors = shiftColors
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -1264,7 +1279,8 @@ fun SchedulePreviewDialog(
                     row2Name = row2Name,
                     row2DateToRemove = row2DateToRemove,
                     row2DateToAdd = row2DateToAdd,
-                    row2ShiftToAdd = row2ShiftToAdd
+                    row2ShiftToAdd = row2ShiftToAdd,
+                    shiftColors = shiftColors
                 )
             }
         },
@@ -1286,7 +1302,8 @@ fun ScheduleWeekView(
     row2Name: String,
     row2DateToRemove: LocalDate?,
     row2DateToAdd: LocalDate?,
-    row2ShiftToAdd: String?
+    row2ShiftToAdd: String?,
+    shiftColors: ShiftColors // <--- Param
 ) {
     // CAMBIO: Celdas más pequeñas (38dp) y columna nombre más ancha (115dp)
     val nameColumnWidth = 115.dp
@@ -1321,7 +1338,8 @@ fun ScheduleWeekView(
                     dateToAdd = row1DateToAdd,
                     shiftToAdd = row1ShiftToAdd,
                     nameWidth = nameColumnWidth,
-                    cellWidth = dayColumnWidth
+                    cellWidth = dayColumnWidth,
+                    shiftColors = shiftColors
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 // Fila 2
@@ -1333,7 +1351,8 @@ fun ScheduleWeekView(
                     dateToAdd = row2DateToAdd,
                     shiftToAdd = row2ShiftToAdd,
                     nameWidth = nameColumnWidth,
-                    cellWidth = dayColumnWidth
+                    cellWidth = dayColumnWidth,
+                    shiftColors = shiftColors
                 )
             }
         }
@@ -1349,7 +1368,8 @@ fun ScheduleRow(
     dateToAdd: LocalDate?,
     shiftToAdd: String?,
     nameWidth: androidx.compose.ui.unit.Dp,
-    cellWidth: androidx.compose.ui.unit.Dp
+    cellWidth: androidx.compose.ui.unit.Dp,
+    shiftColors: ShiftColors // <--- Param
 ) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
         // Nombre con más espacio
@@ -1395,7 +1415,8 @@ fun ScheduleRow(
             val isSalienteChanged = isSaliente != originalIsSaliente
             val shouldHighlight = isChanged || isSalienteChanged
 
-            val baseColor = getShiftColorExact(finalShift, isSaliente)
+            // COLOR DINÁMICO
+            val baseColor = getShiftColorDynamic(finalShift, isSaliente, shiftColors)
             // Usamos shouldHighlight para el fondo en lugar de solo isChanged
             val cellColor = if (shouldHighlight) baseColor else Color.Transparent
 
@@ -1436,6 +1457,7 @@ fun ScheduleRow(
 @Composable
 fun MyShiftsCalendarTab(
     shifts: List<MyShiftDisplay>,
+    shiftColors: ShiftColors, // <--- Param
     onSelectShiftForChange: (MyShiftDisplay) -> Unit
 ) {
     var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
@@ -1471,7 +1493,10 @@ fun MyShiftsCalendarTab(
                                     val date = currentMonth.atDay(dayIndex)
                                     val shift = shiftsMap[date]
                                     val isSelected = date == selectedDate
-                                    val color = getShiftColorExact(shift?.shiftName ?: "")
+
+                                    // COLOR DINÁMICO
+                                    val color = getShiftColorDynamic(shift?.shiftName ?: "", false, shiftColors)
+
                                     Box(modifier = Modifier.weight(1f).height(48.dp).padding(2.dp).background(color, CircleShape).border(if (isSelected) 0.dp else 1.dp, if (isSelected) Color.White.copy(alpha = 0.1f) else Color.White.copy(alpha = 0.1f), CircleShape).clickable { selectedDate = date }, contentAlignment = Alignment.Center) {
                                         Text("$dayIndex", color = if (shift != null) Color.White else Color.White, fontWeight = if(shift!=null) FontWeight.Bold else FontWeight.Bold, fontSize = 18.sp)
                                     }
@@ -1579,22 +1604,28 @@ fun CreateShiftRequestDialog(
 // HELPERS Y LÓGICA DE NEGOCIO
 // ============================================================================================
 
-// Helper para colores exactos (estilo MainMenuScreen)
-fun getShiftColorExact(shiftName: String, isSaliente: Boolean = false): Color {
-    if (isSaliente) return Color(0xFF1A237E) // Dark Blue (Saliente)
-    if (shiftName.isBlank()) return Color(0xFF4CAF50) // Green (Libre)
+// Helper para colores dinámicos (reemplaza a getShiftColorExact)
+fun getShiftColorDynamic(shiftName: String, isSaliente: Boolean = false, colors: ShiftColors): Color {
+    if (isSaliente) return colors.saliente
+    if (shiftName.isBlank()) return colors.free
 
     val lower = shiftName.lowercase()
     return when {
-        lower.contains("vacaciones") -> Color(0xFFE91E63) // Pink
-        lower.contains("noche") -> Color(0xFF9C27B0) // Violet
-        lower.contains("media") && lower.contains("mañana") -> Color(0xFFFFCC80) // Light Orange
-        lower.contains("mañana") -> Color(0xFFFFA500) // Orange
-        lower.contains("media") && lower.contains("tarde") -> Color(0xFF40E0D0) // Turquoise
-        lower.contains("tarde") -> Color(0xFF2196F3) // Blue
-        lower.contains("día") || lower.contains("dia") -> Color(0xFFFFA500)
-        else -> Color(0xFF4CAF50) // Green default (si no encaja en nada)
+        lower.contains("vacaciones") -> colors.holiday
+        lower.contains("noche") -> colors.night
+        lower.contains("media") && lower.contains("mañana") -> colors.morningHalf
+        lower.contains("mañana") -> colors.morning
+        lower.contains("media") && lower.contains("tarde") -> colors.afternoonHalf
+        lower.contains("tarde") -> colors.afternoon
+        lower.contains("día") || lower.contains("dia") -> colors.morning
+        else -> colors.free
     }
+}
+
+// Mantenemos esta función para compatibilidad si fuera necesaria en otros archivos,
+// pero internamente delegamos al dinámico con colores default
+fun getShiftColorExact(shiftName: String, isSaliente: Boolean = false): Color {
+    return getShiftColorDynamic(shiftName, isSaliente, ShiftColors())
 }
 
 fun performDirectProposal(

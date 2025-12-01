@@ -74,6 +74,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.turnoshospi.ui.theme.ShiftColors
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -101,6 +102,7 @@ fun MainMenuScreen(
     userPlant: Plant?,
     plantMembership: PlantMembership?,
     datePickerState: DatePickerState,
+    shiftColors: ShiftColors,
     onCreatePlant: () -> Unit,
     onEditProfile: () -> Unit,
     onOpenPlant: () -> Unit,
@@ -109,7 +111,6 @@ fun MainMenuScreen(
     onFetchColleagues: (String, String, String, (List<Colleague>) -> Unit) -> Unit,
     onSignOut: () -> Unit,
     onOpenDirectChats: () -> Unit,
-    // NUEVO: Contador para el botón flotante
     unreadChatCount: Int = 0,
     unreadNotificationsCount: Int,
     onOpenNotifications: () -> Unit
@@ -241,6 +242,7 @@ fun MainMenuScreen(
                     isSupervisor = isSupervisor,
                     roster = selectedDateRoster,
                     isLoadingRoster = isLoadingRoster,
+                    shiftColors = shiftColors,
                     onDayClick = { date, shift ->
                         selectedDate = date
                         selectedShift = shift
@@ -421,6 +423,7 @@ fun CustomCalendar(
     isSupervisor: Boolean = false,
     roster: Map<String, ShiftRoster> = emptyMap(),
     isLoadingRoster: Boolean = false,
+    shiftColors: ShiftColors,
     onDayClick: (LocalDate, UserShift?) -> Unit
 ) {
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
@@ -484,8 +487,8 @@ fun CustomCalendar(
                             val dateKey = date.toString()
                             val shift = shifts[dateKey]
 
-                            // CAMBIO: Si es supervisor, fondo transparente. Si no, color del turno.
-                            val color = if (isSupervisor) Color.Transparent else getDayColor(date, shifts)
+                            // CAMBIO: Usamos getDayColor pasando shiftColors
+                            val color = if (isSupervisor) Color.Transparent else getDayColor(date, shifts, shiftColors)
 
                             val isSelected = date == selectedDate
 
@@ -536,14 +539,14 @@ fun CustomCalendar(
                 maxItemsInEachRow = 4
             ) {
                 val legendItems = listOf(
-                    Triple(Color(0xFF4CAF50), "Libre", null),
-                    Triple(Color(0xFFFFA500), "Mañana", null),
-                    Triple(Color(0xFFFFCC80), "M. Mañana", null),
-                    Triple(Color(0xFF2196F3), "Tarde", null),
-                    Triple(Color(0xFF40E0D0), "M. Tarde", null),
-                    Triple(Color(0xFF9C27B0), "Noche", null),
-                    Triple(Color(0xFF1A237E), "Saliente", null),
-                    Triple(Color(0xFFE91E63), "Vacaciones", null)
+                    Triple(shiftColors.free, "Libre", null),
+                    Triple(shiftColors.morning, "Mañana", null),
+                    Triple(shiftColors.morningHalf, "M. Mañana", null),
+                    Triple(shiftColors.afternoon, "Tarde", null),
+                    Triple(shiftColors.afternoonHalf, "M. Tarde", null),
+                    Triple(shiftColors.night, "Noche", null),
+                    Triple(shiftColors.saliente, "Saliente", null),
+                    Triple(shiftColors.holiday, "Vacaciones", null)
                 )
 
                 legendItems.forEach { (color, text, _) ->
@@ -714,37 +717,30 @@ fun CustomCalendar(
     }
 }
 
-fun getDayColor(date: LocalDate, shifts: Map<String, UserShift>): Color {
+fun getDayColor(date: LocalDate, shifts: Map<String, UserShift>, colors: ShiftColors): Color {
     val dateKey = date.toString()
     val shift = shifts[dateKey]
-
-    val colorGreen = Color(0xFF4CAF50)
-    val colorViolet = Color(0xFF9C27B0)
-    val colorDarkBlue = Color(0xFF1A237E)
-    val colorOrange = Color(0xFFFFA500)
-    val colorLightOrange = Color(0xFFFFCC80)
-    val colorTurquoise = Color(0xFF40E0D0)
-    val colorBlue = Color(0xFF2196F3)
-    val colorPink = Color(0xFFE91E63)
 
     if (shift != null) {
         val type = shift.shiftName.lowercase()
         return when {
-            type.contains("vacaciones") -> colorPink
-            type.contains("noche") -> colorViolet
-            type.contains("mañana") || type.contains("día") -> if (shift.isHalfDay) colorLightOrange else colorOrange
-            type.contains("tarde") -> if (shift.isHalfDay) colorTurquoise else colorBlue
-            else -> colorOrange
+            type.contains("vacaciones") -> colors.holiday
+            type.contains("noche") -> colors.night
+            type.contains("media") && (type.contains("mañana") || type.contains("dia")) -> colors.morningHalf
+            type.contains("mañana") || type.contains("día") -> colors.morning
+            type.contains("media") && type.contains("tarde") -> colors.afternoonHalf
+            type.contains("tarde") -> colors.afternoon
+            else -> colors.morning
         }
     }
 
     val yesterdayKey = date.minusDays(1).toString()
     val yesterdayShift = shifts[yesterdayKey]
     if (yesterdayShift != null && yesterdayShift.shiftName.lowercase().contains("noche")) {
-        return colorDarkBlue
+        return colors.saliente
     }
 
-    return colorGreen
+    return colors.free
 }
 
 @Composable
@@ -818,6 +814,7 @@ fun MainMenuScreenPreview() {
             userPlant = null,
             plantMembership = null,
             datePickerState = previewDateState,
+            shiftColors = ShiftColors(), // Mock colors
             onCreatePlant = {},
             onEditProfile = {},
             onOpenPlant = {},
@@ -826,7 +823,6 @@ fun MainMenuScreenPreview() {
             onFetchColleagues = { _, _, _, _ -> },
             onSignOut = {},
             onOpenDirectChats = {},
-            // VALORES DE PRUEBA
             unreadChatCount = 3,
             unreadNotificationsCount = 5,
             onOpenNotifications = {}

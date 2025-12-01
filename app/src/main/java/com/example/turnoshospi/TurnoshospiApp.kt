@@ -8,16 +8,24 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
@@ -27,6 +35,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -55,13 +64,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.turnoshospi.ui.theme.ShiftColors
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
-import java.util.UUID // Import UUID for Notification generation
+import java.util.UUID
 
 enum class AppScreen {
     MainMenu,
@@ -78,16 +88,13 @@ enum class AppScreen {
     Statistics,
     DirectChatList,
     DirectChat,
-    Notifications // Added Notifications screen
+    Notifications
 }
 
 data class Colleague(
     val name: String,
     val role: String
 )
-
-// NOTE: UserNotification is NOT redefined here to avoid conflict with MainActivity.kt.
-// We assume UserNotification is available in the package.
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -129,6 +136,9 @@ fun TurnoshospiApp(
     var emailForReset by remember { mutableStateOf("") }
     var showProfileEditor by remember { mutableStateOf(false) }
 
+    // Estado global de colores
+    var shiftColors by remember { mutableStateOf(ShiftColors()) }
+
     // NAVEGACIÓN: Estado y Pila
     var currentScreen by remember { mutableStateOf(AppScreen.MainMenu) }
     val backStack = remember { mutableStateListOf<AppScreen>() }
@@ -147,12 +157,10 @@ fun TurnoshospiApp(
     var selectedDirectChatUserName by remember { mutableStateOf("") }
     var chatUnreadCounts by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
 
-    // Calculamos el total de mensajes no leídos para el botón del menú
     val totalUnreadChats = remember(chatUnreadCounts) {
         chatUnreadCounts.values.sum()
     }
 
-    // Estado para notificaciones. Using AppNotification for UI logic.
     var userNotifications by remember { mutableStateOf<List<AppNotification>>(emptyList()) }
     val unreadNotificationsCount = remember(userNotifications) {
         userNotifications.count { !it.read }
@@ -177,7 +185,6 @@ fun TurnoshospiApp(
         }
     }
 
-    // --- Manejo del botón atrás físico ---
     BackHandler(enabled = (user == null && showRegistration) || (user != null && backStack.isNotEmpty())) {
         if (user == null && showRegistration) {
             showRegistration = false
@@ -220,7 +227,6 @@ fun TurnoshospiApp(
             existingProfile = null
             userPlant = null
 
-            // Resetear navegación al loguearse
             currentScreen = AppScreen.MainMenu
             backStack.clear()
 
@@ -229,24 +235,21 @@ fun TurnoshospiApp(
                 isLoadingProfile = false
             }
 
-            // Escuchar notificaciones del usuario (convertimos UserNotification a AppNotification)
             onListenToNotifications(user.uid) { notifications ->
-                // Map the UserNotification (from DB/MainActivity) to AppNotification (for UI)
                 userNotifications = notifications.map {
                     AppNotification(
                         id = it.id,
-                        title = getTitleForType(it.type), // Fixed: Use helper for title
+                        title = getTitleForType(it.type),
                         message = it.message,
                         timestamp = it.timestamp,
                         read = it.isRead,
-                        screen = it.targetScreen, // Fixed: Map targetScreen
-                        plantId = it.targetId, // Fixed: Map targetId to plantId
-                        argument = it.targetId // Fixed: Map targetId to argument
+                        screen = it.targetScreen,
+                        plantId = it.targetId,
+                        argument = it.targetId
                     )
                 }
             }
 
-            // Escuchar contadores de chat
             onListenToChatUnreadCounts(user.uid) { counts ->
                 chatUnreadCounts = counts
             }
@@ -268,12 +271,10 @@ fun TurnoshospiApp(
         }
     }
 
-    // MANEJO DE DEEP LINKING (NAVEGACIÓN DESDE NOTIFICACIÓN)
     LaunchedEffect(pendingNavigation, user, userPlant) {
         if (user != null && pendingNavigation != null) {
             val screen = pendingNavigation["screen"]
             val plantIdArg = pendingNavigation["plantId"]
-            // val arg = pendingNavigation["argument"]
 
             if (screen == "DirectChat") {
                 val otherId = pendingNavigation["otherUserId"]
@@ -288,29 +289,12 @@ fun TurnoshospiApp(
                     }
                 }
             } else if (screen == "ShiftChangeScreen") {
-                // Navegar a Gestión de Cambios
-                // Necesitamos asegurar que tenemos la planta cargada o al menos el ID
                 if (plantIdArg != null) {
-                    // Si la planta cargada coincide o no importa, navegamos
-                    // Si no está cargada, podríamos intentar cargarla o asumir que userPlant es correcto si solo tiene una
-                    // Para simplificar, si userPlant coincide con plantIdArg o si plantIdArg es válido
-
-                    // Aseguramos que selectedPlantForDetail tenga el ID correcto para que ShiftChangeScreen funcione
                     if (selectedPlantForDetail?.id != plantIdArg) {
-                        // Aquí idealmente cargaríamos la planta si no es la actual,
-                        // pero por ahora usaremos userPlant si coincide o un objeto dummy con ID
                         if (userPlant?.id == plantIdArg) {
                             selectedPlantForDetail = userPlant
-                        } else {
-                            // Fallback: crear objeto planta temporal solo con ID para que la pantalla cargue
-                            // Ojo: ShiftChangeScreen usa plantId string, así que con pasar el ID debería bastar
-                            // Pero selectedPlantForDetail se usa en otros lados.
-                            // Mejor estrategia: Navegar y dejar que ShiftChangeScreen use el ID
                         }
                     }
-
-                    // IMPORTANTE: ShiftChangeScreen usa 'selectedPlantForDetail?.id' en la navegación normal
-                    // Aquí forzamos que selectedPlantForDetail sea consistente si es null
                     if (selectedPlantForDetail == null && userPlant?.id == plantIdArg) {
                         selectedPlantForDetail = userPlant
                     }
@@ -320,8 +304,6 @@ fun TurnoshospiApp(
                     }
                 }
             }
-
-            // Marcamos como manejada
             onNavigationHandled()
         }
     }
@@ -446,19 +428,19 @@ fun TurnoshospiApp(
                     userPlant = userPlant,
                     plantMembership = plantMembership,
                     datePickerState = sharedDatePickerState,
+                    shiftColors = shiftColors, // Pasamos colores
                     onListenToShifts = onListenToShifts,
                     onFetchColleagues = onFetchColleagues,
                     onCreatePlant = { navigateTo(AppScreen.CreatePlant) },
                     onEditProfile = { showProfileEditor = true },
                     onOpenPlant = {
-                        // Verificamos si ya hay una planta cargada
                         if (userPlant != null) {
-                            selectedPlantForDetail = userPlant // Preparamos la planta para mostrar sus detalles
-                            navigateTo(AppScreen.PlantDetail)  // Vamos directo al detalle
+                            selectedPlantForDetail = userPlant
+                            navigateTo(AppScreen.PlantDetail)
                         } else {
-                            navigateTo(AppScreen.MyPlant)      // Si no tiene planta, vamos a la pantalla de selección/unión
+                            navigateTo(AppScreen.MyPlant)
                         }
-                        refreshUserPlant() // Mantenemos la actualización de datos en segundo plano
+                        refreshUserPlant()
                     },
                     onOpenSettings = { navigateTo(AppScreen.Settings) },
                     onSignOut = onSignOut,
@@ -574,6 +556,8 @@ fun TurnoshospiApp(
                     onSaveNotification = onSaveNotification
                 )
                 AppScreen.Settings -> SettingsScreen(
+                    currentColors = shiftColors,
+                    onColorsChanged = { newColors -> shiftColors = newColors },
                     onBack = { navigateBack() },
                     onDeleteAccount = onDeleteAccount
                 )
@@ -606,9 +590,10 @@ fun TurnoshospiApp(
                 )
 
                 AppScreen.ShiftChange -> ShiftChangeScreen(
-                    plantId = selectedPlantForDetail?.id ?: userPlant?.id ?: "", // Asegurar ID
+                    plantId = selectedPlantForDetail?.id ?: userPlant?.id ?: "",
                     currentUser = existingProfile,
                     currentUserId = user?.uid ?: "",
+                    shiftColors = shiftColors,
                     onBack = { navigateBack() },
                     onSaveNotification = onSaveNotification
                 )
@@ -618,6 +603,7 @@ fun TurnoshospiApp(
                     currentUserId = user?.uid ?: "",
                     currentUserName = "${existingProfile?.firstName} ${existingProfile?.lastName}".trim(),
                     currentUserRole = existingProfile?.role ?: "",
+                    shiftColors = shiftColors,
                     onBack = { navigateBack() },
                     onSaveNotification = onSaveNotification
                 )
@@ -662,18 +648,13 @@ fun TurnoshospiApp(
                         user?.uid?.let { uid -> onClearAllNotifications(uid) }
                     },
                     onNavigateToScreen = { screen, plantId, arg ->
-                        // Navegación interna desde la lista de notificaciones
                         if (screen == "ShiftChangeScreen" && plantId != null) {
-                            // Cargar contexto de planta si es necesario
                             if (selectedPlantForDetail == null || selectedPlantForDetail?.id != plantId) {
                                 if (userPlant?.id == plantId) selectedPlantForDetail = userPlant
                             }
                             navigateTo(AppScreen.ShiftChange)
                         } else if (screen == "DirectChat" && arg != null) {
-                            // arg podría ser "otherId|otherName" o solo ID. Asumimos ID.
-                            // Para ser robustos, necesitaríamos más info, pero intentamos:
                             selectedDirectChatUserId = arg
-                            // selectedDirectChatUserName = ??? (Se cargará en la pantalla o se muestra 'Usuario')
                             navigateTo(AppScreen.DirectChat)
                         }
                     }
@@ -774,10 +755,14 @@ fun ProfileLoadingScreen(message: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
+    currentColors: ShiftColors = ShiftColors(),
+    onColorsChanged: (ShiftColors) -> Unit = {},
     onBack: () -> Unit,
     onDeleteAccount: () -> Unit
 ) {
     var showConfirmDialog by remember { mutableStateOf(false) }
+    var showColorPickerDialog by remember { mutableStateOf(false) }
+    var colorPickerTarget by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         topBar = {
@@ -785,16 +770,10 @@ fun SettingsScreen(
                 title = { Text("Configuración", color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver",
-                            tint = Color.White
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver", tint = Color.White)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },
         containerColor = Color.Transparent
@@ -803,11 +782,43 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp),
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0x22FFFFFF)),
+                border = BorderStroke(1.dp, Color(0x33FFFFFF))
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text("Personalizar Colores de Turnos", style = MaterialTheme.typography.titleMedium, color = Color.White)
+                    HorizontalDivider(color = Color.White.copy(0.1f))
+
+                    ColorSettingRow("Turno Mañana", currentColors.morning) { colorPickerTarget = "morning"; showColorPickerDialog = true }
+                    ColorSettingRow("Media Mañana", currentColors.morningHalf) { colorPickerTarget = "morningHalf"; showColorPickerDialog = true }
+                    ColorSettingRow("Turno Tarde", currentColors.afternoon) { colorPickerTarget = "afternoon"; showColorPickerDialog = true }
+                    ColorSettingRow("Media Tarde", currentColors.afternoonHalf) { colorPickerTarget = "afternoonHalf"; showColorPickerDialog = true }
+                    ColorSettingRow("Turno Noche", currentColors.night) { colorPickerTarget = "night"; showColorPickerDialog = true }
+                    ColorSettingRow("Saliente", currentColors.saliente) { colorPickerTarget = "saliente"; showColorPickerDialog = true }
+                    ColorSettingRow("Libre", currentColors.free) { colorPickerTarget = "free"; showColorPickerDialog = true }
+                    ColorSettingRow("Vacaciones", currentColors.holiday) { colorPickerTarget = "holiday"; showColorPickerDialog = true }
+
+                    TextButton(
+                        onClick = { onColorsChanged(ShiftColors()) },
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Text("Restaurar colores por defecto", color = Color(0xFF54C7EC))
+                    }
+                }
+            }
+
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -844,6 +855,27 @@ fun SettingsScreen(
         }
     }
 
+    if (showColorPickerDialog && colorPickerTarget != null) {
+        SimpleColorPickerDialog(
+            onDismiss = { showColorPickerDialog = false },
+            onColorSelected = { selectedColor ->
+                val newColors = when (colorPickerTarget) {
+                    "morning" -> currentColors.copy(morning = selectedColor)
+                    "morningHalf" -> currentColors.copy(morningHalf = selectedColor)
+                    "afternoon" -> currentColors.copy(afternoon = selectedColor)
+                    "afternoonHalf" -> currentColors.copy(afternoonHalf = selectedColor)
+                    "night" -> currentColors.copy(night = selectedColor)
+                    "saliente" -> currentColors.copy(saliente = selectedColor)
+                    "free" -> currentColors.copy(free = selectedColor)
+                    "holiday" -> currentColors.copy(holiday = selectedColor)
+                    else -> currentColors
+                }
+                onColorsChanged(newColors)
+                showColorPickerDialog = false
+            }
+        )
+    }
+
     if (showConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showConfirmDialog = false },
@@ -866,6 +898,66 @@ fun SettingsScreen(
             }
         )
     }
+}
+
+@Composable
+fun ColorSettingRow(label: String, color: Color, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(text = label, color = Color.White)
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .background(color, CircleShape)
+                .border(1.dp, Color.White.copy(0.5f), CircleShape)
+        )
+    }
+}
+
+@Composable
+fun SimpleColorPickerDialog(onDismiss: () -> Unit, onColorSelected: (Color) -> Unit) {
+    val palette = listOf(
+        Color(0xFF4CAF50), Color(0xFF8BC34A), Color(0xFFCDDC39),
+        Color(0xFFFFA500), Color(0xFFFF9800), Color(0xFFFF5722),
+        Color(0xFFF44336), Color(0xFFE91E63), Color(0xFF9C27B0),
+        Color(0xFF673AB7), Color(0xFF3F51B5), Color(0xFF2196F3),
+        Color(0xFF03A9F4), Color(0xFF00BCD4), Color(0xFF009688),
+        Color(0xFF1A237E), Color(0xFF333333), Color(0xFF607D8B)
+    )
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Elige un color") },
+        text = {
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(palette.chunked(3)) { columnColors ->
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        columnColors.forEach { color ->
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .background(color, CircleShape)
+                                    .clickable { onColorSelected(color) }
+                                    .border(1.dp, Color.Gray, CircleShape)
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text("Cancelar") }
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -968,7 +1060,6 @@ fun PlantSettingsScreen(
     }
 }
 
-// Helper para títulos de notificación
 fun getTitleForType(type: String): String {
     return when(type) {
         "SHIFT_PROPOSAL" -> "Propuesta de Cambio"

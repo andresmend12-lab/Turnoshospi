@@ -66,3 +66,15 @@ private fun PaletteSwatch(label: String, color: Color) {
         )
     }
 }
+
+// Modelo de datos para los colores personalizables
+data class ShiftColors(
+    val morning: Color = Color(0xFFFFA500),      // Naranja
+    val morningHalf: Color = Color(0xFFFFCC80),  // Naranja claro
+    val afternoon: Color = Color(0xFF2196F3),    // Azul
+    val afternoonHalf: Color = Color(0xFF40E0D0),// Turquesa
+    val night: Color = Color(0xFF9C27B0),        // Violeta
+    val saliente: Color = Color(0xFF1A237E),     // Azul oscuro
+    val free: Color = Color(0xFF4CAF50),         // Verde
+    val holiday: Color = Color(0xFFE91E63)       // Rosa
+)

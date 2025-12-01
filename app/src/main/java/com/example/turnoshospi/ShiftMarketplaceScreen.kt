@@ -28,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.turnoshospi.ui.theme.ShiftColors
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -42,6 +43,7 @@ fun ShiftMarketplaceScreen(
     currentUserId: String,
     currentUserName: String,
     currentUserRole: String,
+    shiftColors: ShiftColors, // <--- NUEVO PARÁMETRO
     onBack: () -> Unit,
     onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit
 ) {
@@ -75,7 +77,6 @@ fun ShiftMarketplaceScreen(
 
     // Función para cargar el horario del solicitante
     fun fetchWeeklySchedule(userId: String, date: LocalDate) {
-        // Cargamos 15 días (7 antes y 7 después) para igualar la lógica de la preview general
         val pivotStart = date.minusDays(7)
         val pivotEnd = date.plusDays(7)
 
@@ -140,7 +141,6 @@ fun ShiftMarketplaceScreen(
             })
 
         // 2. Cargar TU Horario
-        // CAMBIO: Cargar desde AYER para calcular Salientes correctamente en la validación
         val today = LocalDate.now()
         val startDate = today.minusDays(1)
         val startKey = "turnos-$startDate"
@@ -148,7 +148,7 @@ fun ShiftMarketplaceScreen(
         database.getReference("plants/$plantId/turnos")
             .orderByKey()
             .startAt(startKey)
-            .limitToFirst(62) // 60 días + 2 de margen
+            .limitToFirst(62)
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     myShiftsMap.clear()
@@ -362,24 +362,19 @@ fun ShiftMarketplaceScreen(
         val req = previewRequest!!
         val pivotDate = LocalDate.parse(req.requesterShiftDate)
 
-        // Usamos el diálogo compartido (definido en ShiftChangeScreen.kt)
-        // Mapeamos los parámetros a la nueva firma genérica row1 / row2
         SchedulePreviewDialog(
             onDismiss = { showPreviewDialog = false },
-
-            // FILA 1: YO (Coverer)
             row1Schedule = myShiftsMap,
             row1Name = "Yo",
-            row1DateToRemove = null, // En marketplace solo cubro, no pierdo turno
-            row1DateToAdd = pivotDate, // Gano el turno
+            row1DateToRemove = null,
+            row1DateToAdd = pivotDate,
             row1ShiftToAdd = req.requesterShiftName,
-
-            // FILA 2: ÉL (Requester)
             row2Schedule = requesterScheduleForPreview,
             row2Name = req.requesterName,
-            row2DateToRemove = pivotDate, // Él pierde el turno
+            row2DateToRemove = pivotDate,
             row2DateToAdd = null,
-            row2ShiftToAdd = null
+            row2ShiftToAdd = null,
+            shiftColors = shiftColors // <--- PASAMOS LOS COLORES AQUÍ
         )
     }
 }
