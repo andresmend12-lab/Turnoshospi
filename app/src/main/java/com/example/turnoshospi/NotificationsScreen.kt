@@ -31,7 +31,7 @@ data class AppNotification(
     val read: Boolean = false,
     val screen: String? = null,   // Pantalla destino (ej: "ShiftChangeScreen")
     val plantId: String? = null,  // ID de la planta para el contexto
-    val argument: String? = null  // Argumento extra (ej: requestId)
+    val argument: String? = null  // Argumento extra (ej: requestId, otherUserId)
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -89,7 +89,7 @@ fun NotificationsScreen(
                                     onMarkAsRead(notif.id)
                                 }
                                 // Navegar
-                                if (notif.screen != null && notif.plantId != null) {
+                                if (notif.screen != null) {
                                     onNavigateToScreen(notif.screen, notif.plantId, notif.argument)
                                 }
                             },

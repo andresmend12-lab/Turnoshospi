@@ -41,9 +41,9 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val body = remoteMessage.notification?.body ?: data["body"] ?: "Tienes un nuevo mensaje"
 
         // Datos de navegación
-        val screenDest = data["screen"] // Debe ser "DirectChat"
+        val screenDest = data["screen"] // Debe ser "DirectChat", "ShiftChangeScreen", etc.
         val plantId = data["plantId"]
-        val argument = data["argument"] // ID del otro usuario (para chat)
+        val argument = data["argument"] // ID del otro usuario, requestId, etc.
 
         sendNotification(title, body, screenDest, plantId, argument)
     }

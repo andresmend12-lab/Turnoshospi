@@ -618,7 +618,7 @@ fun TurnoshospiApp(
                         currentPlant?.personal_de_planta?.map { (_, staff) ->
                             PlantMembership(
                                 plantId = currentPlant.id,
-                                userId = staff.id.orEmpty(), // CORREGIDO: Usamos staff.id como valor placeholder para userId, ya que la propiedad original 'userId' no existe.
+                                userId = staff.id.orEmpty(), // Usamos staff.id como userId, asumiendo que es un identificador único en ausencia de la propiedad 'userId'
                                 staffId = staff.id,
                                 staffName = staff.name,
                                 staffRole = staff.role
@@ -1083,6 +1083,11 @@ fun PlantSettingsScreen(
 
 fun getTitleForType(type: String): String {
     return when(type) {
+        "DIRECT_CHAT_MESSAGE" -> "Mensaje Directo" // NUEVO: Chat directo
+        "GROUP_CHAT_MESSAGE" -> "Mensaje de Grupo" // NUEVO: Chat de grupo
+        "SHIFT_ASSIGNMENT" -> "Actualización de Turno" // NUEVO: Modificación de turnos (Asignación/Desasignación)
+        "MARKETPLACE_ADD" -> "Nueva Oferta de Cambio" // NUEVO: Añadir cambio a bolsa
+        "SHIFT_RESPONSE" -> "Respuesta a Propuesta" // NUEVO: Acepta/Rechaza compañero
         "SHIFT_PROPOSAL" -> "Propuesta de Cambio"
         "SHIFT_UPDATE" -> "Actualización de Turno"
         "SHIFT_APPROVED" -> "¡Cambio Aprobado!"
