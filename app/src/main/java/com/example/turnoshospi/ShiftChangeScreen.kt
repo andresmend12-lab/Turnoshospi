@@ -1364,6 +1364,7 @@ fun ScheduleRow(
         )
 
         days.forEach { date ->
+            // 1. Calcular estado FINAL (Simulado)
             var finalShift = schedule[date] ?: ""
             var isChanged = false
 
@@ -1376,6 +1377,7 @@ fun ScheduleRow(
                 isChanged = true
             }
 
+            // Calcular turno anterior SIMULADO para determinar si es Saliente
             val prevDate = date.minusDays(1)
             var prevShift = schedule[prevDate] ?: ""
             if (prevDate == dateToRemove) prevShift = ""
@@ -1383,8 +1385,19 @@ fun ScheduleRow(
 
             val isSaliente = prevShift.contains("Noche", true) && finalShift.isBlank()
 
+            // 2. Calcular estado ORIGINAL (para comparar y saber si resaltar)
+            val originalCurrentShift = schedule[date] ?: ""
+            val originalPrevShift = schedule[prevDate] ?: ""
+            val originalIsSaliente = originalPrevShift.contains("Noche", true) && originalCurrentShift.isBlank()
+
+            // 3. Determinar Highlight
+            // Resaltamos si cambió el turno directo O si cambió el estado de saliente
+            val isSalienteChanged = isSaliente != originalIsSaliente
+            val shouldHighlight = isChanged || isSalienteChanged
+
             val baseColor = getShiftColorExact(finalShift, isSaliente)
-            val cellColor = if (isChanged) baseColor else Color.Transparent
+            // Usamos shouldHighlight para el fondo en lugar de solo isChanged
+            val cellColor = if (shouldHighlight) baseColor else Color.Transparent
 
             // LÓGICA MT/MM
             val lowerShift = finalShift.lowercase()
@@ -1396,14 +1409,18 @@ fun ScheduleRow(
                 else -> "L"
             }
 
-            // AJUSTE: Celdas de 38dp y fuente de 16sp (más legible pero no gigante)
+            // AJUSTE: Celdas de 38dp y fuente de 16sp
             Box(
                 modifier = Modifier
                     .width(cellWidth)
                     .height(cellWidth)
                     .padding(2.dp)
                     .background(cellColor, RoundedCornerShape(6.dp))
-                    .border(if (isChanged) 1.5.dp else 0.dp, if (isChanged) Color.White else Color.Transparent, RoundedCornerShape(6.dp)),
+                    .border(
+                        if (shouldHighlight) 1.5.dp else 0.dp,
+                        if (shouldHighlight) Color.White else Color.Transparent,
+                        RoundedCornerShape(6.dp)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(text = displayText, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
