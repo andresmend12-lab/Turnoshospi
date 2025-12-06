@@ -176,7 +176,7 @@ fun PlantDetailScreen(
         stringResource(id = R.string.role_nurse_female)
     )
     val normalizedNurseRoles = remember(nurseRoles) { nurseRoles.map { it.normalizedRole() } }
-    val auxRole = stringResource(id = R.string.role_aux_generic)
+    val auxRole = stringResource(id = R.string.role_aux_generic) // Esto ahora es "TCAE"
     val auxRoles = listOf(
         auxRole,
         stringResource(id = R.string.role_aux_male),
@@ -198,6 +198,7 @@ fun PlantDetailScreen(
     val nurseStaff = remember(plantStaff, normalizedNurseRoles) {
         plantStaff.filter { member -> member.isNurseRole(normalizedNurseRoles) }
     }
+    // Incluimos tanto los que tengan rol TCAE como los antiguos "Auxiliar"
     val auxStaff = remember(plantStaff, normalizedAuxRoles) {
         plantStaff.filter { member -> member.isAuxRole(normalizedAuxRoles) }
     }
@@ -1081,9 +1082,11 @@ private fun processCsvImport(
             }
 
             val isNurse = role.contains("Enfermero", ignoreCase = true)
-            val isAux = role.contains("Auxiliar", ignoreCase = true)
+            // CAMBIO AQUÍ: Soportar "TCAE" o "Auxiliar"
+            val isAux = role.contains("Auxiliar", ignoreCase = true) || role.contains("TCAE", ignoreCase = true)
+
             if (!isNurse && !isAux) {
-                onResult(false, "Error en fila $rowNum: Rol '$role' desconocido. Usa 'Enfermero' o 'Auxiliar'.")
+                onResult(false, "Error en fila $rowNum: Rol '$role' desconocido. Usa 'Enfermero', 'Auxiliar' o 'TCAE'.")
                 return
             }
 
@@ -1252,7 +1255,14 @@ private fun StaffListDialog(
     if (memberInEdition != null) {
         val member = memberInEdition!!
         var editName by remember { mutableStateOf(member.name) }
-        var editRole by remember { mutableStateOf(member.role) }
+
+        // CORRECCIÓN: Si el rol guardado es "Auxiliar", lo tratamos como "TCAE" para el selector
+        var editRole by remember {
+            mutableStateOf(
+                if (member.role.contains("Auxiliar", ignoreCase = true)) "TCAE"
+                else member.role
+            )
+        }
         var isSaving by remember { mutableStateOf(false) }
         var editError by remember { mutableStateOf<String?>(null) }
 
@@ -1283,7 +1293,10 @@ private fun StaffListDialog(
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(member.name, style = MaterialTheme.typography.bodyLarge, color = Color.White)
-                                Text(member.role, style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.7f))
+
+                                // CORRECCIÓN: Visualización en lista. Si dice "Auxiliar", mostramos "TCAE"
+                                val displayRole = if (member.role.contains("Auxiliar", ignoreCase = true)) "TCAE" else member.role
+                                Text(displayRole, style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.7f))
                             }
                             if (isSupervisor) IconButton(onClick = { memberInEdition = member }) { Icon(Icons.Default.Edit, null, tint = Color(0xFF54C7EC)) }
                         }

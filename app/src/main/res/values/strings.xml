@@ -6,10 +6,10 @@
     <string name="role_supervisor_female">Supervisora</string>
     <string name="role_nurse_male">Enfermero</string>
     <string name="role_nurse_female">Enfermera</string>
-    <string name="role_aux_male">Auxiliar</string>
-    <string name="role_aux_female">Auxiliar</string>
+    <string name="role_aux_male">TCAE</string>
+    <string name="role_aux_female">TCAE</string>
     <string name="role_nurse_generic">Enfermera/o</string>
-    <string name="role_aux_generic">Auxiliar</string>
+    <string name="role_aux_generic">TCAE</string>
     <string name="gender_male">Hombre</string>
     <string name="gender_female">Mujer</string>
     <string name="login_button">Iniciar sesión</string>
@@ -58,7 +58,7 @@
     <string name="plant_staff_title">Personal de la planta</string>
     <string name="staff_scope_question">Personal administrador</string>
     <string name="staff_scope_nurses_only">Solo enfermeros</string>
-    <string name="staff_scope_with_aux">Enfermeros y auxiliares de enfermería</string>
+    <string name="staff_scope_with_aux">Enfermeros y TCAE de enfermería</string>
     <string name="staff_requirements_title">Requerimiento mínimo de personal</string>
     <string name="staff_minimum_label">Número mínimo de personal por turno</string>
     <string name="create_plant_action">Crear planta</string>
@@ -97,8 +97,8 @@
     <string name="plant_shifts_for_date">Turnos para %1$s</string>
     <string name="nurse_label">Enfermera/o %1$d</string>
     <string name="nurse_half_day_label">Enfermero/a media jornada</string>
-    <string name="aux_label">Auxiliar %1$d</string>
-    <string name="aux_half_day_label">Auxiliar media jornada</string>
+    <string name="aux_label">TCAE %1$d</string>
+    <string name="aux_half_day_label">TCAE media jornada</string>
     <string name="staff_unassigned_option">Sin asignar</string>
     <string name="half_day_readonly_label">Media jornada: %1$s</string>
     <string name="save_assignments_action">Guardar organización</string>

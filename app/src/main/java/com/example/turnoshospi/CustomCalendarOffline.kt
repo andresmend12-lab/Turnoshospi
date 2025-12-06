@@ -151,6 +151,14 @@ fun CustomCalendarOffline(
         }
 
         // ---------------------------------------------------------
+        // 1.5 LEYENDA DE COLORES (ACTUALIZADO CON MEDIAS JORNADAS)
+        // ---------------------------------------------------------
+        if (!isAssignmentMode) {
+            ShiftLegend(shiftColors = shiftColors)
+            Spacer(modifier = Modifier.height(4.dp))
+        }
+
+        // ---------------------------------------------------------
         // 2. PANEL INFERIOR (CONTROLES Y NOTAS)
         // ---------------------------------------------------------
         Card(
@@ -524,4 +532,60 @@ private fun getOfflineDayColor(date: LocalDate, shifts: Map<String, UserShift>, 
     }
 
     return colors.free
+}
+
+// -------------------------------------------------------------------------
+// COMPONENTES DE LEYENDA (NUEVOS & ACTUALIZADOS)
+// -------------------------------------------------------------------------
+
+@Composable
+fun ShiftLegend(shiftColors: ShiftColors) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Fila 1: Turnos principales completos
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            LegendItem(shiftColors.morning, "Mañana")
+            LegendItem(shiftColors.afternoon, "Tarde")
+            LegendItem(shiftColors.night, "Noche")
+            LegendItem(shiftColors.saliente, "Saliente")
+        }
+
+        Spacer(modifier = Modifier.height(8.dp)) // Espacio entre filas
+
+        // Fila 2: Medias jornadas y Vacaciones
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            LegendItem(shiftColors.morningHalf, "M. Mañana")
+            LegendItem(shiftColors.afternoonHalf, "M. Tarde")
+            LegendItem(shiftColors.holiday, "Vacaciones")
+        }
+    }
+}
+
+@Composable
+fun LegendItem(color: Color, text: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier = Modifier
+                .size(10.dp)
+                .background(color = color, shape = CircleShape)
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.White
+        )
+    }
 }
