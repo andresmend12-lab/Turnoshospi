@@ -48,7 +48,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.splashscreen)
     implementation("com.google.firebase:firebase-messaging")
-
+    implementation("com.google.code.gson:gson:2.10.1")
     implementation(libs.google.material)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
