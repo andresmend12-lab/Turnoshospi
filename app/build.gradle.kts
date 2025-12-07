@@ -12,7 +12,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.turnoshospi"
+        applicationId = "com.andresmendoza.turnoshospi"
         minSdk = 26
         targetSdk = 36
         versionCode = 1

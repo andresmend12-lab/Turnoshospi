@@ -17,6 +17,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -65,16 +67,25 @@ fun CustomCalendar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { currentMonth = currentMonth.minusMonths(1) }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Mes anterior", tint = Color.White)
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.previous_month_desc),
+                    tint = Color.White
+                )
             }
+            // Usamos el Locale por defecto para que el mes salga en el idioma del usuario
             Text(
-                text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es-ES")).uppercase()} ${currentMonth.year}",
+                text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault()).uppercase()} ${currentMonth.year}",
                 color = Color.White,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
             IconButton(onClick = { currentMonth = currentMonth.plusMonths(1) }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Mes siguiente", tint = Color.White)
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = stringResource(R.string.next_month_desc),
+                    tint = Color.White
+                )
             }
         }
 
@@ -82,7 +93,9 @@ fun CustomCalendar(
 
         // Días de la semana
         Row(modifier = Modifier.fillMaxWidth()) {
-            val daysOfWeek = listOf("L", "M", "X", "J", "V", "S", "D")
+            // Obtenemos los días desde strings.xml (array)
+            val daysOfWeek = stringArrayResource(R.array.days_of_week_short).toList()
+
             daysOfWeek.forEach { day ->
                 Text(
                     text = day,
@@ -178,18 +191,19 @@ private fun CalendarLegend(shiftColors: ShiftColors) {
         verticalArrangement = Arrangement.spacedBy(8.dp),
         maxItemsInEachRow = 4
     ) {
+        // Usamos Pair en lugar de Triple para evitar problemas de tipos con null
         val legendItems = listOf(
-            Triple(shiftColors.free, "Libre", null),
-            Triple(shiftColors.morning, "Mañana", null),
-            Triple(shiftColors.morningHalf, "M. Mañana", null),
-            Triple(shiftColors.afternoon, "Tarde", null),
-            Triple(shiftColors.afternoonHalf, "M. Tarde", null),
-            Triple(shiftColors.night, "Noche", null),
-            Triple(shiftColors.saliente, "Saliente", null),
-            Triple(shiftColors.holiday, "Vacaciones", null)
+            Pair(shiftColors.free, stringResource(R.string.legend_free)),
+            Pair(shiftColors.morning, stringResource(R.string.legend_morning)),
+            Pair(shiftColors.morningHalf, stringResource(R.string.legend_morning_half)),
+            Pair(shiftColors.afternoon, stringResource(R.string.legend_afternoon)),
+            Pair(shiftColors.afternoonHalf, stringResource(R.string.legend_afternoon_half)),
+            Pair(shiftColors.night, stringResource(R.string.legend_night)),
+            Pair(shiftColors.saliente, stringResource(R.string.legend_exit_night)),
+            Pair(shiftColors.holiday, stringResource(R.string.legend_holiday))
         )
 
-        legendItems.forEach { (color, text, _) ->
+        legendItems.forEach { (color, text) ->
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(horizontal = 6.dp)
@@ -218,7 +232,8 @@ private fun DayDetailsSection(
     HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
     Spacer(modifier = Modifier.height(16.dp))
 
-    val formatter = DateTimeFormatter.ofPattern("d 'de' MMMM", Locale.forLanguageTag("es-ES"))
+    // Formato de fecha localizado
+    val formatter = DateTimeFormatter.ofPattern("MMMM d", Locale.getDefault())
     val dateStr = date.format(formatter)
 
     Column(
@@ -227,7 +242,7 @@ private fun DayDetailsSection(
     ) {
         if (isSupervisor) {
             Text(
-                text = "Agenda del día: $dateStr",
+                text = stringResource(R.string.agenda_title, dateStr),
                 style = MaterialTheme.typography.titleMedium,
                 color = Color.White,
                 fontWeight = FontWeight.Bold
@@ -237,7 +252,11 @@ private fun DayDetailsSection(
             if (isLoadingRoster) {
                 CircularProgressIndicator(modifier = Modifier.size(32.dp), color = Color(0xFF54C7EC))
             } else if (roster.isEmpty()) {
-                Text(text = "No hay turnos asignados.", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                Text(
+                    text = stringResource(R.string.no_shifts_assigned),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
             } else {
                 roster.forEach { (shiftName, data) ->
                     Column(
@@ -249,17 +268,28 @@ private fun DayDetailsSection(
                     ) {
                         Text(text = shiftName, style = MaterialTheme.typography.titleSmall, color = Color(0xFF54C7EC), fontWeight = FontWeight.Bold)
                         if (data.nurses.isNotEmpty()) {
-                            Text("Enfermeros: ${data.nurses.joinToString(", ")}", color = Color.White, style = MaterialTheme.typography.bodySmall)
+                            Text(
+                                text = stringResource(R.string.nurses_list_prefix, data.nurses.joinToString(", ")),
+                                color = Color.White,
+                                style = MaterialTheme.typography.bodySmall
+                            )
                         }
                         if (data.auxiliaries.isNotEmpty()) {
-                            Text("Auxiliares: ${data.auxiliaries.joinToString(", ")}", color = Color.White, style = MaterialTheme.typography.bodySmall)
+                            Text(
+                                text = stringResource(R.string.auxiliaries_list_prefix, data.auxiliaries.joinToString(", ")),
+                                color = Color.White,
+                                style = MaterialTheme.typography.bodySmall
+                            )
                         }
                     }
                 }
             }
         } else {
+            // Calculamos el nombre del turno fuera del Text para evitar errores de sintaxis
+            val shiftName = selectedShift?.shiftName ?: stringResource(R.string.legend_free)
+
             Text(
-                text = "Turno: ${selectedShift?.shiftName ?: "Libre"}",
+                text = stringResource(R.string.shift_detail_title, shiftName),
                 style = MaterialTheme.typography.titleMedium,
                 color = Color.White,
                 fontWeight = FontWeight.Bold
@@ -270,7 +300,12 @@ private fun DayDetailsSection(
             if (isLoadingColleagues) {
                 CircularProgressIndicator(modifier = Modifier.size(32.dp), color = Color(0xFF54C7EC))
             } else if (colleagues.isNotEmpty()) {
-                Text("Compañeros:", style = MaterialTheme.typography.labelMedium, color = Color.Gray, modifier = Modifier.align(Alignment.Start))
+                Text(
+                    text = stringResource(R.string.colleagues_header),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color.Gray,
+                    modifier = Modifier.align(Alignment.Start)
+                )
                 colleagues.forEach { colleague ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -289,7 +324,7 @@ private fun DayDetailsSection(
                     }
                 }
             } else if (plantId != null && selectedShift != null) {
-                Text("No se encontraron compañeros.", color = Color.Gray)
+                Text(text = stringResource(R.string.no_colleagues_found), color = Color.Gray)
             }
         }
     }

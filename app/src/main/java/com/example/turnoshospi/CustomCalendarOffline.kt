@@ -25,13 +25,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.turnoshospi.R // Asegúrate de importar tu R
 import com.example.turnoshospi.ui.theme.ShiftColors
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -88,9 +89,25 @@ fun CustomCalendarOffline(
 
     var selectedDate by remember { mutableStateOf<LocalDate?>(LocalDate.now()) }
     var isAssignmentMode by remember { mutableStateOf(false) }
-    var selectedShiftToApply by remember { mutableStateOf("Mañana") }
 
-    val shiftTypes = listOf("Mañana", "Tarde", "Noche", "Saliente", "M. Mañana", "M. Tarde", "Vacaciones", "Libre")
+    // Referencias a los strings para usar en lógica
+    val strMorning = stringResource(R.string.shift_morning)
+    val strFree = stringResource(R.string.shift_free)
+
+    var selectedShiftToApply by remember { mutableStateOf(strMorning) }
+
+    // LISTA DE TIPOS VINCULADA A RECURSOS
+    // Usamos pares para tener fácil acceso en el bucle: (NombreDisplay)
+    val shiftTypes = listOf(
+        stringResource(R.string.shift_morning),
+        stringResource(R.string.shift_afternoon),
+        stringResource(R.string.shift_night),
+        stringResource(R.string.shift_saliente),
+        stringResource(R.string.shift_morning_half),
+        stringResource(R.string.shift_afternoon_half),
+        stringResource(R.string.shift_holiday),
+        stringResource(R.string.shift_free)
+    )
 
     // Estados para notas
     var isAddingNote by remember { mutableStateOf(false) }
@@ -109,7 +126,7 @@ fun CustomCalendarOffline(
         modifier = Modifier.fillMaxSize()
     ) {
         // ---------------------------------------------------------
-        // 1. ZONA DE CALENDARIO + BOTÓN FLOTANTE
+        // CALENDARIO
         // ---------------------------------------------------------
         Box(modifier = Modifier.weight(1f)) {
             InternalOfflineCalendar(
@@ -121,12 +138,15 @@ fun CustomCalendarOffline(
                     if (isAssignmentMode) {
                         // MODO PINTAR
                         val dateKey = date.toString()
-                        if (selectedShiftToApply == "Libre") {
+                        if (selectedShiftToApply == strFree) {
                             localShifts = localShifts - dateKey
                         } else {
-                            val isHalf = selectedShiftToApply.contains("M.", ignoreCase = true)
-                            val cleanName = if(isHalf) selectedShiftToApply.replace("M.", "Media") else selectedShiftToApply
-                            localShifts = localShifts + (dateKey to UserShift(cleanName, isHalf))
+                            // Detectar si es media jornada basado en el string
+                            // Nota: Esto depende del string localizado. Lo ideal a futuro es usar IDs/Enums.
+                            val isHalf = selectedShiftToApply.contains("M.", ignoreCase = true) ||
+                                    selectedShiftToApply.contains("Half", ignoreCase = true)
+
+                            localShifts = localShifts + (dateKey to UserShift(selectedShiftToApply, isHalf))
                         }
                     } else {
                         // MODO SELECCIÓN
@@ -135,7 +155,6 @@ fun CustomCalendarOffline(
                 }
             )
 
-            // Botón Flotante para activar modo edición
             if (!isAssignmentMode) {
                 FloatingActionButton(
                     onClick = { isAssignmentMode = true },
@@ -145,21 +164,18 @@ fun CustomCalendarOffline(
                     containerColor = Color(0xFF54C7EC),
                     contentColor = Color.Black
                 ) {
-                    Icon(Icons.Default.Edit, contentDescription = "Editar Turnos")
+                    Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.edit_shifts))
                 }
             }
         }
 
-        // ---------------------------------------------------------
-        // 1.5 LEYENDA DE COLORES (ACTUALIZADO CON MEDIAS JORNADAS)
-        // ---------------------------------------------------------
         if (!isAssignmentMode) {
             ShiftLegend(shiftColors = shiftColors)
             Spacer(modifier = Modifier.height(4.dp))
         }
 
         // ---------------------------------------------------------
-        // 2. PANEL INFERIOR (CONTROLES Y NOTAS)
+        // PANEL INFERIOR
         // ---------------------------------------------------------
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -172,7 +188,7 @@ fun CustomCalendarOffline(
                 if (isAssignmentMode) {
                     // --- MODO ASIGNACIÓN ---
                     Text(
-                        text = "Modo Asignación",
+                        text = stringResource(R.string.mode_assignment),
                         color = Color(0xFF54C7EC),
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(bottom = 12.dp)
@@ -182,12 +198,12 @@ fun CustomCalendarOffline(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.padding(bottom = 16.dp)
                     ) {
-                        items(shiftTypes) { type ->
-                            val isSelected = selectedShiftToApply == type
+                        items(shiftTypes) { typeName ->
+                            val isSelected = selectedShiftToApply == typeName
                             FilterChip(
                                 selected = isSelected,
-                                onClick = { selectedShiftToApply = type },
-                                label = { Text(type) },
+                                onClick = { selectedShiftToApply = typeName },
+                                label = { Text(typeName) },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = Color(0xFF54C7EC),
                                     containerColor = Color(0xFF334155),
@@ -211,14 +227,15 @@ fun CustomCalendarOffline(
                     ) {
                         Icon(Icons.Default.Check, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
-                        Text("Guardar y Salir")
+                        Text(stringResource(R.string.save_and_exit))
                     }
 
                 } else {
                     // --- MODO VISUALIZACIÓN / NOTAS ---
 
-                    // Cabecera: Fecha y Turno
-                    val dateText = selectedDate?.format(DateTimeFormatter.ofPattern("d MMMM", Locale("es", "ES"))) ?: "Selecciona un día"
+                    // Formato de fecha localizado
+                    val formatter = DateTimeFormatter.ofPattern("d MMMM", Locale.getDefault())
+                    val dateText = selectedDate?.format(formatter) ?: stringResource(R.string.select_day)
 
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Text(
@@ -229,7 +246,7 @@ fun CustomCalendarOffline(
                         )
                         val currentShift = selectedDate?.let { localShifts[it.toString()] }
                         Text(
-                            text = currentShift?.shiftName ?: "Libre",
+                            text = currentShift?.shiftName ?: stringResource(R.string.shift_free),
                             color = Color.Gray,
                             style = MaterialTheme.typography.bodyMedium
                         )
@@ -247,14 +264,14 @@ fun CustomCalendarOffline(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Anotaciones", color = Color(0xFF54C7EC), style = MaterialTheme.typography.labelLarge)
+                            Text(stringResource(R.string.notes_title), color = Color(0xFF54C7EC), style = MaterialTheme.typography.labelLarge)
 
                             if (!isAddingNote && editingNoteIndex == null) {
                                 IconButton(onClick = {
                                     isAddingNote = true
                                     newNoteText = ""
                                 }) {
-                                    Icon(Icons.Default.Add, contentDescription = "Añadir nota", tint = Color.White)
+                                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_note), tint = Color.White)
                                 }
                             }
                         }
@@ -284,10 +301,10 @@ fun CustomCalendarOffline(
                                                 editingNoteIndex = null
                                             }
                                         }) {
-                                            Icon(Icons.Default.Save, contentDescription = "Guardar", tint = Color(0xFF4CAF50))
+                                            Icon(Icons.Default.Save, contentDescription = stringResource(R.string.save), tint = Color(0xFF4CAF50))
                                         }
                                         IconButton(onClick = { editingNoteIndex = null }) {
-                                            Icon(Icons.Default.Close, contentDescription = "Cancelar", tint = Color.Red)
+                                            Icon(Icons.Default.Close, contentDescription = stringResource(R.string.cancel), tint = Color.Red)
                                         }
                                     }
                                 } else {
@@ -314,7 +331,7 @@ fun CustomCalendarOffline(
                                                 },
                                                 modifier = Modifier.size(28.dp)
                                             ) {
-                                                Icon(Icons.Default.Edit, contentDescription = "Editar", tint = Color(0xFF54C7EC), modifier = Modifier.size(18.dp))
+                                                Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.edit), tint = Color(0xFF54C7EC), modifier = Modifier.size(18.dp))
                                             }
                                             Spacer(modifier = Modifier.width(4.dp))
                                             IconButton(
@@ -325,7 +342,7 @@ fun CustomCalendarOffline(
                                                 },
                                                 modifier = Modifier.size(28.dp)
                                             ) {
-                                                Icon(Icons.Default.Delete, contentDescription = "Borrar", tint = Color(0xFFEF5350), modifier = Modifier.size(18.dp))
+                                                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete), tint = Color(0xFFEF5350), modifier = Modifier.size(18.dp))
                                             }
                                         }
                                     }
@@ -340,7 +357,7 @@ fun CustomCalendarOffline(
                                     value = newNoteText,
                                     onValueChange = { newNoteText = it },
                                     modifier = Modifier.weight(1f),
-                                    placeholder = { Text("Escribe aquí...", color = Color.Gray) },
+                                    placeholder = { Text(stringResource(R.string.write_here), color = Color.Gray) },
                                     colors = OutlinedTextFieldDefaults.colors(
                                         focusedTextColor = Color.White,
                                         unfocusedTextColor = Color.White,
@@ -358,18 +375,18 @@ fun CustomCalendarOffline(
                                         newNoteText = ""
                                     }
                                 }) {
-                                    Icon(Icons.Default.Save, contentDescription = "Guardar", tint = Color(0xFF4CAF50))
+                                    Icon(Icons.Default.Save, contentDescription = stringResource(R.string.save), tint = Color(0xFF4CAF50))
                                 }
                                 IconButton(onClick = {
                                     isAddingNote = false
                                     newNoteText = ""
                                 }) {
-                                    Icon(Icons.Default.Close, contentDescription = "Cancelar", tint = Color.Red)
+                                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.cancel), tint = Color.Red)
                                 }
                             }
                         } else if (currentNotes.isEmpty() && editingNoteIndex == null) {
                             Text(
-                                "No hay notas. Pulsa + para crear una.",
+                                stringResource(R.string.no_notes_hint),
                                 color = Color.Gray,
                                 fontSize = 12.sp,
                                 modifier = Modifier.padding(top = 8.dp)
@@ -383,7 +400,7 @@ fun CustomCalendarOffline(
 }
 
 // -------------------------------------------------------------------------
-// VERSIÓN INTERNA DEL CALENDARIO (LÓGICA PRIVADA)
+// LÓGICA INTERNA DE CALENDARIO (Localizada)
 // -------------------------------------------------------------------------
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -395,6 +412,19 @@ private fun InternalOfflineCalendar(
     onDayClick: (LocalDate) -> Unit
 ) {
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
+
+    // Obtenemos los strings actuales para pasar a la lógica de color
+    val context = LocalContext.current
+    // Creamos un mapa simple para facilitar la lógica de colores
+    val localizedShiftMap = mapOf(
+        "holiday" to stringResource(R.string.shift_holiday),
+        "night" to stringResource(R.string.shift_night),
+        "morning" to stringResource(R.string.shift_morning),
+        "afternoon" to stringResource(R.string.shift_afternoon),
+        "morning_half" to stringResource(R.string.shift_morning_half),
+        "afternoon_half" to stringResource(R.string.shift_afternoon_half),
+        "saliente" to stringResource(R.string.shift_saliente)
+    )
 
     Column(
         modifier = Modifier
@@ -411,22 +441,27 @@ private fun InternalOfflineCalendar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { currentMonth = currentMonth.minusMonths(1) }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Mes anterior", tint = Color.White)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.desc_prev_month), tint = Color.White)
             }
+
+            // NOMBRE DEL MES LOCALIZADO
+            val monthTitle = currentMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
             Text(
-                text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es-ES")).uppercase()} ${currentMonth.year}",
+                text = "$monthTitle ${currentMonth.year}".uppercase(Locale.getDefault()),
                 color = Color.White,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
+
             IconButton(onClick = { currentMonth = currentMonth.plusMonths(1) }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Mes siguiente", tint = Color.White)
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = stringResource(R.string.desc_next_month), tint = Color.White)
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Días de la semana
+        // Días de la semana (Localizados o estáticos L, M, X...)
+        // Para simplificar, mantenemos L, M, X pero se podrían localizar usando DateSymbols
         Row(modifier = Modifier.fillMaxWidth()) {
             val daysOfWeek = listOf("L", "M", "X", "J", "V", "S", "D")
             daysOfWeek.forEach { day ->
@@ -457,7 +492,8 @@ private fun InternalOfflineCalendar(
                             val date = currentMonth.atDay(dayIndex)
                             val dateKey = date.toString()
 
-                            val color = getOfflineDayColor(date, shifts, shiftColors)
+                            // Pasamos el mapa de strings para comparar
+                            val color = getOfflineDayColor(date, shifts, shiftColors, localizedShiftMap)
                             val isSelected = date == selectedDate
                             val hasNotes = !notesMap[dateKey].isNullOrEmpty()
 
@@ -480,8 +516,6 @@ private fun InternalOfflineCalendar(
                                     color = Color.White,
                                     fontWeight = FontWeight.Medium
                                 )
-
-                                // PUNTO ROJO
                                 if (hasNotes) {
                                     Box(
                                         modifier = Modifier
@@ -500,43 +534,46 @@ private fun InternalOfflineCalendar(
                 Spacer(modifier = Modifier.height(4.dp))
             }
         }
-
         Spacer(modifier = Modifier.height(16.dp))
         HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
     }
 }
 
-// Lógica de color privada
-private fun getOfflineDayColor(date: LocalDate, shifts: Map<String, UserShift>, colors: ShiftColors): Color {
+// Lógica de color actualizada para usar los strings locales
+private fun getOfflineDayColor(
+    date: LocalDate,
+    shifts: Map<String, UserShift>,
+    colors: ShiftColors,
+    localizedMap: Map<String, String> // Recibimos los strings reales (ej: "Vacaciones" o "Holidays")
+): Color {
     val dateKey = date.toString()
     val shift = shifts[dateKey]
 
     if (shift != null) {
-        val type = shift.shiftName.lowercase()
+        val type = shift.shiftName.lowercase() // Nombre guardado en minúsculas
+
+        // Comparamos el nombre guardado con los strings localizados en minúsculas
         return when {
-            type.contains("vacaciones") -> colors.holiday
-            type.contains("noche") -> colors.night
-            type.contains("media") && (type.contains("mañana") || type.contains("dia")) -> colors.morningHalf
-            type.contains("mañana") || type.contains("día") -> colors.morning
-            type.contains("media") && type.contains("tarde") -> colors.afternoonHalf
-            type.contains("tarde") -> colors.afternoon
-            type.contains("saliente") -> colors.saliente
-            else -> colors.morning
+            type.contains(localizedMap["holiday"]!!.lowercase()) -> colors.holiday
+            type.contains(localizedMap["night"]!!.lowercase()) -> colors.night
+            type.contains(localizedMap["morning_half"]!!.lowercase()) -> colors.morningHalf
+            type.contains(localizedMap["morning"]!!.lowercase()) -> colors.morning
+            type.contains(localizedMap["afternoon_half"]!!.lowercase()) -> colors.afternoonHalf
+            type.contains(localizedMap["afternoon"]!!.lowercase()) -> colors.afternoon
+            type.contains(localizedMap["saliente"]!!.lowercase()) -> colors.saliente
+            else -> colors.morning // Fallback por defecto
         }
     }
 
+    // Lógica automática de saliente
     val yesterdayKey = date.minusDays(1).toString()
     val yesterdayShift = shifts[yesterdayKey]
-    if (yesterdayShift != null && yesterdayShift.shiftName.lowercase().contains("noche")) {
+    if (yesterdayShift != null && yesterdayShift.shiftName.lowercase().contains(localizedMap["night"]!!.lowercase())) {
         return colors.saliente
     }
 
     return colors.free
 }
-
-// -------------------------------------------------------------------------
-// COMPONENTES DE LEYENDA (NUEVOS & ACTUALIZADOS)
-// -------------------------------------------------------------------------
 
 @Composable
 fun ShiftLegend(shiftColors: ShiftColors) {
@@ -546,29 +583,29 @@ fun ShiftLegend(shiftColors: ShiftColors) {
             .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Fila 1: Turnos principales completos
+        // Fila 1
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            LegendItem(shiftColors.morning, "Mañana")
-            LegendItem(shiftColors.afternoon, "Tarde")
-            LegendItem(shiftColors.night, "Noche")
-            LegendItem(shiftColors.saliente, "Saliente")
+            LegendItem(shiftColors.morning, stringResource(R.string.shift_morning))
+            LegendItem(shiftColors.afternoon, stringResource(R.string.shift_afternoon))
+            LegendItem(shiftColors.night, stringResource(R.string.shift_night))
+            LegendItem(shiftColors.saliente, stringResource(R.string.shift_saliente))
         }
 
-        Spacer(modifier = Modifier.height(8.dp)) // Espacio entre filas
+        Spacer(modifier = Modifier.height(8.dp))
 
-        // Fila 2: Medias jornadas y Vacaciones
+        // Fila 2
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            LegendItem(shiftColors.morningHalf, "M. Mañana")
-            LegendItem(shiftColors.afternoonHalf, "M. Tarde")
-            LegendItem(shiftColors.holiday, "Vacaciones")
+            LegendItem(shiftColors.morningHalf, stringResource(R.string.shift_morning_half))
+            LegendItem(shiftColors.afternoonHalf, stringResource(R.string.shift_afternoon_half))
+            LegendItem(shiftColors.holiday, stringResource(R.string.shift_holiday))
         }
     }
 }

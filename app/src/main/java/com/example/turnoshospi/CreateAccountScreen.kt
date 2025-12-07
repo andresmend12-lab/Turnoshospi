@@ -95,7 +95,7 @@ fun CreateAccountScreen(
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Correo electrónico") },
+                label = { Text(stringResource(R.string.email_label)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 colors = TextFieldDefaults.colors(
@@ -118,8 +118,7 @@ fun CreateAccountScreen(
                     password = it
                     passwordMismatch = false
                 },
-                label = { Text("Contraseña") },
-                visualTransformation = PasswordVisualTransformation(),
+                label = { Text(stringResource(R.string.password_label)) },                visualTransformation = PasswordVisualTransformation(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 colors = TextFieldDefaults.colors(
@@ -163,7 +162,7 @@ fun CreateAccountScreen(
             OutlinedTextField(
                 value = firstName,
                 onValueChange = { firstName = it },
-                label = { Text("Nombre") },
+                label = { Text(stringResource(R.string.first_name_label)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 colors = TextFieldDefaults.colors(
@@ -183,7 +182,7 @@ fun CreateAccountScreen(
             OutlinedTextField(
                 value = lastName,
                 onValueChange = { lastName = it },
-                label = { Text("Apellidos") },
+                label = { Text(stringResource(R.string.last_name_label)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 colors = TextFieldDefaults.colors(
@@ -243,7 +242,7 @@ fun CreateAccountScreen(
                     value = role,
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Puesto") },
+                    label = { Text(stringResource(R.string.role_dropdown_label)) },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                     colors = TextFieldDefaults.colors(
                         focusedIndicatorColor = Color(0x99FFFFFF),
@@ -303,7 +302,7 @@ fun CreateAccountScreen(
 
             if (passwordMismatch) {
                 Text(
-                    text = "Las contraseñas no coinciden",
+                    text = stringResource(R.string.password_mismatch_error),
                     color = Color(0xFFFFD166),
                     style = MaterialTheme.typography.bodySmall
                 )
@@ -359,7 +358,7 @@ fun CreateAccountScreen(
                 onClick = onBack,
                 colors = ButtonDefaults.textButtonColors(contentColor = Color(0xCCFFFFFF))
             ) {
-                Text(text = "Volver al inicio de sesión")
+                Text(text = stringResource(R.string.back_to_login_action))
             }
         }
     }
@@ -399,7 +398,7 @@ fun GenderDropdown(
             },
             onValueChange = {},
             readOnly = true,
-            label = { Text("Género") },
+            label = { Text(stringResource(R.string.gender_select_label)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             colors = TextFieldDefaults.colors(
                 focusedIndicatorColor = Color(0x99FFFFFF),

@@ -18,10 +18,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext // Importante para lógica
+import androidx.compose.ui.res.stringResource // Importante para UI
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.turnoshospi.R // Asegúrate de importar tu R
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -39,6 +42,7 @@ fun DirectChatListScreen(
     onBack: () -> Unit,
     onNavigateToChat: (String, String) -> Unit
 ) {
+    val context = LocalContext.current // Necesario para strings dentro de lógica
     val database = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
 
     // Estados de datos
@@ -49,6 +53,11 @@ fun DirectChatListScreen(
     // Estados de UI
     var showNewChatDialog by remember { mutableStateOf(false) }
     var chatToDelete by remember { mutableStateOf<ActiveChatSummary?>(null) }
+
+    // Strings para lógica (evita llamar a getString repetidamente dentro de bucles)
+    val strLoading = context.getString(R.string.loading_text)
+    val strNoRole = context.getString(R.string.default_role)
+    val strDefaultUser = context.getString(R.string.default_user)
 
     // 1. Cargar Chats Activos
     LaunchedEffect(plantId, currentUserId) {
@@ -69,7 +78,8 @@ fun DirectChatListScreen(
                             val lastText = lastMsgSnap?.child("text")?.value.toString()
                             val timestamp = lastMsgSnap?.child("timestamp")?.value as? Long ?: 0L
 
-                            tempChats.add(ActiveChatSummary(chatId, otherId, "Cargando...", lastText, timestamp))
+                            // Usamos la variable strLoading obtenida del contexto
+                            tempChats.add(ActiveChatSummary(chatId, otherId, strLoading, lastText, timestamp))
                         }
                     }
                 }
@@ -81,8 +91,7 @@ fun DirectChatListScreen(
             override fun onCancelled(error: DatabaseError) { isLoadingChats = false }
         })
 
-        // 2. CORRECCIÓN: Cargar Usuarios buscando en los miembros de la planta (userPlants)
-        // en lugar de escanear toda la tabla 'users'.
+        // 2. Cargar Usuarios
         val plantMembersRef = database.getReference("plants/$plantId/userPlants")
 
         plantMembersRef.addListenerForSingleValueEvent(object : ValueEventListener {
@@ -90,30 +99,26 @@ fun DirectChatListScreen(
                 availableUsers.clear()
                 val userIdsToFetch = snapshot.children.mapNotNull { it.key }.filter { it != currentUserId }
 
-                if (userIdsToFetch.isEmpty()) {
-                    // No hay más usuarios
-                    return
-                }
+                if (userIdsToFetch.isEmpty()) return
 
-                // Para cada ID encontrado en la planta, buscamos sus detalles en 'users'
                 userIdsToFetch.forEach { uid ->
                     database.getReference("users/$uid").addListenerForSingleValueEvent(object : ValueEventListener {
                         override fun onDataChange(userSnap: DataSnapshot) {
                             val firstName = userSnap.child("firstName").getValue(String::class.java) ?: ""
                             val lastName = userSnap.child("lastName").getValue(String::class.java) ?: ""
-                            val role = userSnap.child("role").getValue(String::class.java) ?: "Sin rol"
+                            // Usamos strNoRole
+                            val role = userSnap.child("role").getValue(String::class.java) ?: strNoRole
                             val email = userSnap.child("email").getValue(String::class.java) ?: ""
 
                             val fullName = "$firstName $lastName".trim()
-                            val displayName = if (fullName.isNotEmpty()) fullName else email.ifEmpty { "Usuario" }
+                            // Usamos strDefaultUser
+                            val displayName = if (fullName.isNotEmpty()) fullName else email.ifEmpty { strDefaultUser }
 
-                            // Añadir a la lista de usuarios disponibles
                             val userSummary = ChatUserSummary(userId = uid, name = displayName, role = role)
                             if (availableUsers.none { it.userId == uid }) {
                                 availableUsers.add(userSummary)
                             }
 
-                            // Actualizar nombre en chats activos si ya existía
                             val index = activeChats.indexOfFirst { it.otherUserId == uid }
                             if (index != -1) {
                                 activeChats[index] = activeChats[index].copy(otherUserName = displayName)
@@ -131,10 +136,20 @@ fun DirectChatListScreen(
         containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
-                title = { Text("Mis Chats", color = Color.White, fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        stringResource(R.string.chat_screen_title),
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver", tint = Color.White)
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            stringResource(R.string.back_desc),
+                            tint = Color.White
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -147,7 +162,7 @@ fun DirectChatListScreen(
                 contentColor = Color.Black,
                 modifier = Modifier.padding(start = 32.dp)
             ) {
-                Icon(Icons.Default.Add, "Nuevo Chat")
+                Icon(Icons.Default.Add, stringResource(R.string.new_chat_desc))
             }
         },
         floatingActionButtonPosition = FabPosition.Start
@@ -157,8 +172,8 @@ fun DirectChatListScreen(
                 CircularProgressIndicator(color = Color(0xFF54C7EC), modifier = Modifier.align(Alignment.Center))
             } else if (activeChats.isEmpty()) {
                 Column(modifier = Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("No tienes chats recientes.", color = Color.Gray)
-                    Text("Pulsa + para empezar.", color = Color.Gray, fontSize = 12.sp)
+                    Text(stringResource(R.string.no_recent_chats), color = Color.Gray)
+                    Text(stringResource(R.string.start_chat_hint), color = Color.Gray, fontSize = 12.sp)
                 }
             } else {
                 LazyColumn(
@@ -167,7 +182,6 @@ fun DirectChatListScreen(
                 ) {
                     items(activeChats) { chat ->
                         val unreadCount = unreadCounts[chat.chatId] ?: 0
-                        // Intentamos buscar el nombre actualizado en availableUsers
                         val updatedName = availableUsers.find { it.userId == chat.otherUserId }?.name ?: chat.otherUserName
 
                         Box {
@@ -184,7 +198,7 @@ fun DirectChatListScreen(
                                 containerColor = Color(0xFF1E293B)
                             ) {
                                 DropdownMenuItem(
-                                    text = { Text("Borrar chat", color = Color(0xFFFFB4AB)) },
+                                    text = { Text(stringResource(R.string.delete_chat_action), color = Color(0xFFFFB4AB)) },
                                     leadingIcon = { Icon(Icons.Default.Delete, null, tint = Color(0xFFFFB4AB)) },
                                     onClick = {
                                         database.getReference("plants/$plantId/direct_chats/${chat.chatId}").removeValue()
@@ -209,14 +223,14 @@ fun DirectChatListScreen(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    "Iniciar nuevo chat",
+                    stringResource(R.string.start_new_chat_title),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
                 if (availableUsers.isEmpty()) {
-                    Text("No se encontraron otros usuarios registrados en esta planta.", color = Color.Gray)
+                    Text(stringResource(R.string.no_users_found), color = Color.Gray)
                 } else {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(availableUsers) { user ->
@@ -243,7 +257,10 @@ fun ActiveChatCard(
 ) {
     val dateFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
     val dateStr = if (chat.timestamp > 0) dateFormat.format(Date(chat.timestamp)) else ""
-    val lastMsgDisplay = if (chat.lastMessage == "null" || chat.lastMessage.isBlank()) "Mensaje..." else chat.lastMessage
+
+    // Obtenemos el placeholder de mensaje
+    val msgPlaceholder = stringResource(R.string.message_placeholder)
+    val lastMsgDisplay = if (chat.lastMessage == "null" || chat.lastMessage.isBlank()) msgPlaceholder else chat.lastMessage
 
     Card(
         modifier = Modifier
