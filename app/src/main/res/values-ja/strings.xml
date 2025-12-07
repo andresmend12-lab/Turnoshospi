@@ -1,0 +1,429 @@
+<resources>
+    <string name="app_name">TurnosHospi</string>
+    <string-array name="days_of_week_short">
+        <item>Пн</item> <item>Вт</item> <item>Ср</item> <item>Чт</item> <item>Пт</item> <item>Сб</item> <item>Вс</item>
+    </string-array>
+
+    <string name="back_desc">Назад</string>
+    <string name="close_label">Закрыть</string>
+    <string name="cancel_label">Отмена</string>
+    <string name="cancel">Отмена</string>
+    <string name="save">Сохранить</string>
+    <string name="saving_label">Сохранение…</string>
+    <string name="edit">Изменить</string>
+    <string name="delete">Удалить</string>
+    <string name="send_desc">Отправить</string>
+    <string name="loading_text">Загрузка...</string>
+    <string name="menu_info">Информация</string>
+    <string name="menu_info_desc">Помощь, поддержка и детали приложения.</string>
+
+    <string name="previous_month_desc">Предыдущий месяц</string>
+    <string name="next_month_desc">Следующий месяц</string>
+    <string name="desc_prev_month">Пред. месяц</string>
+    <string name="desc_next_month">След. месяц</string>
+    <string name="select_date_prompt">Выберите дату</string>
+    <string name="select_day">Выберите день</string>
+    <string name="plant_calendar_title">График смен</string>
+    <string name="agenda_title">План на день: %1$s</string>
+
+    <string name="shift_detail_title">Смена: %1$s</string>
+    <string name="nurses_list_prefix">Медсестры/братья: %1$s</string>
+    <string name="auxiliaries_list_prefix">Санитары: %1$s</string>
+    <string name="colleagues_header">Коллеги:</string>
+    <string name="no_colleagues_found">Коллеги не найдены.</string>
+    <string name="no_shifts_assigned">Смены не назначены.</string>
+
+    <string name="legend_free">Выходной</string>
+    <string name="legend_morning">Утро</string>
+    <string name="legend_morning_half">Пол-утра</string>
+    <string name="legend_afternoon">Вечер</string>
+    <string name="legend_afternoon_half">Пол-вечера</string>
+    <string name="legend_night">Ночь</string>
+    <string name="legend_exit_night">Отсыпной</string>
+    <string name="legend_holiday">Отпуск</string>
+
+    <string name="shift_morning">Утро</string>
+    <string name="shift_afternoon">Вечер</string>
+    <string name="shift_night">Ночь</string>
+    <string name="shift_saliente">Отсыпной</string>
+    <string name="shift_morning_half">Пол-утра</string>
+    <string name="shift_afternoon_half">Пол-вечера</string>
+    <string name="shift_holiday">Отпуск</string>
+    <string name="shift_free">Выходной</string>
+    <string name="shift_day">День</string>
+
+    <string name="role_supervisor_male">Старший медбрат</string>
+    <string name="role_supervisor_female">Старшая медсестра</string>
+    <string name="role_nurse_male">Медбрат</string>
+    <string name="role_nurse_female">Медсестра</string>
+    <string name="role_aux_male">Санитар</string>
+    <string name="role_aux_female">Санитарка</string>
+    <string name="role_nurse_generic">Медсестра/брат</string>
+    <string name="role_aux_generic">Санитар(ка)</string>
+    <string name="role_nurse">Медсестра/брат</string>
+    <string name="role_auxiliary">Санитар(ка)</string>
+    <string name="gender_male">Мужской</string>
+    <string name="gender_female">Женский</string>
+    <string name="default_role">Без роли</string>
+    <string name="default_user">Пользователь</string>
+    <string name="default_user_alias">Пользователь</string>
+
+    <string name="login_screen_title">Вход</string>
+    <string name="login_button">Войти</string>
+    <string name="create_account_title">Создать аккаунт</string>
+    <string name="create_account_action">Создать аккаунт</string>
+    <string name="register_button">Сохранить профиль</string>
+    <string name="forgot_password">Забыли пароль?</string>
+    <string name="reset_email_sent">Ссылка для восстановления отправлена</string>
+    <string name="back_to_login_action">Вернуться ко входу</string>
+    <string name="sign_out">Выйти</string>
+    <string name="loading_profile">Загрузка профиля…</string>
+    <string name="profile_summary_title">Ваш профиль</string>
+    <string name="edit_profile">Редактировать профиль</string>
+    <string name="email_label">Email</string>
+    <string name="password_label">Пароль</string>
+    <string name="password_hide_desc">Скрыть пароль</string>
+    <string name="password_show_desc">Показать пароль</string>
+    <string name="confirm_password">Подтвердите пароль</string>
+    <string name="first_name_label">Имя</string>
+    <string name="last_name_label">Фамилия</string>
+    <string name="role_dropdown_label">Должность</string>
+    <string name="gender_select_label">Пол</string>
+    <string name="profile_email_label">Email: %1$s</string>
+    <string name="profile_name_label">Имя: %1$s</string>
+    <string name="profile_role_label">Должность: %1$s</string>
+
+    <string name="main_menu_welcome_male">Добро пожаловать, %1$s</string>
+    <string name="main_menu_welcome_female">Добро пожаловать, %1$s</string>
+    <string name="main_menu_subtitle">Выберите опцию, чтобы начать организацию отделений.</string>
+    <string name="side_menu_title">Меню</string>
+    <string name="menu_create_plant">Создать новое отделение</string>
+    <string name="menu_create_plant_desc">Настроить отделение с нуля.</string>
+    <string name="menu_my_plants">Мое отделение</string>
+    <string name="menu_my_plants_desc">Просмотр и редактирование отделений.</string>
+    <string name="menu_settings">Настройки</string>
+    <string name="menu_settings_desc">Настройки аккаунта.</string>
+    <string name="cd_menu">Меню</string>
+    <string name="cd_notifications">Уведомления</string>
+    <string name="cd_chats">Чаты</string>
+
+    <string name="plant_creation_title">Создать отделение</string>
+    <string name="plant_general_data_title">Общие данные</string>
+    <string name="plant_name_label">Название отделения</string>
+    <string name="unit_type_label">Тип отделения</string>
+    <string name="hospital_name_label">Название больницы</string>
+    <string name="create_plant_action">Создать отделение</string>
+    <string name="shift_configuration_title">Настройка смен</string>
+    <string name="shift_duration_label">Длительность смен</string>
+    <string name="shift_duration_placeholder">Выберите длительность</string>
+    <string name="shift_duration_8h">8 часов</string>
+    <string name="shift_duration_12h">12 часов</string>
+    <string name="shift_timing_instruction">Определите время для каждой смены.</string>
+    <string name="shift_half_day_question">Разрешены ли полусмены?</string>
+    <string name="shift_start_label">Начало</string>
+    <string name="shift_end_label">Конец</string>
+    <string name="plant_staff_title">Персонал отделения</string>
+    <string name="staff_scope_question">Управляемый персонал</string>
+    <string name="staff_scope_nurses_only">Только медсестры</string>
+    <string name="staff_scope_with_aux">Медсестры и санитары</string>
+    <string name="staff_requirements_title">Минимальные требования</string>
+    <string name="staff_minimum_label">Мин. кол-во персонала в смену</string>
+    <string name="plant_created_title">Отделение создано</string>
+    <string name="plant_created_message">Ваше отделение настроенно и готово.</string>
+    <string name="plant_credentials_title">Доступ к отделению</string>
+    <string name="plant_id_label">ID отделения</string>
+    <string name="plant_access_password_label">Пароль доступа</string>
+    <string name="plant_share_hint">Поделитесь этими данными с командой.</string>
+    <string name="back_to_menu">В главное меню</string>
+
+    <string name="refresh_plant_action">Обновить данные</string>
+    <string name="plant_location_label">%1$s • %2$s</string>
+    <string name="plant_hospital_only_label">Больница: %1$s</string>
+    <string name="plant_shift_summary">Смены: %1$s</string>
+    <string name="plant_half_day_allowed">Полусмены разрешены</string>
+    <string name="plant_half_day_not_allowed">Полусмены запрещены</string>
+    <string name="plant_shift_times_title">Настроенное время</string>
+    <string name="plant_shift_item">%1$s: %2$s - %3$s</string>
+    <string name="plant_staff_requirements_title">Мин. требования</string>
+    <string name="plant_staff_requirement_item">%1$s: %2$d чел.</string>
+    <string name="plant_registered_users_label">Пользователей: %1$d</string>
+    <string name="open_plant_detail_action">Открыть мое отделение</string>
+    <string name="plant_detail_missing_data">Выберите дату для просмотра смен.</string>
+    <string name="plant_shifts_for_date">Смены на %1$s</string>
+
+    <string name="plant_role_options_title">Опции для %1$s</string>
+    <string name="plant_role_option_assign">Назначить персонал</string>
+    <string name="plant_role_option_add_staff">Добавить персонал</string>
+    <string name="plant_role_option_check_half_day">Настроить полусмены</string>
+    <string name="plant_role_option_view_shifts">Смотреть смены</string>
+    <string name="plant_role_option_half_day_request">Запросить полусмену</string>
+    <string name="nurse_label">Медсестра %1$d</string>
+    <string name="nurse_half_day_label">Медсестра (полсмены)</string>
+    <string name="aux_label">Санитар %1$d</string>
+    <string name="aux_half_day_label">Санитар (полсмены)</string>
+    <string name="staff_unassigned_option">Не назначено</string>
+    <string name="half_day_readonly_label">Полусмена: %1$s</string>
+    <string name="save_assignments_action">Сохранить расписание</string>
+    <string name="edit_assignments_action">Редактировать расписание</string>
+    <string name="plant_add_staff_option">Добавить персонал</string>
+    <string name="plant_staff_list_option">Список персонала</string>
+    <string name="plant_self_assign_action">Выбрать себя</string>
+    <string name="staff_dialog_title">Добавить персонал</string>
+    <string name="staff_dialog_name_label">ФИО</string>
+    <string name="staff_dialog_role_label">Роль</string>
+    <string name="staff_dialog_save_action">Сохранить</string>
+    <string name="staff_list_dialog_title">Персонал %1$s</string>
+    <string name="staff_list_dialog_empty">Персонал еще не зарегистрирован.</string>
+    <string name="edit_staff_member">Редактировать персонал</string>
+    <string name="edit_shifts">Редактировать смены</string>
+    <string name="mode_assignment">Режим назначения</string>
+    <string name="save_and_exit">Сохранить и выйти</string>
+
+    <string name="my_plant_empty_title">Вы еще не в отделении</string>
+    <string name="my_plant_empty_message">Введите ID отделения и код приглашения.</string>
+    <string name="invitation_code_label">Код приглашения</string>
+    <string name="join_plant_action">Присоединиться</string>
+    <string name="join_plant_success">Успешно присоединились.</string>
+    <string name="join_plant_success_detail">Вы успешно присоединились к отделению.</string>
+    <string name="loading_my_plant">Поиск отделения…</string>
+    <string name="plant_staff_link_title">Выберите ваш профиль в %1$s</string>
+    <string name="plant_staff_link_message">Выберите свое имя для привязки аккаунта.</string>
+    <string name="plant_staff_link_field_label">Персонал отделения</string>
+    <string name="plant_staff_link_confirm">Привязать</string>
+    <string name="plant_staff_lookup_message">Поиск профиля…</string>
+    <string name="plant_staff_linked_label">Привязан как %1$s (%2$s)</string>
+    <string name="plant_staff_link_prompt">Привяжите аккаунт для синхронизации.</string>
+    <string name="staff_identity_title">Ваш профиль</string>
+    <string name="staff_identity_label">Выберите ваше имя</string>
+    <string name="staff_identity_hint">Список управляется старшим смены.</string>
+    <string name="staff_identity_missing">Попросите добавить вас в список.</string>
+
+    <string name="notes_title">Заметки</string>
+    <string name="add_note">Добавить заметку</string>
+    <string name="write_here">Пишите здесь...</string>
+    <string name="no_notes_hint">Нет заметок. Нажмите +.</string>
+    <string name="chat_screen_title">Мои чаты</string>
+    <string name="new_chat_desc">Новый чат</string>
+    <string name="no_recent_chats">Нет недавних чатов.</string>
+    <string name="start_chat_hint">Нажмите + для начала.</string>
+    <string name="delete_chat_action">Удалить чат</string>
+    <string name="start_new_chat_title">Начать чат</string>
+    <string name="no_users_found">Пользователи не найдены.</string>
+    <string name="message_placeholder">Сообщение...</string>
+    <string name="group_chat_title">Чат отделения</string>
+    <string name="write_message_placeholder">Написать сообщение...</string>
+    <string name="notification_group_msg_template">Новое сообщение от %1$s.</string>
+
+    <string name="notif_channel_name">Уведомления о сменах</string>
+    <string name="notif_channel_desc">Звуковые и визуальные уведомления</string>
+    <string name="notification_save_error">Ошибка сохранения уведомления:</string>
+    <string name="error_save_notification">Ошибка сохранения уведомления: %1$s</string>
+
+    <string name="password_mismatch_error">Пароли не совпадают</string>
+    <string name="auth_weak_password">Слабый пароль (мин 6 символов)</string>
+    <string name="auth_user_collision">Аккаунт уже существует</string>
+    <string name="auth_invalid_credentials">Неверные данные</string>
+    <string name="auth_invalid_user">Аккаунт не существует или отключен</string>
+    <string name="auth_operation_not_allowed">Включите Email/Password в Firebase</string>
+    <string name="auth_network_error">Нет сети.</string>
+    <string name="auth_generic_error">Ошибка авторизации:</string>
+    <string name="auth_unknown_error">Неизвестная ошибка.</string>
+
+    <string name="auth_login_failed">Вход не выполнен</string>
+    <string name="auth_create_failed">Ошибка создания аккаунта</string>
+    <string name="auth_reset_email_failed">Ошибка отправки письма</string>
+
+    <string name="login_error_generic">Вход не выполнен</string>
+    <string name="create_account_error">Ошибка создания аккаунта</string>
+    <string name="reset_email_error">Ошибка отправки письма</string>
+    <string name="error_login_required">Требуется вход</string>
+
+    <string name="error_save_profile">Ошибка сохранения профиля</string>
+    <string name="profile_save_error">Ошибка сохранения профиля</string>
+
+    <string name="error_db_rules">Проверьте правила БД</string>
+    <string name="database_rules_error">Проверьте правила БД</string>
+
+    <string name="error_delete_plant">Не удалось удалить отделение.</string>
+    <string name="delete_plant_error">Не удалось удалить отделение.</string>
+
+    <string name="plant_required_fields_error">Заполните данные.</string>
+    <string name="plant_save_error">Ошибка сохранения.</string>
+    <string name="plant_auth_error">Ошибка авторизации</string>
+    <string name="staff_dialog_error">Имя обязательно.</string>
+    <string name="staff_dialog_save_error">Ошибка сохранения персонала.</string>
+
+    <string name="join_plant_error">Ошибка присоединения</string>
+    <string name="join_plant_not_found">Отделение не найдено</string>
+    <string name="invalid_invitation_code">Неверный код</string>
+    <string name="plant_load_error">Ошибка загрузки</string>
+    <string name="title_notifications">Уведомления</string>
+    <string name="msg_no_notifications">Нет уведомлений</string>
+    <string name="desc_back">Назад</string>
+    <string name="desc_delete">Удалить</string>
+    <string name="desc_delete_all">Удалить все</string>
+    <string name="title_offline_roster">Офлайн график</string>
+    <string name="btn_save">Сохранить</string>
+    <string name="btn_cancel">Отмена</string>
+    <string name="dialog_edit_shift_title">Ред. смену - %s</string>
+
+    <string name="tab_my_shifts">Мои Смены</string>
+    <string name="tab_management">Управление</string>
+    <string name="tab_suggestions">Предложения</string>
+    <string name="title_candidate_search">Поиск Кандидатов</string>
+    <string name="title_change_management">Управление Обменами</string>
+
+    <string name="msg_request_sent">Запрос отправлен. Ожидание коллеги.</string>
+    <string name="msg_request_deleted">Запрос удален</string>
+    <string name="msg_swap_approved">Обмен выполнен.</string>
+    <string name="msg_supervisor_rejected">Отклонено руководством.</string>
+    <string name="msg_partner_accepted">Коллега принял. Ждем руководство.</string>
+    <string name="msg_partner_rejected">Коллега отказался.</string>
+    <string name="msg_request_created">Запрос создан.</string>
+
+    <string name="header_supervisor_pending">Ожидание подтверждения</string>
+    <string name="header_in_process">В процессе</string>
+    <string name="header_my_searches">Мои поиски</string>
+    <string name="header_history">История</string>
+    <string name="msg_no_recent_activity">Нет активности.</string>
+
+    <string name="header_search_candidates">Найти кандидатов</string>
+    <string name="desc_search_candidates">Выберите смену для обмена.</string>
+    <string name="msg_no_active_offers">Нет активных предложений.</string>
+    <string name="desc_create_offer">Создайте предложение во вкладке 'Мои Смены'.</string>
+    <string name="label_offering_shift">Вы предлагаете:</string>
+    <string name="btn_see_candidates">НАЙТИ КАНДИДАТОВ</string>
+    <string name="badge_active">АКТИВНО</string>
+
+    <string name="card_compatible_candidates">Совместимые Кандидаты</string>
+    <string name="filter_date">Дата</string>
+    <string name="filter_person">Человек</string>
+    <string name="filter_shift">Смена</string>
+    <string name="msg_no_candidates_found">Никого не найдено.</string>
+    <string name="btn_preview">Просмотр</string>
+    <string name="btn_choose">Выбрать</string>
+
+    <string name="dialog_simulation_title">Симуляция</string>
+    <string name="label_around_date">Около %1$s</string>
+    <string name="label_me">Я</string>
+
+    <string name="label_current_turn">Текущая смена: %1$s</string>
+    <string name="msg_no_shift_today">Нет смены.</string>
+    <string name="btn_search_swap">ИСКАТЬ ОБМЕН</string>
+
+    <string name="dialog_open_request_title">Запросить Открытый Обмен</string>
+    <string name="label_offering_turn_date">Вы предлагаете смену:</string>
+    <string name="label_swap_preference">Предпочтение:</string>
+    <string name="chip_flexible">Гибкое</string>
+    <string name="chip_strict">Строгое</string>
+    <string name="desc_flexible">Любой совместимый коллега.</string>
+    <string name="desc_strict">Приоритет должникам.</string>
+    <string name="btn_publish_request">ОПУБЛИКОВАТЬ</string>
+
+    <string name="status_pending_supervisor">ЖДЕМ РУКОВОДСТВО</string>
+    <string name="status_proposal_received">ПРЕДЛОЖЕНИЕ ОБМЕНА!</string>
+    <string name="status_waiting_partner">ЖДЕМ %1$s</string>
+    <string name="status_approved">ОБМЕН ОДОБРЕН</string>
+    <string name="label_origin">Источник</string>
+    <string name="label_destination">Назначение</string>
+    <string name="label_searching_candidate">Поиск...</string>
+    <string name="label_offering">Предлагаете: %1$s</string>
+    <string name="label_suggestion_hint">Идите в 'Предложения'.</string>
+
+    <string name="btn_approve">Одобрить</string>
+    <string name="btn_reject">Отклонить</string>
+    <string name="btn_accept">Принять</string>
+    <string name="btn_close">Закрыть</string>
+    <string name="btn_delete_history">Очистить историю</string>
+    <string name="btn_view_simulation">Смотреть</string>
+
+    <string name="title_alert">Внимание</string>
+    <string name="btn_understood">Понятно</string>
+    <string name="title_profile_saved">Сохранено</string>
+    <string name="msg_profile_saved">Данные обновлены.</string>
+    <string name="logo_desc">Лого Turnoshospi</string>
+
+    <string name="title_settings">Настройки</string>
+    <string name="title_customize_colors">Цвета смен</string>
+    <string name="btn_restore_colors">Сбросить цвета</string>
+    <string name="title_manage_account">Управление аккаунтом</string>
+    <string name="btn_delete_account">Удалить аккаунт</string>
+    <string name="msg_delete_account_warning">Это действие необратимо. Данные будут удалены.</string>
+    <string name="title_are_you_sure">Вы уверены?</string>
+    <string name="msg_delete_account_confirmation">Аккаунт будет удален. Продолжить?</string>
+    <string name="btn_delete_confirm">Удалить</string>
+    <string name="title_pick_color">Выбрать цвет</string>
+
+    <string name="btn_delete_plant">Удалить отделение</string>
+    <string name="msg_delete_plant_warning">Необратимо. Данные будут удалены.</string>
+    <string name="msg_delete_plant_confirmation">Удалить "%1$s"? Продолжить?</string>
+
+    <string name="notif_title_direct_chat">Личное сообщение</string>
+    <string name="notif_title_group_chat">Групповое сообщение</string>
+    <string name="notif_title_shift_assignment">Обновление смены</string>
+    <string name="notif_title_marketplace_add">Новое предложение</string>
+    <string name="notif_title_shift_response">Ответ</string>
+    <string name="notif_title_shift_proposal">Предложение</string>
+    <string name="notif_title_shift_approved">Одобрено!</string>
+    <string name="notif_title_shift_rejected">Отклонено</string>
+    <string name="notif_title_supervisor_action">Запрос</string>
+    <string name="notif_title_generic">Уведомление</string>
+
+    <string name="plant_settings_label">Настройки отделения</string>
+    <string name="import_shifts_label">Импорт смен</string>
+    <string name="invite_colleagues_label">Пригласить коллег</string>
+    <string name="vacation_days_label">Дни отпуска</string>
+    <string name="shift_change_label">Обмен сменами</string>
+    <string name="shift_marketplace_label">Биржа смен</string>
+    <string name="statistics_label">Статистика</string>
+
+    <string name="share_plant_message_template">Привет! Вступай в отделение "%1$s".\n\nID: %2$s\nКод: %3$s</string>
+    <string name="share_chooser_title">Пригласить через:</string>
+
+    <string name="notif_unassigned_message">Вы сняты со смены %1$s.</string>
+    <string name="notif_assigned_message">Смена %1$s обновлена.</string>
+    <string name="notif_vacation_saved_message">Отпуск %1$s сохранен.</string>
+
+    <string name="dialog_vacation_title">Выбор отпуска</string>
+    <string name="dialog_vacation_instruction">Выберите дни:</string>
+    <string name="label_no_days_selected">Нет выбранных дней.</string>
+    <string name="btn_add_day">Добавить день</string>
+    <string name="btn_confirm_days">Подтвердить (%1$d)</string>
+    <string name="msg_vacation_saved">Сохранено.</string>
+    <string name="error_no_date_selected">Нет даты.</string>
+    <string name="error_past_date_selection">Нельзя выбрать прошлое.</string>
+    <string name="btn_add">Добавить</string>
+
+    <string name="title_import_shifts">Импорт смен</string>
+    <string name="subtitle_import_options">Опции</string>
+    <string name="btn_download_template">Скачать шаблон</string>
+    <string name="btn_import">Импорт</string>
+    <string name="btn_importing">Импорт...</string>
+    <string name="status_processing">Обработка...</string>
+    <string name="msg_import_success">Успешно</string>
+    <string name="error_plant_not_loaded">Ошибка: Нет данных.</string>
+    <string name="error_csv_empty">Пустой файл.</string>
+    <string name="error_csv_format">Ошибка в строке %1$d: Формат.</string>
+    <string name="error_csv_date">Ошибка в строке %1$d: Дата (%2$s).</string>
+    <string name="error_csv_shift">Ошибка в строке %1$d: Смены '%2$s' нет.</string>
+    <string name="error_csv_role">Ошибка в строке %1$d: Роль '%2$s'.</string>
+    <string name="error_csv_staff_not_found">Ошибка в строке %1$d: Персонал '%2$s' не найден.</string>
+    <string name="error_db_save">Ошибка БД: %1$s</string>
+    <string name="error_file_read">Ошибка чтения: %1$s</string>
+    <string name="msg_template_saved">Шаблон сохранен</string>
+    <string name="error_template_save">Ошибка сохранения: %1$s</string>
+
+    <string name="error_name_required">Имя обязательно</string>
+    <string name="error_generic">Ошибка</string>
+
+    <string name="statistics_user_title">Статистика: %1$s</string>
+    <string name="msg_no_staff_stats">Нет часов в этом месяце.</string>
+    <string name="header_total_hours_general">Всего часов (Персонал)</string>
+    <string name="format_shifts_count">%1$d смен</string>
+    <string name="desc_view_stats">См. статистику %1$s</string>
+    <string name="header_stats_breakdown">Детали</string>
+    <string name="msg_no_user_stats">Нет часов для %1$s.</string>
+    <string name="label_total_worked">Всего часов</string>
+    <string name="format_shifts_done">%1$d смен выполнено</string>
+    <string name="header_shift_breakdown">По сменам</string>
+</resources>

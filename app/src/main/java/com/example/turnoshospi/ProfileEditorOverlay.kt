@@ -160,7 +160,7 @@ fun RegistrationScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                    Text(text = "Cargando datos...", color = Color.White)
+                    Text(text = stringResource(id = R.string.loading_profile), color = Color.White)
                 }
             }
 
@@ -168,7 +168,7 @@ fun RegistrationScreen(
                 value = userEmail,
                 onValueChange = {},
                 enabled = false,
-                label = { Text("Correo electrónico") },
+                label = { Text(stringResource(id = R.string.email_label)) },
                 colors = TextFieldDefaults.colors(
                     disabledContainerColor = Color(0x11FFFFFF),
                     disabledIndicatorColor = Color(0x66FFFFFF),
@@ -181,7 +181,7 @@ fun RegistrationScreen(
             OutlinedTextField(
                 value = firstName,
                 onValueChange = { firstName = it },
-                label = { Text("Nombre") },
+                label = { Text(stringResource(id = R.string.first_name_label)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 colors = TextFieldDefaults.colors(
@@ -201,7 +201,7 @@ fun RegistrationScreen(
             OutlinedTextField(
                 value = lastName,
                 onValueChange = { lastName = it },
-                label = { Text("Apellidos") },
+                label = { Text(stringResource(id = R.string.last_name_label)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 colors = TextFieldDefaults.colors(
@@ -260,7 +260,7 @@ fun RegistrationScreen(
                     value = role,
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Puesto") },
+                    label = { Text(stringResource(id = R.string.role_dropdown_label)) },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                     colors = TextFieldDefaults.colors(
                         focusedIndicatorColor = Color(0x99FFFFFF),

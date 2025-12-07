@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -122,15 +123,23 @@ fun StatisticsScreen(
             })
     }
 
+    // Locale del dispositivo para formatear el mes
+    val deviceLocale = Locale.getDefault()
+
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
-                title = { Text(
-                    text = if (isSupervisor && selectedStaffName != null) "Estadísticas de ${selectedStaffName}" else "Estadísticas",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                ) },
+                title = {
+                    Text(
+                        text = if (isSupervisor && selectedStaffName != null)
+                            stringResource(R.string.statistics_user_title, selectedStaffName!!)
+                        else
+                            stringResource(R.string.statistics_label),
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = {
                         if (isSupervisor && selectedStaffName != null) {
@@ -141,7 +150,7 @@ fun StatisticsScreen(
                             onBack()
                         }
                     }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back_desc), tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -168,7 +177,7 @@ fun StatisticsScreen(
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
                 }
                 Text(
-                    text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale("es", "ES")).uppercase()} ${currentMonth.year}",
+                    text = "${currentMonth.month.getDisplayName(TextStyle.FULL, deviceLocale).uppercase()} ${currentMonth.year}",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
@@ -192,7 +201,7 @@ fun StatisticsScreen(
                 // --- Vista Personal (Usuario Regular O Supervisor con usuario seleccionado) ---
                 PersonalStatsView(
                     stats = personalStats,
-                    targetName = selectedStaffName ?: currentUserName ?: "Personal",
+                    targetName = selectedStaffName ?: currentUserName ?: stringResource(R.string.default_user),
                     isSupervisorViewing = isSupervisor && selectedStaffName != null
                 )
             }
@@ -213,13 +222,13 @@ fun SupervisorGeneralStats(
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = 40.dp)) {
             Icon(Icons.Default.BarChart, null, tint = Color.Gray, modifier = Modifier.size(64.dp))
             Spacer(modifier = Modifier.height(16.dp))
-            Text("No hay horas registradas para ningún personal este mes.", color = Color.Gray, textAlign = TextAlign.Center)
+            Text(stringResource(R.string.msg_no_staff_stats), color = Color.Gray, textAlign = TextAlign.Center)
         }
         return
     }
 
     Text(
-        "Horas Totales del Personal (General)",
+        stringResource(R.string.header_total_hours_general),
         color = Color.White,
         fontWeight = FontWeight.Bold,
         fontSize = 20.sp,
@@ -251,7 +260,7 @@ fun StaffStatRow(stats: StaffMonthlyStats, onStaffSelected: (String) -> Unit) {
         ) {
             Column {
                 Text(stats.staffName, color = Color.White, fontWeight = FontWeight.Bold)
-                Text("${stats.totalShifts} turnos", color = Color.Gray, fontSize = 12.sp)
+                Text(stringResource(R.string.format_shifts_count, stats.totalShifts), color = Color.Gray, fontSize = 12.sp)
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -263,7 +272,7 @@ fun StaffStatRow(stats: StaffMonthlyStats, onStaffSelected: (String) -> Unit) {
                 Spacer(modifier = Modifier.width(8.dp))
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = "Ver estadísticas de ${stats.staffName}",
+                    contentDescription = stringResource(R.string.desc_view_stats, stats.staffName),
                     tint = Color.Gray,
                     modifier = Modifier.size(16.dp)
                 )
@@ -281,7 +290,7 @@ fun PersonalStatsView(
     // Si es la vista personal del supervisor, mostramos un encabezado.
     if (isSupervisorViewing) {
         Text(
-            "Desglose de Estadísticas",
+            stringResource(R.string.header_stats_breakdown),
             color = Color.White,
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp,
@@ -293,7 +302,7 @@ fun PersonalStatsView(
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = 40.dp)) {
             Icon(Icons.Default.BarChart, null, tint = Color.Gray, modifier = Modifier.size(64.dp))
             Spacer(modifier = Modifier.height(16.dp))
-            Text("No hay horas registradas este mes para $targetName.", color = Color.Gray, textAlign = TextAlign.Center)
+            Text(stringResource(R.string.msg_no_user_stats, targetName), color = Color.Gray, textAlign = TextAlign.Center)
         }
     } else {
         // Tarjeta Principal (Total)
@@ -306,21 +315,21 @@ fun PersonalStatsView(
                 modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Total Horas Trabajadas", color = Color(0xFF54C7EC), fontSize = 14.sp)
+                Text(stringResource(R.string.label_total_worked), color = Color(0xFF54C7EC), fontSize = 14.sp)
                 Text(
                     text = String.format("%.1f h", stats.totalHours),
                     color = Color.White,
                     fontSize = 48.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Text("${stats.totalShifts} turnos realizados", color = Color.Gray)
+                Text(stringResource(R.string.format_shifts_done, stats.totalShifts), color = Color.Gray)
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            "Desglose por Turno",
+            stringResource(R.string.header_shift_breakdown),
             color = Color.White,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.fillMaxWidth().wrapContentWidth(Alignment.Start)
@@ -349,7 +358,7 @@ fun StatRow(shiftName: String, data: ShiftStatData) {
         ) {
             Column {
                 Text(shiftName, color = Color.White, fontWeight = FontWeight.Bold)
-                Text("${data.count} turnos", color = Color.Gray, fontSize = 12.sp)
+                Text(stringResource(R.string.format_shifts_count, data.count), color = Color.Gray, fontSize = 12.sp)
             }
             Text(
                 text = String.format("%.1f h", data.hours),

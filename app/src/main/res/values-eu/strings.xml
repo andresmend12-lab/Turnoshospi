@@ -1,0 +1,429 @@
+<resources>
+    <string name="app_name">TurnosHospi</string>
+    <string-array name="days_of_week_short">
+        <item>L</item> <item>M</item> <item>Mc</item> <item>X</item> <item>V</item> <item>S</item> <item>D</item>
+    </string-array>
+
+    <string name="back_desc">Volver</string>
+    <string name="close_label">Pechar</string>
+    <string name="cancel_label">Cancelar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="save">Gardar</string>
+    <string name="saving_label">Gardando…</string>
+    <string name="edit">Editar</string>
+    <string name="delete">Borrar</string>
+    <string name="send_desc">Enviar</string>
+    <string name="loading_text">Cargando...</string>
+    <string name="menu_info">Información</string>
+    <string name="menu_info_desc">Axuda, soporte e detalles da app.</string>
+
+    <string name="previous_month_desc">Mes anterior</string>
+    <string name="next_month_desc">Mes seguinte</string>
+    <string name="desc_prev_month">Mes anterior</string>
+    <string name="desc_next_month">Mes seguinte</string>
+    <string name="select_date_prompt">Selecciona unha data</string>
+    <string name="select_day">Selecciona un día</string>
+    <string name="plant_calendar_title">Calendario de quendas</string>
+    <string name="agenda_title">Axenda do día: %1$s</string>
+
+    <string name="shift_detail_title">Quenda: %1$s</string>
+    <string name="nurses_list_prefix">Enfermeiros: %1$s</string>
+    <string name="auxiliaries_list_prefix">Auxiliares: %1$s</string>
+    <string name="colleagues_header">Compañeiros:</string>
+    <string name="no_colleagues_found">Non se atoparon compañeiros.</string>
+    <string name="no_shifts_assigned">Non hai quendas asignadas.</string>
+
+    <string name="legend_free">Libre</string>
+    <string name="legend_morning">Mañá</string>
+    <string name="legend_morning_half">M. Mañá</string>
+    <string name="legend_afternoon">Tarde</string>
+    <string name="legend_afternoon_half">M. Tarde</string>
+    <string name="legend_night">Noite</string>
+    <string name="legend_exit_night">Saínte</string>
+    <string name="legend_holiday">Vacacións</string>
+
+    <string name="shift_morning">Mañá</string>
+    <string name="shift_afternoon">Tarde</string>
+    <string name="shift_night">Noite</string>
+    <string name="shift_saliente">Saínte</string>
+    <string name="shift_morning_half">M. Mañá</string>
+    <string name="shift_afternoon_half">M. Tarde</string>
+    <string name="shift_holiday">Vacacións</string>
+    <string name="shift_free">Libre</string>
+    <string name="shift_day">Día</string>
+
+    <string name="role_supervisor_male">Supervisor</string>
+    <string name="role_supervisor_female">Supervisora</string>
+    <string name="role_nurse_male">Enfermeiro</string>
+    <string name="role_nurse_female">Enfermeira</string>
+    <string name="role_aux_male">TCAE</string>
+    <string name="role_aux_female">TCAE</string>
+    <string name="role_nurse_generic">Enfermeira/o</string>
+    <string name="role_aux_generic">TCAE</string>
+    <string name="role_nurse">Enfermeiro/a</string>
+    <string name="role_auxiliary">Auxiliar</string>
+    <string name="gender_male">Home</string>
+    <string name="gender_female">Muller</string>
+    <string name="default_role">Sen rol</string>
+    <string name="default_user">Usuario</string>
+    <string name="default_user_alias">Usuario</string>
+
+    <string name="login_screen_title">Iniciar sesión</string>
+    <string name="login_button">Iniciar sesión</string>
+    <string name="create_account_title">Crear conta</string>
+    <string name="create_account_action">Crear conta</string>
+    <string name="register_button">Gardar perfil</string>
+    <string name="forgot_password">Esqueciches o contrasinal?</string>
+    <string name="reset_email_sent">Enviamos unha ligazón de recuperación</string>
+    <string name="back_to_login_action">Volver ao inicio de sesión</string>
+    <string name="sign_out">Pechar sesión</string>
+    <string name="loading_profile">Cargando datos do perfil…</string>
+    <string name="profile_summary_title">O teu perfil</string>
+    <string name="edit_profile">Editar perfil</string>
+    <string name="email_label">Correo electrónico</string>
+    <string name="password_label">Contrasinal</string>
+    <string name="password_hide_desc">Ocultar contrasinal</string>
+    <string name="password_show_desc">Mostrar contrasinal</string>
+    <string name="confirm_password">Confirmar contrasinal</string>
+    <string name="first_name_label">Nome</string>
+    <string name="last_name_label">Apelidos</string>
+    <string name="role_dropdown_label">Posto</string>
+    <string name="gender_select_label">Xénero</string>
+    <string name="profile_email_label">Correo: %1$s</string>
+    <string name="profile_name_label">Nome: %1$s</string>
+    <string name="profile_role_label">Posto: %1$s</string>
+
+    <string name="main_menu_welcome_male">Benvido, %1$s</string>
+    <string name="main_menu_welcome_female">Benvida, %1$s</string>
+    <string name="main_menu_subtitle">Selecciona unha opción para comezar a organizar as túas plantas.</string>
+    <string name="side_menu_title">Menú</string>
+    <string name="menu_create_plant">Crear nova planta</string>
+    <string name="menu_create_plant_desc">Configura unha planta desde cero.</string>
+    <string name="menu_my_plants">A miña planta</string>
+    <string name="menu_my_plants_desc">Consulta e edita as túas plantas existentes.</string>
+    <string name="menu_settings">Configuración</string>
+    <string name="menu_settings_desc">Axustes de conta e preferencias.</string>
+    <string name="cd_menu">Menú</string>
+    <string name="cd_notifications">Notificacións</string>
+    <string name="cd_chats">Chats</string>
+
+    <string name="plant_creation_title">Crear nova planta</string>
+    <string name="plant_general_data_title">Datos xerais da planta</string>
+    <string name="plant_name_label">Nome da planta</string>
+    <string name="unit_type_label">Tipo de unidade</string>
+    <string name="hospital_name_label">Nome do hospital</string>
+    <string name="create_plant_action">Crear planta</string>
+    <string name="shift_configuration_title">Configuración de quendas</string>
+    <string name="shift_duration_label">Duración de quendas</string>
+    <string name="shift_duration_placeholder">Selecciona unha duración</string>
+    <string name="shift_duration_8h">8 horas</string>
+    <string name="shift_duration_12h">12 horas</string>
+    <string name="shift_timing_instruction">Define os horarios de cada quenda.</string>
+    <string name="shift_half_day_question">Pódense facer quendas de media xornada?</string>
+    <string name="shift_start_label">Inicio</string>
+    <string name="shift_end_label">Fin</string>
+    <string name="plant_staff_title">Personal da planta</string>
+    <string name="staff_scope_question">Personal administrador</string>
+    <string name="staff_scope_nurses_only">Só enfermeiros</string>
+    <string name="staff_scope_with_aux">Enfermeiros e TCAE</string>
+    <string name="staff_requirements_title">Requirimento mínimo de persoal</string>
+    <string name="staff_minimum_label">Número mínimo por quenda</string>
+    <string name="plant_created_title">Planta creada</string>
+    <string name="plant_created_message">A túa planta configurouse correctamente.</string>
+    <string name="plant_credentials_title">Accesos da planta</string>
+    <string name="plant_id_label">ID da planta</string>
+    <string name="plant_access_password_label">Contrasinal de acceso</string>
+    <string name="plant_share_hint">Comparte estes datos co teu equipo.</string>
+    <string name="back_to_menu">Volver ao menú principal</string>
+
+    <string name="refresh_plant_action">Actualizar datos</string>
+    <string name="plant_location_label">%1$s • %2$s</string>
+    <string name="plant_hospital_only_label">Hospital: %1$s</string>
+    <string name="plant_shift_summary">Quendas de %1$s</string>
+    <string name="plant_half_day_allowed">Permite media xornada</string>
+    <string name="plant_half_day_not_allowed">Non permite media xornada</string>
+    <string name="plant_shift_times_title">Horarios configurados</string>
+    <string name="plant_shift_item">%1$s: %2$s - %3$s</string>
+    <string name="plant_staff_requirements_title">Requirimentos mínimos</string>
+    <string name="plant_staff_requirement_item">%1$s: %2$d persoas</string>
+    <string name="plant_registered_users_label">Usuarios rexistrados: %1$d</string>
+    <string name="open_plant_detail_action">Ver a miña planta</string>
+    <string name="plant_detail_missing_data">Selecciona unha data para ver as quendas.</string>
+    <string name="plant_shifts_for_date">Quendas para %1$s</string>
+
+    <string name="plant_role_options_title">Opcións para %1$s</string>
+    <string name="plant_role_option_assign">Asignar persoal</string>
+    <string name="plant_role_option_add_staff">Engadir persoal</string>
+    <string name="plant_role_option_check_half_day">Configurar medias xornadas</string>
+    <string name="plant_role_option_view_shifts">Consultar quendas</string>
+    <string name="plant_role_option_half_day_request">Solicitar media xornada</string>
+    <string name="nurse_label">Enfermeira/o %1$d</string>
+    <string name="nurse_half_day_label">Enfermeiro/a media xornada</string>
+    <string name="aux_label">TCAE %1$d</string>
+    <string name="aux_half_day_label">TCAE media xornada</string>
+    <string name="staff_unassigned_option">Sen asignar</string>
+    <string name="half_day_readonly_label">Media xornada: %1$s</string>
+    <string name="save_assignments_action">Gardar organización</string>
+    <string name="edit_assignments_action">Editar organización</string>
+    <string name="plant_add_staff_option">Engadir persoal da planta</string>
+    <string name="plant_staff_list_option">Lista de persoal</string>
+    <string name="plant_self_assign_action">Seleccionarme</string>
+    <string name="staff_dialog_title">Engadir persoal</string>
+    <string name="staff_dialog_name_label">Nome completo</string>
+    <string name="staff_dialog_role_label">Rol</string>
+    <string name="staff_dialog_save_action">Gardar persoal</string>
+    <string name="staff_list_dialog_title">Persoal de %1$s</string>
+    <string name="staff_list_dialog_empty">Aínda non hai persoal rexistrado.</string>
+    <string name="edit_staff_member">Editar persoal</string>
+    <string name="edit_shifts">Editar Quendas</string>
+    <string name="mode_assignment">Modo Asignación</string>
+    <string name="save_and_exit">Gardar e Saír</string>
+
+    <string name="my_plant_empty_title">Aínda non estás nunha planta</string>
+    <string name="my_plant_empty_message">Ingresa o ID e o código de invitación.</string>
+    <string name="invitation_code_label">Código de invitación</string>
+    <string name="join_plant_action">Unirme á planta</string>
+    <string name="join_plant_success">Unícheste correctamente.</string>
+    <string name="join_plant_success_detail">Té has unido con éxito.</string>
+    <string name="loading_my_plant">Buscando a túa planta…</string>
+    <string name="plant_staff_link_title">Elixe o teu perfil en %1$s</string>
+    <string name="plant_staff_link_message">Selecciona o teu nome para vincular a conta.</string>
+    <string name="plant_staff_link_field_label">Persoal de planta</string>
+    <string name="plant_staff_link_confirm">Vincular</string>
+    <string name="plant_staff_lookup_message">Buscando o teu perfil…</string>
+    <string name="plant_staff_linked_label">Vinculado como %1$s (%2$s)</string>
+    <string name="plant_staff_link_prompt">Vincula a túa conta para sincronizar datos.</string>
+    <string name="staff_identity_title">O teu perfil</string>
+    <string name="staff_identity_label">Selecciona o teu nome</string>
+    <string name="staff_identity_hint">O supervisor xestiona esta lista.</string>
+    <string name="staff_identity_missing">Pídelle ao supervisor que te engada.</string>
+
+    <string name="notes_title">Anotacións</string>
+    <string name="add_note">Engadir nota</string>
+    <string name="write_here">Escribe aquí...</string>
+    <string name="no_notes_hint">Non hai notas. Preme + para crear unha.</string>
+    <string name="chat_screen_title">Os meus Chats</string>
+    <string name="new_chat_desc">Novo Chat</string>
+    <string name="no_recent_chats">Non tes chats recentes.</string>
+    <string name="start_chat_hint">Preme + para empezar.</string>
+    <string name="delete_chat_action">Borrar chat</string>
+    <string name="start_new_chat_title">Iniciar novo chat</string>
+    <string name="no_users_found">Non se atoparon outros usuarios.</string>
+    <string name="message_placeholder">Mensaxe...</string>
+    <string name="group_chat_title">Chat de Planta</string>
+    <string name="write_message_placeholder">Escribe unha mensaxe...</string>
+    <string name="notification_group_msg_template">Nova mensaxe de %1$s.</string>
+
+    <string name="notif_channel_name">Avisos de Quendas</string>
+    <string name="notif_channel_desc">Notificacións con son e alerta visual</string>
+    <string name="notification_save_error">Erro ao gardar notificación:</string>
+    <string name="error_save_notification">Erro ao gardar notificación: %1$s</string>
+
+    <string name="password_mismatch_error">Os contrasinais non coinciden</string>
+    <string name="auth_weak_password">O contrasinal é feble (min 6 caracteres)</string>
+    <string name="auth_user_collision">Xa existe unha conta con este correo</string>
+    <string name="auth_invalid_credentials">Correo ou contrasinal inválidos</string>
+    <string name="auth_invalid_user">Conta inexistente ou deshabilitada</string>
+    <string name="auth_operation_not_allowed">Habilita Email/Contrasinal en Firebase</string>
+    <string name="auth_network_error">Sen conexión.</string>
+    <string name="auth_generic_error">Erro de autenticación:</string>
+    <string name="auth_unknown_error">Erro descoñecido.</string>
+
+    <string name="auth_login_failed">Erro ao iniciar sesión</string>
+    <string name="auth_create_failed">Erro ao crear conta</string>
+    <string name="auth_reset_email_failed">Erro ao enviar correo</string>
+
+    <string name="login_error_generic">Erro ao iniciar sesión</string>
+    <string name="create_account_error">Erro ao crear conta</string>
+    <string name="reset_email_error">Erro ao enviar correo</string>
+    <string name="error_login_required">Debes iniciar sesión</string>
+
+    <string name="error_save_profile">Erro ao gardar perfil</string>
+    <string name="profile_save_error">Erro ao gardar perfil</string>
+
+    <string name="error_db_rules">Revisa regras DB</string>
+    <string name="database_rules_error">Revisa regras DB</string>
+
+    <string name="error_delete_plant">Non se puido borrar a planta.</string>
+    <string name="delete_plant_error">Non se puido borrar a planta.</string>
+
+    <string name="plant_required_fields_error">Completa os datos.</string>
+    <string name="plant_save_error">Erro ao gardar.</string>
+    <string name="plant_auth_error">Erro de autenticación</string>
+    <string name="staff_dialog_error">Nome obrigatorio.</string>
+    <string name="staff_dialog_save_error">Erro ao gardar persoal.</string>
+
+    <string name="join_plant_error">Erro ao unirse</string>
+    <string name="join_plant_not_found">Planta non atopada</string>
+    <string name="invalid_invitation_code">Código inválido</string>
+    <string name="plant_load_error">Erro ao cargar a planta</string>
+    <string name="title_notifications">Notificacións</string>
+    <string name="msg_no_notifications">Non tes notificacións</string>
+    <string name="desc_back">Volver</string>
+    <string name="desc_delete">Borrar</string>
+    <string name="desc_delete_all">Borrar todo</string>
+    <string name="title_offline_roster">A miña quenda Offline</string>
+    <string name="btn_save">Gardar</string>
+    <string name="btn_cancel">Cancelar</string>
+    <string name="dialog_edit_shift_title">Editar Quenda - %s</string>
+
+    <string name="tab_my_shifts">As miñas Quendas</string>
+    <string name="tab_management">Xestión</string>
+    <string name="tab_suggestions">Suxestións</string>
+    <string name="title_candidate_search">Buscador de Candidatos</string>
+    <string name="title_change_management">Xestión de Cambios</string>
+
+    <string name="msg_request_sent">Solicitude enviada. Agardando aceptación.</string>
+    <string name="msg_request_deleted">Solicitude borrada</string>
+    <string name="msg_swap_approved">Cambio aprobado.</string>
+    <string name="msg_supervisor_rejected">O supervisor rexeitou.</string>
+    <string name="msg_partner_accepted">Compañeiro aceptou. Pendente de Supervisor.</string>
+    <string name="msg_partner_rejected">Compañeiro rexeitou.</string>
+    <string name="msg_request_created">Solicitude creada.</string>
+
+    <string name="header_supervisor_pending">Pendentes Aprobación</string>
+    <string name="header_in_process">En Proceso</string>
+    <string name="header_my_searches">As miñas Buscas</string>
+    <string name="header_history">Historial</string>
+    <string name="msg_no_recent_activity">Sen actividade recente.</string>
+
+    <string name="header_search_candidates">Busca candidatos</string>
+    <string name="desc_search_candidates">Selecciona unha quenda para cambiar.</string>
+    <string name="msg_no_active_offers">Non tes ofertas.</string>
+    <string name="desc_create_offer">Crea unha en 'As miñas Quendas'.</string>
+    <string name="label_offering_shift">Ofreces a quenda do:</string>
+    <string name="btn_see_candidates">VER CANDIDATOS</string>
+    <string name="badge_active">ACTIVA</string>
+
+    <string name="card_compatible_candidates">Candidatos Compatibles</string>
+    <string name="filter_date">Data</string>
+    <string name="filter_person">Persoa</string>
+    <string name="filter_shift">Quenda</string>
+    <string name="msg_no_candidates_found">Non se atoparon compañeiros.</string>
+    <string name="btn_preview">Vista Previa</string>
+    <string name="btn_choose">Elixir</string>
+
+    <string name="dialog_simulation_title">Simulación</string>
+    <string name="label_around_date">Arredor do %1$s</string>
+    <string name="label_me">Eu</string>
+
+    <string name="label_current_turn">Quenda actual: %1$s</string>
+    <string name="msg_no_shift_today">Non tes quenda.</string>
+    <string name="btn_search_swap">BUSCAR CAMBIO</string>
+
+    <string name="dialog_open_request_title">Solicitar Cambio Aberto</string>
+    <string name="label_offering_turn_date">Ofertarás a quenda do:</string>
+    <string name="label_swap_preference">Preferencia:</string>
+    <string name="chip_flexible">Flexible</string>
+    <string name="chip_strict">Estrito</string>
+    <string name="desc_flexible">Calquera compañeiro compatible.</string>
+    <string name="desc_strict">Prioridade a quen che deba quendas.</string>
+    <string name="btn_publish_request">PUBLICAR</string>
+
+    <string name="status_pending_supervisor">PENDENTE DE SUPERVISOR</string>
+    <string name="status_proposal_received">PROPUXÉRONCHE UN CAMBIO!</string>
+    <string name="status_waiting_partner">AGARDANDO POR %1$s</string>
+    <string name="status_approved">CAMBIO APROBADO</string>
+    <string name="label_origin">Orixe</string>
+    <string name="label_destination">Destino</string>
+    <string name="label_searching_candidate">Buscando candidato...</string>
+    <string name="label_offering">Ofreces: %1$s</string>
+    <string name="label_suggestion_hint">Vai a 'Suxestións' para propor.</string>
+
+    <string name="btn_approve">Aprobar</string>
+    <string name="btn_reject">Rexeitar</string>
+    <string name="btn_accept">Aceptar</string>
+    <string name="btn_close">Pechar</string>
+    <string name="btn_delete_history">Borrar historial</string>
+    <string name="btn_view_simulation">Ver Simulación</string>
+
+    <string name="title_alert">Aviso</string>
+    <string name="btn_understood">Entendido</string>
+    <string name="title_profile_saved">Perfil gardado</string>
+    <string name="msg_profile_saved">Datos actualizados.</string>
+    <string name="logo_desc">Logo Turnoshospi</string>
+
+    <string name="title_settings">Configuración</string>
+    <string name="title_customize_colors">Cores de Quendas</string>
+    <string name="btn_restore_colors">Restaurar cores</string>
+    <string name="title_manage_account">Xestionar conta</string>
+    <string name="btn_delete_account">Borrar conta</string>
+    <string name="msg_delete_account_warning">Acción irreversible. Perderanse todos os datos.</string>
+    <string name="title_are_you_sure">Estás seguro?</string>
+    <string name="msg_delete_account_confirmation">Borrarase a túa conta. Queres continuar?</string>
+    <string name="btn_delete_confirm">Borrar</string>
+    <string name="title_pick_color">Elixe unha cor</string>
+
+    <string name="btn_delete_plant">Borrar planta</string>
+    <string name="msg_delete_plant_warning">Acción irreversible. Perderanse os datos da planta.</string>
+    <string name="msg_delete_plant_confirmation">Vas borrar a planta "%1$s". Continuar?</string>
+
+    <string name="notif_title_direct_chat">Mensaxe Directa</string>
+    <string name="notif_title_group_chat">Mensaxe de Grupo</string>
+    <string name="notif_title_shift_assignment">Actualización de Quenda</string>
+    <string name="notif_title_marketplace_add">Nova Oferta</string>
+    <string name="notif_title_shift_response">Resposta</string>
+    <string name="notif_title_shift_proposal">Proposta</string>
+    <string name="notif_title_shift_approved">Cambio Aprobado!</string>
+    <string name="notif_title_shift_rejected">Cambio Rexeitado</string>
+    <string name="notif_title_supervisor_action">Solicitude Supervisor</string>
+    <string name="notif_title_generic">Notificación</string>
+
+    <string name="plant_settings_label">Configuración Planta</string>
+    <string name="import_shifts_label">Importar Quendas</string>
+    <string name="invite_colleagues_label">Convidar compañeiros</string>
+    <string name="vacation_days_label">Días de Vacacións</string>
+    <string name="shift_change_label">Cambio de Quendas</string>
+    <string name="shift_marketplace_label">Bolsa de Quendas</string>
+    <string name="statistics_label">Estatísticas</string>
+
+    <string name="share_plant_message_template">Ola! Únete á planta "%1$s" en Turnoshospi.\n\nID: %2$s\nCódigo: %3$s</string>
+    <string name="share_chooser_title">Convidar vía:</string>
+
+    <string name="notif_unassigned_message">Foche desasignado da quenda o %1$s.</string>
+    <string name="notif_assigned_message">A túa quenda do %1$s actualizouse.</string>
+    <string name="notif_vacation_saved_message">Día de vacacións do %1$s rexistrado.</string>
+
+    <string name="dialog_vacation_title">Vacacións</string>
+    <string name="dialog_vacation_instruction">Selecciona os teus días:</string>
+    <string name="label_no_days_selected">Ningún día seleccionado.</string>
+    <string name="btn_add_day">Engadir día</string>
+    <string name="btn_confirm_days">Confirmar (%1$d días)</string>
+    <string name="msg_vacation_saved">Vacacións gardadas.</string>
+    <string name="error_no_date_selected">Ningunha data.</string>
+    <string name="error_past_date_selection">Non podes escoller días pasados.</string>
+    <string name="btn_add">Engadir</string>
+
+    <string name="title_import_shifts">Importar Quendas</string>
+    <string name="subtitle_import_options">Opcións</string>
+    <string name="btn_download_template">Descargar modelo</string>
+    <string name="btn_import">Importar</string>
+    <string name="btn_importing">Importando...</string>
+    <string name="status_processing">Procesando...</string>
+    <string name="msg_import_success">Importación exitosa</string>
+    <string name="error_plant_not_loaded">Erro: Datos non cargados.</string>
+    <string name="error_csv_empty">Ficheiro baleiro.</string>
+    <string name="error_csv_format">Erro na liña %1$d: Formato incorrecto.</string>
+    <string name="error_csv_date">Erro na liña %1$d: Data inválida (%2$s).</string>
+    <string name="error_csv_shift">Erro na liña %1$d: A quenda '%2$s' non existe.</string>
+    <string name="error_csv_role">Erro na liña %1$d: Rol '%2$s' descoñecido.</string>
+    <string name="error_csv_staff_not_found">Erro na liña %1$d: '%2$s' non atopado.</string>
+    <string name="error_db_save">Erro DB: %1$s</string>
+    <string name="error_file_read">Erro lectura: %1$s</string>
+    <string name="msg_template_saved">Modelo gardado</string>
+    <string name="error_template_save">Erro ao gardar: %1$s</string>
+
+    <string name="error_name_required">Nome obrigatorio</string>
+    <string name="error_generic">Erro</string>
+
+    <string name="statistics_user_title">Estatísticas de %1$s</string>
+    <string name="msg_no_staff_stats">Sen horas rexistradas este mes.</string>
+    <string name="header_total_hours_general">Horas Totais Persoal</string>
+    <string name="format_shifts_count">%1$d quendas</string>
+    <string name="desc_view_stats">Ver estatísticas de %1$s</string>
+    <string name="header_stats_breakdown">Desglose</string>
+    <string name="msg_no_user_stats">Sen horas para %1$s este mes.</string>
+    <string name="label_total_worked">Total Horas</string>
+    <string name="format_shifts_done">%1$d quendas feitas</string>
+    <string name="header_shift_breakdown">Desglose por Quenda</string>
+</resources>

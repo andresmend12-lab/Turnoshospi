@@ -1,0 +1,429 @@
+<resources>
+    <string name="app_name">TurnosHospi</string>
+    <string-array name="days_of_week_short">
+        <item>L</item> <item>M</item> <item>M</item> <item>G</item> <item>V</item> <item>S</item> <item>D</item>
+    </string-array>
+
+    <string name="back_desc">Indietro</string>
+    <string name="close_label">Chiudi</string>
+    <string name="cancel_label">Annulla</string>
+    <string name="cancel">Annulla</string>
+    <string name="save">Salva</string>
+    <string name="saving_label">Salvataggio…</string>
+    <string name="edit">Modifica</string>
+    <string name="delete">Elimina</string>
+    <string name="send_desc">Invia</string>
+    <string name="loading_text">Caricamento...</string>
+    <string name="menu_info">Info</string>
+    <string name="menu_info_desc">Aiuto, supporto e dettagli app.</string>
+
+    <string name="previous_month_desc">Mese precedente</string>
+    <string name="next_month_desc">Mese successivo</string>
+    <string name="desc_prev_month">Mese precedente</string>
+    <string name="desc_next_month">Mese successivo</string>
+    <string name="select_date_prompt">Seleziona data</string>
+    <string name="select_day">Seleziona giorno</string>
+    <string name="plant_calendar_title">Calendario Turni</string>
+    <string name="agenda_title">Agenda del giorno: %1$s</string>
+
+    <string name="shift_detail_title">Turno: %1$s</string>
+    <string name="nurses_list_prefix">Infermieri: %1$s</string>
+    <string name="auxiliaries_list_prefix">OSS: %1$s</string>
+    <string name="colleagues_header">Colleghi:</string>
+    <string name="no_colleagues_found">Nessun collega trovato.</string>
+    <string name="no_shifts_assigned">Nessun turno assegnato.</string>
+
+    <string name="legend_free">Riposo</string>
+    <string name="legend_morning">Mattina</string>
+    <string name="legend_morning_half">Mezza Mattina</string>
+    <string name="legend_afternoon">Pomeriggio</string>
+    <string name="legend_afternoon_half">Mezzo Pom.</string>
+    <string name="legend_night">Notte</string>
+    <string name="legend_exit_night">Smonto</string>
+    <string name="legend_holiday">Ferie</string>
+
+    <string name="shift_morning">Mattina</string>
+    <string name="shift_afternoon">Pomeriggio</string>
+    <string name="shift_night">Notte</string>
+    <string name="shift_saliente">Smonto Notte</string>
+    <string name="shift_morning_half">Mezza Mattina</string>
+    <string name="shift_afternoon_half">Mezzo Pomeriggio</string>
+    <string name="shift_holiday">Ferie</string>
+    <string name="shift_free">Riposo</string>
+    <string name="shift_day">Giornata</string>
+
+    <string name="role_supervisor_male">Caposala</string>
+    <string name="role_supervisor_female">Caposala</string>
+    <string name="role_nurse_male">Infermiere</string>
+    <string name="role_nurse_female">Infermiera</string>
+    <string name="role_aux_male">OSS</string>
+    <string name="role_aux_female">OSS</string>
+    <string name="role_nurse_generic">Infermiere/a</string>
+    <string name="role_aux_generic">OSS</string>
+    <string name="role_nurse">Infermiere/a</string>
+    <string name="role_auxiliary">OSS</string>
+    <string name="gender_male">Uomo</string>
+    <string name="gender_female">Donna</string>
+    <string name="default_role">Nessun ruolo</string>
+    <string name="default_user">Utente</string>
+    <string name="default_user_alias">Utente</string>
+
+    <string name="login_screen_title">Accedi</string>
+    <string name="login_button">Accedi</string>
+    <string name="create_account_title">Crea account</string>
+    <string name="create_account_action">Crea account</string>
+    <string name="register_button">Salva profilo</string>
+    <string name="forgot_password">Password dimenticata?</string>
+    <string name="reset_email_sent">Link di recupero inviato</string>
+    <string name="back_to_login_action">Torna al login</string>
+    <string name="sign_out">Esci</string>
+    <string name="loading_profile">Caricamento profilo…</string>
+    <string name="profile_summary_title">Il tuo profilo</string>
+    <string name="edit_profile">Modifica profilo</string>
+    <string name="email_label">Email</string>
+    <string name="password_label">Password</string>
+    <string name="password_hide_desc">Nascondi password</string>
+    <string name="password_show_desc">Mostra password</string>
+    <string name="confirm_password">Conferma password</string>
+    <string name="first_name_label">Nome</string>
+    <string name="last_name_label">Cognome</string>
+    <string name="role_dropdown_label">Ruolo</string>
+    <string name="gender_select_label">Genere</string>
+    <string name="profile_email_label">Email: %1$s</string>
+    <string name="profile_name_label">Nome: %1$s</string>
+    <string name="profile_role_label">Ruolo: %1$s</string>
+
+    <string name="main_menu_welcome_male">Benvenuto, %1$s</string>
+    <string name="main_menu_welcome_female">Benvenuta, %1$s</string>
+    <string name="main_menu_subtitle">Seleziona un\'opzione per organizzare i reparti.</string>
+    <string name="side_menu_title">Menu</string>
+    <string name="menu_create_plant">Crea nuovo reparto</string>
+    <string name="menu_create_plant_desc">Configura un reparto da zero.</string>
+    <string name="menu_my_plants">Il mio Reparto</string>
+    <string name="menu_my_plants_desc">Vedi e modifica i tuoi reparti.</string>
+    <string name="menu_settings">Impostazioni</string>
+    <string name="menu_settings_desc">Account e preferenze.</string>
+    <string name="cd_menu">Menu</string>
+    <string name="cd_notifications">Notifiche</string>
+    <string name="cd_chats">Chat</string>
+
+    <string name="plant_creation_title">Crea reparto</string>
+    <string name="plant_general_data_title">Dati generali</string>
+    <string name="plant_name_label">Nome reparto</string>
+    <string name="unit_type_label">Tipo unità</string>
+    <string name="hospital_name_label">Ospedale</string>
+    <string name="create_plant_action">Crea reparto</string>
+    <string name="shift_configuration_title">Configurazione turni</string>
+    <string name="shift_duration_label">Durata turni</string>
+    <string name="shift_duration_placeholder">Seleziona durata</string>
+    <string name="shift_duration_8h">8 ore</string>
+    <string name="shift_duration_12h">12 ore</string>
+    <string name="shift_timing_instruction">Definisci gli orari dei turni.</string>
+    <string name="shift_half_day_question">Sono permessi turni di mezza giornata?</string>
+    <string name="shift_start_label">Inizio</string>
+    <string name="shift_end_label">Fine</string>
+    <string name="plant_staff_title">Personale</string>
+    <string name="staff_scope_question">Personale gestito</string>
+    <string name="staff_scope_nurses_only">Solo Infermieri</string>
+    <string name="staff_scope_with_aux">Infermieri e OSS</string>
+    <string name="staff_requirements_title">Requisiti minimi</string>
+    <string name="staff_minimum_label">Minimo personale per turno</string>
+    <string name="plant_created_title">Reparto creato</string>
+    <string name="plant_created_message">Il reparto è stato configurato ed è pronto.</string>
+    <string name="plant_credentials_title">Accesso Reparto</string>
+    <string name="plant_id_label">ID Reparto</string>
+    <string name="plant_access_password_label">Password accesso</string>
+    <string name="plant_share_hint">Condividi questi dati con il team.</string>
+    <string name="back_to_menu">Torna al menu</string>
+
+    <string name="refresh_plant_action">Aggiorna dati</string>
+    <string name="plant_location_label">%1$s • %2$s</string>
+    <string name="plant_hospital_only_label">Ospedale: %1$s</string>
+    <string name="plant_shift_summary">Turni di %1$s</string>
+    <string name="plant_half_day_allowed">Mezza giornata permessa</string>
+    <string name="plant_half_day_not_allowed">Mezza giornata non permessa</string>
+    <string name="plant_shift_times_title">Orari configurati</string>
+    <string name="plant_shift_item">%1$s: %2$s - %3$s</string>
+    <string name="plant_staff_requirements_title">Requisiti minimi</string>
+    <string name="plant_staff_requirement_item">%1$s: %2$d persone</string>
+    <string name="plant_registered_users_label">Utenti registrati: %1$d</string>
+    <string name="open_plant_detail_action">Vedi il mio reparto</string>
+    <string name="plant_detail_missing_data">Seleziona una data per vedere i turni.</string>
+    <string name="plant_shifts_for_date">Turni per il %1$s</string>
+
+    <string name="plant_role_options_title">Opzioni per %1$s</string>
+    <string name="plant_role_option_assign">Assegna personale</string>
+    <string name="plant_role_option_add_staff">Aggiungi personale</string>
+    <string name="plant_role_option_check_half_day">Configura mezze giornate</string>
+    <string name="plant_role_option_view_shifts">Vedi turni</string>
+    <string name="plant_role_option_half_day_request">Richiedi mezza giornata</string>
+    <string name="nurse_label">Infermiere %1$d</string>
+    <string name="nurse_half_day_label">Inf. mezza giornata</string>
+    <string name="aux_label">OSS %1$d</string>
+    <string name="aux_half_day_label">OSS mezza giornata</string>
+    <string name="staff_unassigned_option">Non assegnato</string>
+    <string name="half_day_readonly_label">Mezza giornata: %1$s</string>
+    <string name="save_assignments_action">Salva organizzazione</string>
+    <string name="edit_assignments_action">Modifica organizzazione</string>
+    <string name="plant_add_staff_option">Aggiungi personale reparto</string>
+    <string name="plant_staff_list_option">Lista personale</string>
+    <string name="plant_self_assign_action">Seleziona me stesso</string>
+    <string name="staff_dialog_title">Aggiungi personale</string>
+    <string name="staff_dialog_name_label">Nome completo</string>
+    <string name="staff_dialog_role_label">Ruolo</string>
+    <string name="staff_dialog_save_action">Salva</string>
+    <string name="staff_list_dialog_title">Personale di %1$s</string>
+    <string name="staff_list_dialog_empty">Nessun personale registrato.</string>
+    <string name="edit_staff_member">Modifica personale</string>
+    <string name="edit_shifts">Modifica Turni</string>
+    <string name="mode_assignment">Modo Assegnazione</string>
+    <string name="save_and_exit">Salva ed Esci</string>
+
+    <string name="my_plant_empty_title">Non sei ancora in un reparto</string>
+    <string name="my_plant_empty_message">Inserisci l\'ID e il codice invito del caposala.</string>
+    <string name="invitation_code_label">Codice invito</string>
+    <string name="join_plant_action">Unisciti</string>
+    <string name="join_plant_success">Ti sei unito correttamente.</string>
+    <string name="join_plant_success_detail">Unione al reparto riuscita.</string>
+    <string name="loading_my_plant">Cercando il reparto…</string>
+    <string name="plant_staff_link_title">Scegli il tuo profilo in %1$s</string>
+    <string name="plant_staff_link_message">Seleziona il tuo nome per collegare l\'account.</string>
+    <string name="plant_staff_link_field_label">Personale</string>
+    <string name="plant_staff_link_confirm">Collega</string>
+    <string name="plant_staff_lookup_message">Cercando profilo…</string>
+    <string name="plant_staff_linked_label">Collegato come %1$s (%2$s)</string>
+    <string name="plant_staff_link_prompt">Collega il tuo account per sincronizzare i dati.</string>
+    <string name="staff_identity_title">Il tuo profilo</string>
+    <string name="staff_identity_label">Seleziona il tuo nome</string>
+    <string name="staff_identity_hint">Il caposala gestisce questa lista.</string>
+    <string name="staff_identity_missing">Chiedi al caposala di aggiungerti.</string>
+
+    <string name="notes_title">Note</string>
+    <string name="add_note">Aggiungi nota</string>
+    <string name="write_here">Scrivi qui...</string>
+    <string name="no_notes_hint">Nessuna nota. Premi + per crearne una.</string>
+    <string name="chat_screen_title">Le mie Chat</string>
+    <string name="new_chat_desc">Nuova Chat</string>
+    <string name="no_recent_chats">Nessuna chat recente.</string>
+    <string name="start_chat_hint">Premi + per iniziare.</string>
+    <string name="delete_chat_action">Elimina chat</string>
+    <string name="start_new_chat_title">Inizia nuova chat</string>
+    <string name="no_users_found">Nessun altro utente trovato.</string>
+    <string name="message_placeholder">Messaggio...</string>
+    <string name="group_chat_title">Chat di Reparto</string>
+    <string name="write_message_placeholder">Scrivi un messaggio...</string>
+    <string name="notification_group_msg_template">Nuovo messaggio di %1$s.</string>
+
+    <string name="notif_channel_name">Avvisi Turni</string>
+    <string name="notif_channel_desc">Notifiche sonore e visive</string>
+    <string name="notification_save_error">Errore salvataggio notifica:</string>
+    <string name="error_save_notification">Errore salvataggio notifica: %1$s</string>
+
+    <string name="password_mismatch_error">Le password non coincidono</string>
+    <string name="auth_weak_password">Password troppo debole (min 6 caratteri)</string>
+    <string name="auth_user_collision">Account già esistente</string>
+    <string name="auth_invalid_credentials">Credenziali non valide</string>
+    <string name="auth_invalid_user">Account inesistente o disabilitato</string>
+    <string name="auth_operation_not_allowed">Abilita Email/Password su Firebase</string>
+    <string name="auth_network_error">Nessuna connessione.</string>
+    <string name="auth_generic_error">Errore autenticazione:</string>
+    <string name="auth_unknown_error">Errore sconosciuto. Riprova.</string>
+
+    <string name="auth_login_failed">Login fallito</string>
+    <string name="auth_create_failed">Creazione account fallita</string>
+    <string name="auth_reset_email_failed">Invio email recupero fallito</string>
+
+    <string name="login_error_generic">Login fallito</string>
+    <string name="create_account_error">Creazione account fallita</string>
+    <string name="reset_email_error">Invio email fallito</string>
+    <string name="error_login_required">Login richiesto</string>
+
+    <string name="error_save_profile">Errore salvataggio profilo</string>
+    <string name="profile_save_error">Errore salvataggio profilo</string>
+
+    <string name="error_db_rules">Controlla regole DB</string>
+    <string name="database_rules_error">Controlla regole DB</string>
+
+    <string name="error_delete_plant">Impossibile eliminare reparto.</string>
+    <string name="delete_plant_error">Impossibile eliminare reparto.</string>
+
+    <string name="plant_required_fields_error">Completa i dati del reparto.</string>
+    <string name="plant_save_error">Errore salvataggio. Controlla connessione.</string>
+    <string name="plant_auth_error">Errore auth caricamento reparto</string>
+    <string name="staff_dialog_error">Nome richiesto.</string>
+    <string name="staff_dialog_save_error">Errore salvataggio personale.</string>
+
+    <string name="join_plant_error">Errore unione reparto</string>
+    <string name="join_plant_not_found">Reparto non trovato</string>
+    <string name="invalid_invitation_code">Codice invalido</string>
+    <string name="plant_load_error">Errore caricamento reparto</string>
+    <string name="title_notifications">Notifiche</string>
+    <string name="msg_no_notifications">Nessuna notifica</string>
+    <string name="desc_back">Indietro</string>
+    <string name="desc_delete">Elimina</string>
+    <string name="desc_delete_all">Elimina tutto</string>
+    <string name="title_offline_roster">Turni Offline</string>
+    <string name="btn_save">Salva</string>
+    <string name="btn_cancel">Annulla</string>
+    <string name="dialog_edit_shift_title">Modifica Turno - %s</string>
+
+    <string name="tab_my_shifts">I miei Turni</string>
+    <string name="tab_management">Gestione</string>
+    <string name="tab_suggestions">Suggerimenti</string>
+    <string name="title_candidate_search">Cerca Candidati</string>
+    <string name="title_change_management">Gestione Cambi</string>
+
+    <string name="msg_request_sent">Richiesta inviata. In attesa del collega.</string>
+    <string name="msg_request_deleted">Richiesta eliminata</string>
+    <string name="msg_swap_approved">Cambio eseguito e approvato.</string>
+    <string name="msg_supervisor_rejected">Il caposala ha rifiutato.</string>
+    <string name="msg_partner_accepted">Il collega ha accettato. In attesa del Caposala.</string>
+    <string name="msg_partner_rejected">Il collega ha rifiutato.</string>
+    <string name="msg_request_created">Richiesta creata. Vai su 'Suggerimenti'.</string>
+
+    <string name="header_supervisor_pending">In attesa approvazione (Caposala)</string>
+    <string name="header_in_process">In Corso</string>
+    <string name="header_my_searches">Le mie Ricerche</string>
+    <string name="header_history">Storico</string>
+    <string name="msg_no_recent_activity">Nessuna attività recente.</string>
+
+    <string name="header_search_candidates">Trova candidati</string>
+    <string name="desc_search_candidates">Seleziona un turno offerto per cercare candidati.</string>
+    <string name="msg_no_active_offers">Nessuna offerta attiva.</string>
+    <string name="desc_create_offer">Creane una in 'I miei Turni'.</string>
+    <string name="label_offering_shift">Offri il turno del:</string>
+    <string name="btn_see_candidates">VEDI CANDIDATI</string>
+    <string name="badge_active">ATTIVA</string>
+
+    <string name="card_compatible_candidates">Candidati Compatibili</string>
+    <string name="filter_date">Data</string>
+    <string name="filter_person">Persona</string>
+    <string name="filter_shift">Turno</string>
+    <string name="msg_no_candidates_found">Nessun collega trovato.</string>
+    <string name="btn_preview">Anteprima</string>
+    <string name="btn_choose">Scegli</string>
+
+    <string name="dialog_simulation_title">Simulazione Cambio</string>
+    <string name="label_around_date">Intorno al %1$s</string>
+    <string name="label_me">Io</string>
+
+    <string name="label_current_turn">Turno attuale: %1$s</string>
+    <string name="msg_no_shift_today">Nessun turno oggi.</string>
+    <string name="btn_search_swap">CERCA CAMBIO</string>
+
+    <string name="dialog_open_request_title">Richiedi Cambio Aperto</string>
+    <string name="label_offering_turn_date">Stai offrendo il turno del:</string>
+    <string name="label_swap_preference">Preferenza:</string>
+    <string name="chip_flexible">Flessibile</string>
+    <string name="chip_strict">Stretto</string>
+    <string name="desc_flexible">Si cerca qualsiasi collega compatibile.</string>
+    <string name="desc_strict">Priorità a chi ti deve turni.</string>
+    <string name="btn_publish_request">PUBBLICA RICHIESTA</string>
+
+    <string name="status_pending_supervisor">IN ATTESA DEL CAPOSALA</string>
+    <string name="status_proposal_received">PROPOSTA DI CAMBIO RICEVUTA!</string>
+    <string name="status_waiting_partner">ATTENDO RISPOSTA DA %1$s</string>
+    <string name="status_approved">CAMBIO APPROVATO</string>
+    <string name="label_origin">Origine</string>
+    <string name="label_destination">Destinazione</string>
+    <string name="label_searching_candidate">Cercando candidato...</string>
+    <string name="label_offering">Offri: %1$s</string>
+    <string name="label_suggestion_hint">Vai su 'Suggerimenti' per proporre cambio.</string>
+
+    <string name="btn_approve">Approva</string>
+    <string name="btn_reject">Rifiuta</string>
+    <string name="btn_accept">Accetta</string>
+    <string name="btn_close">Chiudi</string>
+    <string name="btn_delete_history">Pulisci storico</string>
+    <string name="btn_view_simulation">Vedi Simulazione</string>
+
+    <string name="title_alert">Avviso</string>
+    <string name="btn_understood">Capito</string>
+    <string name="title_profile_saved">Profilo salvato</string>
+    <string name="msg_profile_saved">Dati aggiornati correttamente.</string>
+    <string name="logo_desc">Logo Turnoshospi</string>
+
+    <string name="title_settings">Impostazioni</string>
+    <string name="title_customize_colors">Personalizza Colori</string>
+    <string name="btn_restore_colors">Ripristina colori</string>
+    <string name="title_manage_account">Gestione account</string>
+    <string name="btn_delete_account">Elimina account</string>
+    <string name="msg_delete_account_warning">Azione irreversibile. Tutti i dati verranno persi.</string>
+    <string name="title_are_you_sure">Sei sicuro?</string>
+    <string name="msg_delete_account_confirmation">L'account verrà eliminato definitivamente. Continuare?</string>
+    <string name="btn_delete_confirm">Elimina</string>
+    <string name="title_pick_color">Scegli colore</string>
+
+    <string name="btn_delete_plant">Elimina reparto</string>
+    <string name="msg_delete_plant_warning">Azione irreversibile. Tutti i dati del reparto verranno persi.</string>
+    <string name="msg_delete_plant_confirmation">Stai per eliminare il reparto "%1$s". Continuare?</string>
+
+    <string name="notif_title_direct_chat">Messaggio Diretto</string>
+    <string name="notif_title_group_chat">Messaggio Gruppo</string>
+    <string name="notif_title_shift_assignment">Aggiornamento Turno</string>
+    <string name="notif_title_marketplace_add">Nuova Offerta</string>
+    <string name="notif_title_shift_response">Risposta Proposta</string>
+    <string name="notif_title_shift_proposal">Proposta Cambio</string>
+    <string name="notif_title_shift_approved">Cambio Approvato!</string>
+    <string name="notif_title_shift_rejected">Cambio Rifiutato</string>
+    <string name="notif_title_supervisor_action">Richiesta Supervisore</string>
+    <string name="notif_title_generic">Notifica</string>
+
+    <string name="plant_settings_label">Impostazioni Reparto</string>
+    <string name="import_shifts_label">Importa Turni</string>
+    <string name="invite_colleagues_label">Invita colleghi</string>
+    <string name="vacation_days_label">Giorni di Ferie</string>
+    <string name="shift_change_label">Cambio Turni</string>
+    <string name="shift_marketplace_label">Borsa Turni</string>
+    <string name="statistics_label">Statistiche</string>
+
+    <string name="share_plant_message_template">Ciao! Unisciti al reparto "%1$s" su Turnoshospi.\n\nID: %2$s\nCodice: %3$s</string>
+    <string name="share_chooser_title">Invita via:</string>
+
+    <string name="notif_unassigned_message">Sei stato rimosso dal turno del %1$s.</string>
+    <string name="notif_assigned_message">Il turno del %1$s è stato aggiornato.</string>
+    <string name="notif_vacation_saved_message">Giorno di ferie del %1$s registrato.</string>
+
+    <string name="dialog_vacation_title">Seleziona Ferie</string>
+    <string name="dialog_vacation_instruction">Seleziona i giorni di ferie:</string>
+    <string name="label_no_days_selected">Nessun giorno selezionato.</string>
+    <string name="btn_add_day">Aggiungi giorno</string>
+    <string name="btn_confirm_days">Conferma (%1$d gg)</string>
+    <string name="msg_vacation_saved">Ferie salvate.</string>
+    <string name="error_no_date_selected">Nessuna data selezionata.</string>
+    <string name="error_past_date_selection">Impossibile selezionare date passate.</string>
+    <string name="btn_add">Aggiungi</string>
+
+    <string name="title_import_shifts">Importa Turni</string>
+    <string name="subtitle_import_options">Opzioni importazione</string>
+    <string name="btn_download_template">Scarica modello</string>
+    <string name="btn_import">Importa</string>
+    <string name="btn_importing">Importando...</string>
+    <string name="status_processing">Elaborazione...</string>
+    <string name="msg_import_success">Importazione riuscita</string>
+    <string name="error_plant_not_loaded">Errore: Dati reparto non caricati.</string>
+    <string name="error_csv_empty">File vuoto.</string>
+    <string name="error_csv_format">Errore riga %1$d: Formato errato.</string>
+    <string name="error_csv_date">Errore riga %1$d: Data invalida (%2$s).</string>
+    <string name="error_csv_shift">Errore riga %1$d: Turno '%2$s' inesistente.</string>
+    <string name="error_csv_role">Errore riga %1$d: Ruolo '%2$s' sconosciuto.</string>
+    <string name="error_csv_staff_not_found">Errore riga %1$d: '%2$s' non trovato.</string>
+    <string name="error_db_save">Errore DB: %1$s</string>
+    <string name="error_file_read">Errore lettura: %1$s</string>
+    <string name="msg_template_saved">Modello salvato in Download</string>
+    <string name="error_template_save">Errore salvataggio: %1$s</string>
+
+    <string name="error_name_required">Nome obbligatorio</string>
+    <string name="error_generic">Errore</string>
+
+    <string name="statistics_user_title">Statistiche di %1$s</string>
+    <string name="msg_no_staff_stats">Nessuna ora registrata questo mese.</string>
+    <string name="header_total_hours_general">Ore Totali Personale</string>
+    <string name="format_shifts_count">%1$d turni</string>
+    <string name="desc_view_stats">Vedi statistiche di %1$s</string>
+    <string name="header_stats_breakdown">Dettaglio</string>
+    <string name="msg_no_user_stats">Nessuna ora per %1$s questo mese.</string>
+    <string name="label_total_worked">Ore Totali</string>
+    <string name="format_shifts_done">%1$d turni fatti</string>
+    <string name="header_shift_breakdown">Dettaglio per Turno</string>
+</resources>

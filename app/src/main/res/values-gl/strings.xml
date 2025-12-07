@@ -1,0 +1,429 @@
+<resources>
+    <string name="app_name">TurnosHospi</string>
+    <string-array name="days_of_week_short">
+        <item>L</item> <item>Ma</item> <item>Mi</item> <item>J</item> <item>V</item> <item>S</item> <item>D</item>
+    </string-array>
+
+    <string name="back_desc">Înapoi</string>
+    <string name="close_label">Închide</string>
+    <string name="cancel_label">Anulează</string>
+    <string name="cancel">Anulează</string>
+    <string name="save">Salvează</string>
+    <string name="saving_label">Se salvează…</string>
+    <string name="edit">Editează</string>
+    <string name="delete">Șterge</string>
+    <string name="send_desc">Trimite</string>
+    <string name="loading_text">Se încarcă...</string>
+    <string name="menu_info">Informații</string>
+    <string name="menu_info_desc">Ajutor, suport și detalii aplicație.</string>
+
+    <string name="previous_month_desc">Luna anterioară</string>
+    <string name="next_month_desc">Luna următoare</string>
+    <string name="desc_prev_month">Luna anterioară</string>
+    <string name="desc_next_month">Luna următoare</string>
+    <string name="select_date_prompt">Selectează data</string>
+    <string name="select_day">Selectează ziua</string>
+    <string name="plant_calendar_title">Calendar ture</string>
+    <string name="agenda_title">Agenda zilei: %1$s</string>
+
+    <string name="shift_detail_title">Tură: %1$s</string>
+    <string name="nurses_list_prefix">Asistenți: %1$s</string>
+    <string name="auxiliaries_list_prefix">Infirmieri: %1$s</string>
+    <string name="colleagues_header">Colegi:</string>
+    <string name="no_colleagues_found">Niciun coleg găsit.</string>
+    <string name="no_shifts_assigned">Nicio tură alocată.</string>
+
+    <string name="legend_free">Liber</string>
+    <string name="legend_morning">Dimineață</string>
+    <string name="legend_morning_half">Semi-Dim.</string>
+    <string name="legend_afternoon">După-amiază</string>
+    <string name="legend_afternoon_half">Semi-DA.</string>
+    <string name="legend_night">Noapte</string>
+    <string name="legend_exit_night">Ieșire tură</string>
+    <string name="legend_holiday">Concediu</string>
+
+    <string name="shift_morning">Dimineață</string>
+    <string name="shift_afternoon">După-amiază</string>
+    <string name="shift_night">Noapte</string>
+    <string name="shift_saliente">Ieșire tură</string>
+    <string name="shift_morning_half">Semi-Dimineață</string>
+    <string name="shift_afternoon_half">Semi-După-amiază</string>
+    <string name="shift_holiday">Concediu</string>
+    <string name="shift_free">Liber</string>
+    <string name="shift_day">Zi</string>
+
+    <string name="role_supervisor_male">Asistent Șef</string>
+    <string name="role_supervisor_female">Asistentă Șefă</string>
+    <string name="role_nurse_male">Asistent medical</string>
+    <string name="role_nurse_female">Asistentă medicală</string>
+    <string name="role_aux_male">Infirmier</string>
+    <string name="role_aux_female">Infirmieră</string>
+    <string name="role_nurse_generic">Asistent(ă)</string>
+    <string name="role_aux_generic">Infirmier(ă)</string>
+    <string name="role_nurse">Asistent(ă)</string>
+    <string name="role_auxiliary">Infirmier(ă)</string>
+    <string name="gender_male">Bărbat</string>
+    <string name="gender_female">Femeie</string>
+    <string name="default_role">Fără rol</string>
+    <string name="default_user">Utilizator</string>
+    <string name="default_user_alias">Utilizator</string>
+
+    <string name="login_screen_title">Autentificare</string>
+    <string name="login_button">Intră în cont</string>
+    <string name="create_account_title">Creează cont</string>
+    <string name="create_account_action">Creează cont</string>
+    <string name="register_button">Salvează profil</string>
+    <string name="forgot_password">Ai uitat parola?</string>
+    <string name="reset_email_sent">Am trimis un link de recuperare</string>
+    <string name="back_to_login_action">Înapoi la autentificare</string>
+    <string name="sign_out">Deconectare</string>
+    <string name="loading_profile">Se încarcă profilul…</string>
+    <string name="profile_summary_title">Profilul tău</string>
+    <string name="edit_profile">Editează profil</string>
+    <string name="email_label">Email</string>
+    <string name="password_label">Parolă</string>
+    <string name="password_hide_desc">Ascunde parola</string>
+    <string name="password_show_desc">Arată parola</string>
+    <string name="confirm_password">Confirmă parola</string>
+    <string name="first_name_label">Prenume</string>
+    <string name="last_name_label">Nume</string>
+    <string name="role_dropdown_label">Funcție</string>
+    <string name="gender_select_label">Gen</string>
+    <string name="profile_email_label">Email: %1$s</string>
+    <string name="profile_name_label">Nume: %1$s</string>
+    <string name="profile_role_label">Funcție: %1$s</string>
+
+    <string name="main_menu_welcome_male">Bine ai venit, %1$s</string>
+    <string name="main_menu_welcome_female">Bine ai venit, %1$s</string>
+    <string name="main_menu_subtitle">Selectează o opțiune pentru a organiza secțiile.</string>
+    <string name="side_menu_title">Meniu</string>
+    <string name="menu_create_plant">Creează secție nouă</string>
+    <string name="menu_create_plant_desc">Configurează o secție de la zero.</string>
+    <string name="menu_my_plants">Secția mea</string>
+    <string name="menu_my_plants_desc">Vezi și editează secțiile tale.</string>
+    <string name="menu_settings">Setări</string>
+    <string name="menu_settings_desc">Cont și preferințe.</string>
+    <string name="cd_menu">Meniu</string>
+    <string name="cd_notifications">Notificări</string>
+    <string name="cd_chats">Chat-uri</string>
+
+    <string name="plant_creation_title">Creează secție</string>
+    <string name="plant_general_data_title">Date generale secție</string>
+    <string name="plant_name_label">Nume secție</string>
+    <string name="unit_type_label">Tip unitate</string>
+    <string name="hospital_name_label">Nume spital</string>
+    <string name="create_plant_action">Creează secția</string>
+    <string name="shift_configuration_title">Configurare ture</string>
+    <string name="shift_duration_label">Durată ture</string>
+    <string name="shift_duration_placeholder">Selectează durata</string>
+    <string name="shift_duration_8h">8 ore</string>
+    <string name="shift_duration_12h">12 ore</string>
+    <string name="shift_timing_instruction">Definește orarul fiecărei ture.</string>
+    <string name="shift_half_day_question">Sunt permise jumătăți de normă?</string>
+    <string name="shift_start_label">Început</string>
+    <string name="shift_end_label">Sfârșit</string>
+    <string name="plant_staff_title">Personal secție</string>
+    <string name="staff_scope_question">Administrator personal</string>
+    <string name="staff_scope_nurses_only">Doar asistenți</string>
+    <string name="staff_scope_with_aux">Asistenți și infirmieri</string>
+    <string name="staff_requirements_title">Necesar minim personal</string>
+    <string name="staff_minimum_label">Nr. minim personal pe tură</string>
+    <string name="plant_created_title">Secție creată</string>
+    <string name="plant_created_message">Secția a fost configurată și este gata.</string>
+    <string name="plant_credentials_title">Acces secție</string>
+    <string name="plant_id_label">ID Secție</string>
+    <string name="plant_access_password_label">Parolă acces</string>
+    <string name="plant_share_hint">Distribuie datele cu echipa ta.</string>
+    <string name="back_to_menu">Înapoi la meniu</string>
+
+    <string name="refresh_plant_action">Actualizează date</string>
+    <string name="plant_location_label">%1$s • %2$s</string>
+    <string name="plant_hospital_only_label">Spital: %1$s</string>
+    <string name="plant_shift_summary">Ture de %1$s</string>
+    <string name="plant_half_day_allowed">Permite jumătăți de normă</string>
+    <string name="plant_half_day_not_allowed">Nu permite jumătăți de normă</string>
+    <string name="plant_shift_times_title">Orar configurat</string>
+    <string name="plant_shift_item">%1$s: %2$s - %3$s</string>
+    <string name="plant_staff_requirements_title">Cerințe minime</string>
+    <string name="plant_staff_requirement_item">%1$s: %2$d persoane</string>
+    <string name="plant_registered_users_label">Utilizatori: %1$d</string>
+    <string name="open_plant_detail_action">Vezi secția mea</string>
+    <string name="plant_detail_missing_data">Selectează o dată pentru a vedea turele.</string>
+    <string name="plant_shifts_for_date">Ture pentru %1$s</string>
+
+    <string name="plant_role_options_title">Opțiuni pentru %1$s</string>
+    <string name="plant_role_option_assign">Alocă personal</string>
+    <string name="plant_role_option_add_staff">Adaugă personal</string>
+    <string name="plant_role_option_check_half_day">Config. jum. normă</string>
+    <string name="plant_role_option_view_shifts">Vezi ture</string>
+    <string name="plant_role_option_half_day_request">Cere jumătate normă</string>
+    <string name="nurse_label">Asistent %1$d</string>
+    <string name="nurse_half_day_label">Asistent jum. normă</string>
+    <string name="aux_label">Infirmier %1$d</string>
+    <string name="aux_half_day_label">Infirmier jum. normă</string>
+    <string name="staff_unassigned_option">Nealocat</string>
+    <string name="half_day_readonly_label">Jumătate normă: %1$s</string>
+    <string name="save_assignments_action">Salvează organizarea</string>
+    <string name="edit_assignments_action">Editează organizarea</string>
+    <string name="plant_add_staff_option">Adaugă personal secție</string>
+    <string name="plant_staff_list_option">Listă personal</string>
+    <string name="plant_self_assign_action">Selectează-mă</string>
+    <string name="staff_dialog_title">Adaugă personal</string>
+    <string name="staff_dialog_name_label">Nume complet</string>
+    <string name="staff_dialog_role_label">Rol</string>
+    <string name="staff_dialog_save_action">Salvează</string>
+    <string name="staff_list_dialog_title">Personal %1$s</string>
+    <string name="staff_list_dialog_empty">Niciun personal înregistrat.</string>
+    <string name="edit_staff_member">Editează personal</string>
+    <string name="edit_shifts">Editează Ture</string>
+    <string name="mode_assignment">Mod Alocare</string>
+    <string name="save_and_exit">Salvează și Ieși</string>
+
+    <string name="my_plant_empty_title">Nu ești încă într-o secție</string>
+    <string name="my_plant_empty_message">Introdu ID-ul secției și codul de invitație.</string>
+    <string name="invitation_code_label">Cod invitație</string>
+    <string name="join_plant_action">Intră în secție</string>
+    <string name="join_plant_success">Ai intrat în secție.</string>
+    <string name="join_plant_success_detail">Te-ai alăturat secției cu succes.</string>
+    <string name="loading_my_plant">Se caută secția…</string>
+    <string name="plant_staff_link_title">Alege profilul în %1$s</string>
+    <string name="plant_staff_link_message">Selectează numele tău din listă pentru a lega contul.</string>
+    <string name="plant_staff_link_field_label">Personal secție</string>
+    <string name="plant_staff_link_confirm">Leagă</string>
+    <string name="plant_staff_lookup_message">Căutare profil...</string>
+    <string name="plant_staff_linked_label">Legat ca %1$s (%2$s)</string>
+    <string name="plant_staff_link_prompt">Leagă contul pentru sincronizare.</string>
+    <string name="staff_identity_title">Profilul tău</string>
+    <string name="staff_identity_label">Selectează-ți numele</string>
+    <string name="staff_identity_hint">Asistentul șef gestionează lista.</string>
+    <string name="staff_identity_missing">Cere asistentului șef să te adauge.</string>
+
+    <string name="notes_title">Notițe</string>
+    <string name="add_note">Adaugă notă</string>
+    <string name="write_here">Scrie aici...</string>
+    <string name="no_notes_hint">Nicio notă. Apasă +.</string>
+    <string name="chat_screen_title">Chat-urile mele</string>
+    <string name="new_chat_desc">Chat nou</string>
+    <string name="no_recent_chats">Niciun chat recent.</string>
+    <string name="start_chat_hint">Apasă + pentru a începe.</string>
+    <string name="delete_chat_action">Șterge chat</string>
+    <string name="start_new_chat_title">Începe chat nou</string>
+    <string name="no_users_found">Niciun alt utilizator găsit.</string>
+    <string name="message_placeholder">Mesaj...</string>
+    <string name="group_chat_title">Chat Secție</string>
+    <string name="write_message_placeholder">Scrie un mesaj...</string>
+    <string name="notification_group_msg_template">Mesaj nou de la %1$s.</string>
+
+    <string name="notif_channel_name">Alerte Ture</string>
+    <string name="notif_channel_desc">Notificări sonore și vizuale</string>
+    <string name="notification_save_error">Eroare salvare notificare:</string>
+    <string name="error_save_notification">Eroare salvare notificare: %1$s</string>
+
+    <string name="password_mismatch_error">Parolele nu coincid</string>
+    <string name="auth_weak_password">Parolă slabă (min 6 caractere)</string>
+    <string name="auth_user_collision">Cont existent</string>
+    <string name="auth_invalid_credentials">Date invalide</string>
+    <string name="auth_invalid_user">Cont inexistent sau dezactivat</string>
+    <string name="auth_operation_not_allowed">Activează Email/Parolă în Firebase</string>
+    <string name="auth_network_error">Fără conexiune.</string>
+    <string name="auth_generic_error">Eroare autentificare:</string>
+    <string name="auth_unknown_error">Eroare necunoscută.</string>
+
+    <string name="auth_login_failed">Autentificare eșuată</string>
+    <string name="auth_create_failed">Creare cont eșuată</string>
+    <string name="auth_reset_email_failed">Trimitere email eșuată</string>
+
+    <string name="login_error_generic">Autentificare eșuată</string>
+    <string name="create_account_error">Creare cont eșuată</string>
+    <string name="reset_email_error">Trimitere email eșuată</string>
+    <string name="error_login_required">Autentificare necesară</string>
+
+    <string name="error_save_profile">Eroare salvare profil</string>
+    <string name="profile_save_error">Eroare salvare profil</string>
+
+    <string name="error_db_rules">Verifică reguli DB</string>
+    <string name="database_rules_error">Verifică reguli DB</string>
+
+    <string name="error_delete_plant">Eroare ștergere secție.</string>
+    <string name="delete_plant_error">Eroare ștergere secție.</string>
+
+    <string name="plant_required_fields_error">Completează datele.</string>
+    <string name="plant_save_error">Eroare salvare.</string>
+    <string name="plant_auth_error">Eroare auth</string>
+    <string name="staff_dialog_error">Nume obligatoriu.</string>
+    <string name="staff_dialog_save_error">Eroare salvare personal.</string>
+
+    <string name="join_plant_error">Eroare alăturare</string>
+    <string name="join_plant_not_found">Secție negăsită</string>
+    <string name="invalid_invitation_code">Cod invalid</string>
+    <string name="plant_load_error">Eroare încărcare secție</string>
+    <string name="title_notifications">Notificări</string>
+    <string name="msg_no_notifications">Nu ai notificări</string>
+    <string name="desc_back">Înapoi</string>
+    <string name="desc_delete">Șterge</string>
+    <string name="desc_delete_all">Șterge tot</string>
+    <string name="title_offline_roster">Orar Offline</string>
+    <string name="btn_save">Salvează</string>
+    <string name="btn_cancel">Anulează</string>
+    <string name="dialog_edit_shift_title">Editare Tură - %s</string>
+
+    <string name="tab_my_shifts">Turele Mele</string>
+    <string name="tab_management">Gestionare</string>
+    <string name="tab_suggestions">Sugestii</string>
+    <string name="title_candidate_search">Căutare Candidați</string>
+    <string name="title_change_management">Gestionare Schimburi</string>
+
+    <string name="msg_request_sent">Cerere trimisă. Așteaptă acceptul.</string>
+    <string name="msg_request_deleted">Cerere ștearsă</string>
+    <string name="msg_swap_approved">Schimb aprobat.</string>
+    <string name="msg_supervisor_rejected">Șeful a refuzat.</string>
+    <string name="msg_partner_accepted">Colegul a acceptat. Așteaptă Șeful.</string>
+    <string name="msg_partner_rejected">Colegul a refuzat.</string>
+    <string name="msg_request_created">Cerere creată. Vezi 'Sugestii'.</string>
+
+    <string name="header_supervisor_pending">În așteptare (Șef)</string>
+    <string name="header_in_process">În curs</string>
+    <string name="header_my_searches">Căutările mele</string>
+    <string name="header_history">Istoric</string>
+    <string name="msg_no_recent_activity">Fără activitate.</string>
+
+    <string name="header_search_candidates">Găsește candidați</string>
+    <string name="desc_search_candidates">Selectează o tură pentru schimb.</string>
+    <string name="msg_no_active_offers">Fără oferte active.</string>
+    <string name="desc_create_offer">Creează una în 'Turele Mele'.</string>
+    <string name="label_offering_shift">Oferi tura din:</string>
+    <string name="btn_see_candidates">VEZI CANDIDAȚI</string>
+    <string name="badge_active">ACTIVĂ</string>
+
+    <string name="card_compatible_candidates">Candidați Compatibili</string>
+    <string name="filter_date">Data</string>
+    <string name="filter_person">Persoana</string>
+    <string name="filter_shift">Tura</string>
+    <string name="msg_no_candidates_found">Niciun coleg disponibil.</string>
+    <string name="btn_preview">Previzualizare</string>
+    <string name="btn_choose">Alege</string>
+
+    <string name="dialog_simulation_title">Simulare Schimb</string>
+    <string name="label_around_date">În jurul %1$s</string>
+    <string name="label_me">Eu</string>
+
+    <string name="label_current_turn">Tură curentă: %1$s</string>
+    <string name="msg_no_shift_today">Fără tură azi.</string>
+    <string name="btn_search_swap">CAUTĂ SCHIMB</string>
+
+    <string name="dialog_open_request_title">Cere Schimb Deschis</string>
+    <string name="label_offering_turn_date">Oferi tura din:</string>
+    <string name="label_swap_preference">Preferință:</string>
+    <string name="chip_flexible">Flexibil</string>
+    <string name="chip_strict">Strict</string>
+    <string name="desc_flexible">Orice coleg compatibil.</string>
+    <string name="desc_strict">Prioritate celor datori.</string>
+    <string name="btn_publish_request">PUBLICĂ</string>
+
+    <string name="status_pending_supervisor">AȘTEAPTĂ ȘEFUL</string>
+    <string name="status_proposal_received">PROPUNERE PRIMITĂ!</string>
+    <string name="status_waiting_partner">AȘTEAPTĂ PE %1$s</string>
+    <string name="status_approved">SCHIMB APROBAT</string>
+    <string name="label_origin">Origine</string>
+    <string name="label_destination">Destinație</string>
+    <string name="label_searching_candidate">Caut candidat...</string>
+    <string name="label_offering">Oferi: %1$s</string>
+    <string name="label_suggestion_hint">Mergi la 'Sugestii' pentru schimb.</string>
+
+    <string name="btn_approve">Aprobă</string>
+    <string name="btn_reject">Refuză</string>
+    <string name="btn_accept">Acceptă</string>
+    <string name="btn_close">Închide</string>
+    <string name="btn_delete_history">Șterge istoric</string>
+    <string name="btn_view_simulation">Vezi Simulare</string>
+
+    <string name="title_alert">Aviz</string>
+    <string name="btn_understood">Am înțeles</string>
+    <string name="title_profile_saved">Profil salvat</string>
+    <string name="msg_profile_saved">Datele au fost actualizate.</string>
+    <string name="logo_desc">Siglă Turnoshospi</string>
+
+    <string name="title_settings">Setări</string>
+    <string name="title_customize_colors">Culori Ture</string>
+    <string name="btn_restore_colors">Resetare culori</string>
+    <string name="title_manage_account">Gestionare cont</string>
+    <string name="btn_delete_account">Șterge cont</string>
+    <string name="msg_delete_account_warning">Acțiune ireversibilă. Se pierd toate datele.</string>
+    <string name="title_are_you_sure">Ești sigur?</string>
+    <string name="msg_delete_account_confirmation">Contul va fi șters definitiv. Continui?</string>
+    <string name="btn_delete_confirm">Șterge</string>
+    <string name="title_pick_color">Alege culoare</string>
+
+    <string name="btn_delete_plant">Șterge secția</string>
+    <string name="msg_delete_plant_warning">Acțiune ireversibilă. Se pierd datele secției.</string>
+    <string name="msg_delete_plant_confirmation">Ștergi secția "%1$s". Continuăm?</string>
+
+    <string name="notif_title_direct_chat">Mesaj Direct</string>
+    <string name="notif_title_group_chat">Mesaj Grup</string>
+    <string name="notif_title_shift_assignment">Actualizare Tură</string>
+    <string name="notif_title_marketplace_add">Ofertă Nouă</string>
+    <string name="notif_title_shift_response">Răspuns</string>
+    <string name="notif_title_shift_proposal">Propunere</string>
+    <string name="notif_title_shift_approved">Schimb Aprobat!</string>
+    <string name="notif_title_shift_rejected">Schimb Refuzat</string>
+    <string name="notif_title_supervisor_action">Cerere Șef</string>
+    <string name="notif_title_generic">Notificare</string>
+
+    <string name="plant_settings_label">Configurare Secție</string>
+    <string name="import_shifts_label">Importă Ture</string>
+    <string name="invite_colleagues_label">Invită colegi</string>
+    <string name="vacation_days_label">Zile Concediu</string>
+    <string name="shift_change_label">Schimb Ture</string>
+    <string name="shift_marketplace_label">Bursa Turelor</string>
+    <string name="statistics_label">Statistici</string>
+
+    <string name="share_plant_message_template">Salut! Intră în secția "%1$s" pe Turnoshospi.\n\nID: %2$s\nCod: %3$s</string>
+    <string name="share_chooser_title">Invită prin:</string>
+
+    <string name="notif_unassigned_message">Ai fost scos din tura de pe %1$s.</string>
+    <string name="notif_assigned_message">Tura de pe %1$s a fost actualizată.</string>
+    <string name="notif_vacation_saved_message">Ziua de concediu %1$s a fost salvată.</string>
+
+    <string name="dialog_vacation_title">Selectează Concediu</string>
+    <string name="dialog_vacation_instruction">Alege zilele de concediu:</string>
+    <string name="label_no_days_selected">Nicio zi selectată.</string>
+    <string name="btn_add_day">Adaugă zi</string>
+    <string name="btn_confirm_days">Confirmă (%1$d zile)</string>
+    <string name="msg_vacation_saved">Concediu salvat.</string>
+    <string name="error_no_date_selected">Nicio dată.</string>
+    <string name="error_past_date_selection">Nu poți alege zile trecute.</string>
+    <string name="btn_add">Adaugă</string>
+
+    <string name="title_import_shifts">Importă Ture</string>
+    <string name="subtitle_import_options">Opțiuni import</string>
+    <string name="btn_download_template">Descarcă model</string>
+    <string name="btn_import">Importă</string>
+    <string name="btn_importing">Se importă...</string>
+    <string name="status_processing">Se procesează...</string>
+    <string name="msg_import_success">Import reușit</string>
+    <string name="error_plant_not_loaded">Eroare: Date secție neîncărcate.</string>
+    <string name="error_csv_empty">Fișier gol.</string>
+    <string name="error_csv_format">Eroare rând %1$d: Format greșit.</string>
+    <string name="error_csv_date">Eroare rând %1$d: Dată invalidă (%2$s).</string>
+    <string name="error_csv_shift">Eroare rând %1$d: Tura '%2$s' inexistentă.</string>
+    <string name="error_csv_role">Eroare rând %1$d: Rol '%2$s' necunoscut.</string>
+    <string name="error_csv_staff_not_found">Eroare rând %1$d: '%2$s' nu există.</string>
+    <string name="error_db_save">Eroare DB: %1$s</string>
+    <string name="error_file_read">Eroare citire: %1$s</string>
+    <string name="msg_template_saved">Model salvat în Descărcări</string>
+    <string name="error_template_save">Eroare salvare: %1$s</string>
+
+    <string name="error_name_required">Nume obligatoriu</string>
+    <string name="error_generic">Eroare</string>
+
+    <string name="statistics_user_title">Statistici %1$s</string>
+    <string name="msg_no_staff_stats">Nicio oră înregistrată luna asta.</string>
+    <string name="header_total_hours_general">Ore Totale Personal</string>
+    <string name="format_shifts_count">%1$d ture</string>
+    <string name="desc_view_stats">Vezi statistici %1$s</string>
+    <string name="header_stats_breakdown">Detalii</string>
+    <string name="msg_no_user_stats">Fără ore pentru %1$s luna asta.</string>
+    <string name="label_total_worked">Total Ore</string>
+    <string name="format_shifts_done">%1$d ture efectuate</string>
+    <string name="header_shift_breakdown">Defalcare pe Ture</string>
+</resources>

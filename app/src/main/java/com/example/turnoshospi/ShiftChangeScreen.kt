@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource // IMPORTANTE
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -75,7 +76,13 @@ fun ShiftChangeScreen(
     onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Mis Turnos", "Gestión de Cambios", "Sugerencias")
+
+    // TRADUCCIÓN: Tabs usando stringResource
+    val tabs = listOf(
+        stringResource(R.string.tab_my_shifts),
+        stringResource(R.string.tab_management),
+        stringResource(R.string.tab_suggestions)
+    )
 
     val context = LocalContext.current
     val database = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
@@ -245,22 +252,34 @@ fun ShiftChangeScreen(
     // ========================================================================================
     // UI PRINCIPAL
     // ========================================================================================
+
+    // TRADUCCIÓN: Strings de títulos
+    val titleCandidateSearch = stringResource(R.string.title_candidate_search)
+    val titleManagement = stringResource(R.string.title_change_management)
+    val msgRequestSent = stringResource(R.string.msg_request_sent)
+    val msgRequestDeleted = stringResource(R.string.msg_request_deleted)
+    val msgSwapApproved = stringResource(R.string.msg_swap_approved)
+    val msgSupervisorRejected = stringResource(R.string.msg_supervisor_rejected)
+    val msgPartnerAccepted = stringResource(R.string.msg_partner_accepted)
+    val msgPartnerRejected = stringResource(R.string.msg_partner_rejected)
+    val msgRequestCreated = stringResource(R.string.msg_request_created)
+
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
                 title = {
                     if (selectedRequestForSuggestions != null)
-                        Text("Buscador de Candidatos", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text(titleCandidateSearch, color = Color.White, fontWeight = FontWeight.Bold)
                     else
-                        Text("Gestión de Cambios", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text(titleManagement, color = Color.White, fontWeight = FontWeight.Bold)
                 },
                 navigationIcon = {
                     IconButton(onClick = {
                         if (selectedRequestForSuggestions != null) selectedRequestForSuggestions = null
                         else onBack()
                     }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back_desc), tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -310,7 +329,7 @@ fun ShiftChangeScreen(
                             onProposeSwap = { candidateShift ->
                                 performDirectProposal(database, plantId, selectedRequestForSuggestions!!, candidateShift, onSaveNotification)
                                 selectedRequestForSuggestions = null
-                                Toast.makeText(context, "Solicitud enviada. Esperando aceptación del compañero.", Toast.LENGTH_LONG).show()
+                                Toast.makeText(context, msgRequestSent, Toast.LENGTH_LONG).show()
                             }
                         )
                     } else if (isSupervisor) {
@@ -336,7 +355,7 @@ fun ShiftChangeScreen(
                             shiftColors = shiftColors, // Pasamos colores
                             onDeleteRequest = { req ->
                                 deleteShiftRequest(database, plantId, req.id)
-                                Toast.makeText(context, "Solicitud borrada", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, msgRequestDeleted, Toast.LENGTH_SHORT).show()
                             },
                             onAcceptByPartner = { },
                             onRejectByPartner = { },
@@ -346,14 +365,14 @@ fun ShiftChangeScreen(
                                     if (req.targetUserId != null && !req.targetUserId.startsWith("UNREGISTERED")) {
                                         onSaveNotification(req.targetUserId, "SHIFT_APPROVED", "Cambio aprobado por supervisor.", "ShiftChangeScreen", req.id, {})
                                     }
-                                    Toast.makeText(context, "Cambio ejecutado y aprobado.", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, msgSwapApproved, Toast.LENGTH_SHORT).show()
                                 }, { err ->
                                     Toast.makeText(context, "Error: $err", Toast.LENGTH_SHORT).show()
                                 })
                             },
                             onRejectBySupervisor = { req ->
                                 updateRequestStatus(database, plantId, req.id, RequestStatus.REJECTED)
-                                onSaveNotification(req.requesterId, "SHIFT_REJECTED", "El supervisor rechazó el cambio.", "ShiftChangeScreen", req.id, {})
+                                onSaveNotification(req.requesterId, "SHIFT_REJECTED", msgSupervisorRejected, "ShiftChangeScreen", req.id, {})
                             }
                         )
                     } else {
@@ -408,14 +427,14 @@ fun ShiftChangeScreen(
                                     shiftColors = shiftColors, // Pasamos colores
                                     onDeleteRequest = { req ->
                                         deleteShiftRequest(database, plantId, req.id)
-                                        Toast.makeText(context, "Solicitud borrada", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, msgRequestDeleted, Toast.LENGTH_SHORT).show()
                                     },
                                     onAcceptByPartner = { req ->
                                         updateRequestStatus(database, plantId, req.id, RequestStatus.AWAITING_SUPERVISOR)
                                         onSaveNotification(
                                             req.requesterId,
                                             "SHIFT_UPDATE",
-                                            "Tu compañero ha aceptado el cambio. Pendiente de Supervisor.",
+                                            msgPartnerAccepted,
                                             "ShiftChangeScreen",
                                             req.id, {}
                                         )
@@ -427,7 +446,7 @@ fun ShiftChangeScreen(
                                             onSaveNotification(
                                                 req.requesterId,
                                                 "SHIFT_REJECTED",
-                                                "El compañero rechazó el cambio.",
+                                                msgPartnerRejected,
                                                 "ShiftChangeScreen",
                                                 req.id, {}
                                             )
@@ -478,7 +497,7 @@ fun ShiftChangeScreen(
                 )
 
                 database.getReference("plants/$plantId/shift_requests/$reqId").setValue(newRequest)
-                Toast.makeText(context, "Solicitud creada. Ve a 'Sugerencias' para buscar candidatos.", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, msgRequestCreated, Toast.LENGTH_LONG).show()
                 showCreateDialog = false
                 selectedTab = 2 // Ir a sugerencias
             }
@@ -516,11 +535,11 @@ fun ShiftManagementTab(
 
         // 1. SUPERVISOR (Prioridad Máxima)
         if (isSupervisor && supervisorRequests.isNotEmpty()) {
-            item { Text("Pendientes de Aprobación (Supervisor)", color = Color(0xFFE91E63), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
+            item { Text(stringResource(R.string.header_supervisor_pending), color = Color(0xFFE91E63), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
             items(supervisorRequests) { req ->
                 Card(colors = CardDefaults.cardColors(containerColor = Color(0x22E91E63))) {
                     Column(Modifier.padding(16.dp)) {
-                        Text("Confirmación de Cambio", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.dialog_simulation_title), color = Color.White, fontWeight = FontWeight.Bold)
                         Spacer(Modifier.height(4.dp))
                         Text("${req.requesterName} (${req.requesterShiftDate})", color = Color(0xCCFFFFFF), fontSize = 13.sp)
                         Icon(Icons.Default.SwapHoriz, null, tint = Color.White, modifier = Modifier.size(16.dp))
@@ -540,13 +559,13 @@ fun ShiftManagementTab(
                         ) {
                             Icon(Icons.Default.Visibility, null, modifier = Modifier.size(16.dp), tint = Color(0xFF54C7EC))
                             Spacer(Modifier.width(8.dp))
-                            Text("Ver Simulación", color = Color(0xFF54C7EC), fontSize = 12.sp)
+                            Text(stringResource(R.string.btn_view_simulation), color = Color(0xFF54C7EC), fontSize = 12.sp)
                         }
 
                         Spacer(Modifier.height(12.dp))
                         Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
-                            TextButton(onClick = { onRejectBySupervisor(req) }) { Text("Rechazar", color = Color(0xFFFFB4AB)) }
-                            Button(onClick = { onApproveBySupervisor(req) }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))) { Text("Aprobar Cambio") }
+                            TextButton(onClick = { onRejectBySupervisor(req) }) { Text(stringResource(R.string.btn_reject), color = Color(0xFFFFB4AB)) }
+                            Button(onClick = { onApproveBySupervisor(req) }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))) { Text(stringResource(R.string.btn_approve)) }
                         }
                     }
                 }
@@ -555,7 +574,7 @@ fun ShiftManagementTab(
 
         // 2. EN PROCESO (ACCIÓN REQUERIDA O ESPERANDO)
         if (peerPendingRequests.isNotEmpty()) {
-            item { Text("En Proceso", color = Color(0xFFFFA000), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
+            item { Text(stringResource(R.string.header_in_process), color = Color(0xFFFFA000), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
             items(peerPendingRequests) { req ->
                 // Determinar si soy el destino por ID o por NOMBRE
                 val amITarget = req.targetUserId == currentUserId || req.targetUserName.equals(currentUserName, ignoreCase = true)
@@ -574,28 +593,29 @@ fun ShiftManagementTab(
                             if (isAwaitingSupervisor) {
                                 Icon(Icons.Default.Info, null, tint = Color(0xFFE91E63), modifier = Modifier.size(16.dp))
                                 Spacer(Modifier.width(8.dp))
-                                Text("PENDIENTE DE APROBACIÓN DE SUPERVISOR", color = Color(0xFFE91E63), fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                Text(stringResource(R.string.status_pending_supervisor), color = Color(0xFFE91E63), fontWeight = FontWeight.Bold, fontSize = 12.sp)
                             } else if (amITarget) {
                                 Icon(Icons.Default.Info, null, tint = Color(0xFF4CAF50), modifier = Modifier.size(16.dp))
                                 Spacer(Modifier.width(8.dp))
-                                Text("¡TE HAN PROPUESTO UN CAMBIO!", color = Color(0xFF4CAF50), fontWeight = FontWeight.ExtraBold, fontSize = 12.sp)
+                                Text(stringResource(R.string.status_proposal_received), color = Color(0xFF4CAF50), fontWeight = FontWeight.ExtraBold, fontSize = 12.sp)
                             } else {
                                 Icon(Icons.Default.Refresh, null, tint = Color(0xFFFFA000), modifier = Modifier.size(16.dp))
                                 Spacer(Modifier.width(8.dp))
-                                Text("ESPERANDO RESPUESTA DE ${req.targetUserName?.uppercase() ?: "COMPAÑERO"}", color = Color(0xFFFFA000), fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                val targetName = req.targetUserName?.uppercase() ?: "?"
+                                Text(stringResource(R.string.status_waiting_partner, targetName), color = Color(0xFFFFA000), fontWeight = FontWeight.Bold, fontSize = 12.sp)
                             }
                         }
                         Spacer(Modifier.height(12.dp))
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
-                                Text("Origen", color = Color.Gray, fontSize = 10.sp)
+                                Text(stringResource(R.string.label_origin), color = Color.Gray, fontSize = 10.sp)
                                 Text(req.requesterName, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                                 Text(req.requesterShiftDate, color = Color(0xCCFFFFFF), fontSize = 12.sp)
                             }
                             Icon(Icons.Default.SwapHoriz, null, tint = Color.White, modifier = Modifier.padding(horizontal = 8.dp))
                             Column(Modifier.weight(1f)) {
-                                Text("Destino", color = Color.Gray, fontSize = 10.sp)
+                                Text(stringResource(R.string.label_destination), color = Color.Gray, fontSize = 10.sp)
                                 Text(req.targetUserName ?: "?", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                                 Text(req.targetShiftDate ?: "?", color = Color(0xCCFFFFFF), fontSize = 12.sp)
                             }
@@ -615,7 +635,7 @@ fun ShiftManagementTab(
                             ) {
                                 Icon(Icons.Default.Visibility, null, modifier = Modifier.size(16.dp), tint = Color(0xFF54C7EC))
                                 Spacer(Modifier.width(8.dp))
-                                Text("Ver Simulación", color = Color(0xFF54C7EC), fontSize = 12.sp)
+                                Text(stringResource(R.string.btn_view_simulation), color = Color(0xFF54C7EC), fontSize = 12.sp)
                             }
                         }
 
@@ -623,7 +643,7 @@ fun ShiftManagementTab(
                             // Permitir cancelar incluso esperando supervisor (opcional, pero buena UX)
                             Spacer(Modifier.height(8.dp))
                             TextButton(onClick = { onDeleteRequest(req) }, modifier = Modifier.align(Alignment.End)) {
-                                Text("Cancelar Solicitud", color = Color(0xFFFFB4AB), fontSize = 12.sp)
+                                Text(stringResource(R.string.btn_cancel), color = Color(0xFFFFB4AB), fontSize = 12.sp)
                             }
                         } else if (amITarget) {
                             Spacer(Modifier.height(16.dp))
@@ -633,20 +653,20 @@ fun ShiftManagementTab(
                                     border = BorderStroke(1.dp, Color(0xFFFFB4AB)),
                                     colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFFB4AB))
                                 ) {
-                                    Text("Rechazar")
+                                    Text(stringResource(R.string.btn_reject))
                                 }
                                 Spacer(Modifier.width(8.dp))
                                 Button(
                                     onClick = { onAcceptByPartner(req) },
                                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC), contentColor = Color.Black)
                                 ) {
-                                    Text("Aceptar Cambio")
+                                    Text(stringResource(R.string.btn_accept))
                                 }
                             }
                         } else {
                             Spacer(Modifier.height(8.dp))
                             TextButton(onClick = { onRejectByPartner(req) }, modifier = Modifier.align(Alignment.End)) {
-                                Text("Cancelar Solicitud", color = Color(0xFFFFB4AB), fontSize = 12.sp)
+                                Text(stringResource(R.string.btn_cancel), color = Color(0xFFFFB4AB), fontSize = 12.sp)
                             }
                         }
                     }
@@ -656,22 +676,22 @@ fun ShiftManagementTab(
 
         // 3. MIS BÚSQUEDAS (INICIADOS)
         if (openRequests.isNotEmpty()) {
-            item { Text("Mis Búsquedas Activas (Sin Candidato)", color = Color(0xFF54C7EC), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
+            item { Text(stringResource(R.string.header_my_searches), color = Color(0xFF54C7EC), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
             items(openRequests) { req ->
                 Card(colors = CardDefaults.cardColors(containerColor = Color(0x1154C7EC)), border = BorderStroke(1.dp, Color(0x3354C7EC))) {
                     Column(Modifier.padding(16.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.Search, null, tint = Color(0xFF54C7EC), modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(8.dp))
-                            Text("Buscando candidato...", color = Color(0xFF54C7EC), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.label_searching_candidate), color = Color(0xFF54C7EC), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             Spacer(Modifier.weight(1f))
                             IconButton(onClick = { onDeleteRequest(req) }, modifier = Modifier.size(24.dp)) {
                                 Icon(Icons.Default.Delete, null, tint = Color(0xFFFFB4AB), modifier = Modifier.size(16.dp))
                             }
                         }
                         Spacer(Modifier.height(8.dp))
-                        Text("Ofreces: ${req.requesterShiftDate} (${req.requesterShiftName})", color = Color.White, fontWeight = FontWeight.Bold)
-                        Text("Ve a la pestaña 'Sugerencias' para proponer cambio.", color = Color.Gray, fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp))
+                        Text(stringResource(R.string.label_offering, "${req.requesterShiftDate} (${req.requesterShiftName})"), color = Color.White, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.label_suggestion_hint), color = Color.Gray, fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp))
                     }
                 }
             }
@@ -679,9 +699,9 @@ fun ShiftManagementTab(
 
         // 4. HISTORIAL
         if (historyRequests.isNotEmpty()) {
-            item { Text("Historial (Completados)", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp) }
+            item { Text(stringResource(R.string.header_history), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp) }
             items(historyRequests) { req ->
-                val statusText = "CAMBIO APROBADO"
+                val statusText = stringResource(R.string.status_approved)
                 val statusColor = Color(0xFF4CAF50) // Verde
 
                 Card(colors = CardDefaults.cardColors(containerColor = Color(0x11FFFFFF))) {
@@ -694,19 +714,19 @@ fun ShiftManagementTab(
                         Spacer(Modifier.height(8.dp))
 
                         Text("${req.requesterName} ↔ ${req.targetUserName}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                        Text("${req.requesterShiftDate} por ${req.targetShiftDate}", color = Color.Gray, fontSize = 12.sp)
+                        Text("${req.requesterShiftDate} / ${req.targetShiftDate}", color = Color.Gray, fontSize = 12.sp)
 
                         // Botón de limpieza para historial antiguo
                         Spacer(Modifier.height(8.dp))
                         TextButton(onClick = { onDeleteRequest(req) }, modifier = Modifier.align(Alignment.End)) {
-                            Text("Borrar del Historial", color = Color.Gray, fontSize = 11.sp)
+                            Text(stringResource(R.string.btn_delete_history), color = Color.Gray, fontSize = 11.sp)
                         }
                     }
                 }
             }
         } else if (openRequests.isEmpty() && peerPendingRequests.isEmpty()) {
             item {
-                Text("No tienes actividad reciente.", color = Color.Gray, modifier = Modifier.fillMaxWidth().padding(32.dp), textAlign = TextAlign.Center)
+                Text(stringResource(R.string.msg_no_recent_activity), color = Color.Gray, modifier = Modifier.fillMaxWidth().padding(32.dp), textAlign = TextAlign.Center)
             }
         }
     }
@@ -720,6 +740,8 @@ fun ShiftManagementTab(
 
         // Preparar datos para las dos filas (Arriba y Abajo)
         // Usamos una data class auxiliar Quintuple definida al final
+        val labelMe = stringResource(R.string.label_me)
+
         val (row1Schedule, row1Name, row1DateOut, row1DateIn, row1ShiftIn) = if (isPreviewSupervisorMode) {
             // Supervisor: Fila 1 = Requester
             Quintuple(
@@ -733,7 +755,7 @@ fun ShiftManagementTab(
             // Partner Mode (Target User View): Fila 1 = YO (Target)
             Quintuple(
                 mySchedule,
-                "Yo",
+                labelMe,
                 dateTarget, // Pierdo mi turno
                 dateReq, // Gano su turno
                 req.requesterShiftName // Gano su turno
@@ -789,13 +811,13 @@ fun MyRequestsForSuggestionsTab(
     LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         item {
             Text(
-                "Busca candidatos para tus turnos",
+                stringResource(R.string.header_search_candidates),
                 color = Color(0xFF54C7EC),
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             Text(
-                "Selecciona uno de tus turnos ofertados para ver quién puede cambiártelo.",
+                stringResource(R.string.desc_search_candidates),
                 color = Color.Gray,
                 fontSize = 12.sp
             )
@@ -805,8 +827,8 @@ fun MyRequestsForSuggestionsTab(
             item {
                 Column(Modifier.fillMaxWidth().padding(top = 32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Default.Info, null, tint = Color.Gray, modifier = Modifier.size(48.dp))
-                    Text("No tienes ofertas activas.", color = Color.Gray)
-                    Text("Crea una en 'Mis Turnos' primero.", color = Color.Gray, fontSize = 12.sp)
+                    Text(stringResource(R.string.msg_no_active_offers), color = Color.Gray)
+                    Text(stringResource(R.string.desc_create_offer), color = Color.Gray, fontSize = 12.sp)
                 }
             }
         }
@@ -819,10 +841,10 @@ fun MyRequestsForSuggestionsTab(
                 Column(Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
-                            Text("Ofreces el turno del:", color = Color(0xCCFFFFFF), fontSize = 12.sp)
+                            Text(stringResource(R.string.label_offering_shift), color = Color(0xCCFFFFFF), fontSize = 12.sp)
                             Text("${req.requesterShiftDate} (${req.requesterShiftName})", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         }
-                        Badge(containerColor = Color(0xFF54C7EC), contentColor = Color.Black) { Text("ACTIVA") }
+                        Badge(containerColor = Color(0xFF54C7EC), contentColor = Color.Black) { Text(stringResource(R.string.badge_active)) }
                     }
                     Spacer(Modifier.height(16.dp))
                     Button(
@@ -832,7 +854,7 @@ fun MyRequestsForSuggestionsTab(
                     ) {
                         Icon(Icons.Default.Search, null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("VER CANDIDATOS COMPATIBLES")
+                        Text(stringResource(R.string.btn_see_candidates))
                     }
                 }
             }
@@ -922,8 +944,8 @@ fun FullPlantShiftsList(
                 Icon(Icons.Default.Info, null, tint = Color(0xFF54C7EC))
                 Spacer(Modifier.width(12.dp))
                 Column {
-                    Text("Candidatos Compatibles", color = Color.White, fontWeight = FontWeight.Bold)
-                    Text("Turno del: ${request.requesterShiftDate}", color = Color(0xAAFFFFFF), fontSize = 12.sp)
+                    Text(stringResource(R.string.card_compatible_candidates), color = Color.White, fontWeight = FontWeight.Bold)
+                    Text("${stringResource(R.string.label_offering_shift)} ${request.requesterShiftDate}", color = Color(0xAAFFFFFF), fontSize = 12.sp)
                 }
             }
         }
@@ -941,10 +963,10 @@ fun FullPlantShiftsList(
                 FilterChip(
                     selected = filterDate != null,
                     onClick = { showDatePicker = true },
-                    label = { Text(if(filterDate != null) filterDate.toString() else "Fecha") },
+                    label = { Text(if(filterDate != null) filterDate.toString() else stringResource(R.string.filter_date)) },
                     leadingIcon = { Icon(Icons.Default.CalendarToday, null, Modifier.size(16.dp)) },
                     trailingIcon = if (filterDate != null) {
-                        { Icon(Icons.Default.Close, "Borrar", Modifier.size(16.dp).clickable { filterDate = null }) }
+                        { Icon(Icons.Default.Close, stringResource(R.string.delete), Modifier.size(16.dp).clickable { filterDate = null }) }
                     } else null,
                     colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFF54C7EC), selectedLabelColor = Color.Black)
                 )
@@ -956,10 +978,10 @@ fun FullPlantShiftsList(
                     FilterChip(
                         selected = filterPerson != null,
                         onClick = { showPersonMenu = true },
-                        label = { Text(filterPerson ?: "Persona") },
+                        label = { Text(filterPerson ?: stringResource(R.string.filter_person)) },
                         leadingIcon = { Icon(Icons.Default.Person, null, Modifier.size(16.dp)) },
                         trailingIcon = if (filterPerson != null) {
-                            { Icon(Icons.Default.Close, "Borrar", Modifier.size(16.dp).clickable { filterPerson = null }) }
+                            { Icon(Icons.Default.Close, stringResource(R.string.delete), Modifier.size(16.dp).clickable { filterPerson = null }) }
                         } else null,
                         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFF54C7EC), selectedLabelColor = Color.Black)
                     )
@@ -974,24 +996,34 @@ fun FullPlantShiftsList(
                 }
             }
 
-            // 3. TURNO
+            // 3. TURNO (TRADUCIDO PERO LOGICA MANTENIDA)
             item {
+                // Mapeo Visual -> Valor BD
+                val shiftOptions = listOf(
+                    stringResource(R.string.shift_morning) to "Mañana",
+                    stringResource(R.string.shift_afternoon) to "Tarde",
+                    stringResource(R.string.shift_night) to "Noche"
+                )
+
+                // Encontrar label visual actual
+                val currentVisualLabel = shiftOptions.find { it.second == filterShiftType }?.first
+
                 Box {
                     FilterChip(
                         selected = filterShiftType != null,
                         onClick = { showShiftMenu = true },
-                        label = { Text(filterShiftType ?: "Turno") },
+                        label = { Text(currentVisualLabel ?: stringResource(R.string.filter_shift)) },
                         leadingIcon = { Icon(Icons.Default.Schedule, null, Modifier.size(16.dp)) },
                         trailingIcon = if (filterShiftType != null) {
-                            { Icon(Icons.Default.Close, "Borrar", Modifier.size(16.dp).clickable { filterShiftType = null }) }
+                            { Icon(Icons.Default.Close, stringResource(R.string.delete), Modifier.size(16.dp).clickable { filterShiftType = null }) }
                         } else null,
                         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFF54C7EC), selectedLabelColor = Color.Black)
                     )
                     DropdownMenu(expanded = showShiftMenu, onDismissRequest = { showShiftMenu = false }) {
-                        listOf("Mañana", "Tarde", "Noche").forEach { type ->
+                        shiftOptions.forEach { (label, dbValue) ->
                             DropdownMenuItem(
-                                text = { Text(type) },
-                                onClick = { filterShiftType = type; showShiftMenu = false }
+                                text = { Text(label) },
+                                onClick = { filterShiftType = dbValue; showShiftMenu = false }
                             )
                         }
                     }
@@ -1012,7 +1044,7 @@ fun FullPlantShiftsList(
                     }) { Text("OK") }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showDatePicker = false }) { Text("Cancelar") }
+                    TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.cancel)) }
                 }
             ) {
                 DatePicker(state = datePickerState)
@@ -1026,7 +1058,7 @@ fun FullPlantShiftsList(
             if (filteredShifts.isEmpty()) {
                 item {
                     Text(
-                        text = "No se encontraron compañeros disponibles con estos filtros.",
+                        text = stringResource(R.string.msg_no_candidates_found),
                         color = Color.Gray,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth().padding(32.dp)
@@ -1052,11 +1084,13 @@ fun FullPlantShiftsList(
         val candidate = previewCandidate!!
         val dateReq = LocalDate.parse(request.requesterShiftDate)
 
+        val labelMe = stringResource(R.string.label_me)
+
         // Simulación: Yo propongo (Row 1), a Candidato (Row 2)
         SchedulePreviewDialog(
             onDismiss = { showPreviewDialog = false },
             row1Schedule = currentUserSchedule,
-            row1Name = "Yo",
+            row1Name = labelMe,
             row1DateToRemove = dateReq,     // Doy mi turno
             row1DateToAdd = candidate.date, // Recibo su turno
             row1ShiftToAdd = candidate.shiftName,
@@ -1173,7 +1207,7 @@ fun PlantShiftCard(
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
                             modifier = Modifier.height(28.dp)
                         ) {
-                            Text("Preview", fontSize = 11.sp)
+                            Text(stringResource(R.string.btn_preview), fontSize = 11.sp)
                         }
 
                         Button(
@@ -1182,7 +1216,7 @@ fun PlantShiftCard(
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
                             modifier = Modifier.height(28.dp)
                         ) {
-                            Text("Elegir", color = Color.Black, fontSize = 11.sp)
+                            Text(stringResource(R.string.btn_choose), color = Color.Black, fontSize = 11.sp)
                         }
                     }
                 }
@@ -1216,6 +1250,10 @@ fun SchedulePreviewDialog(
     val days1 = remember(date1) { (-5..5).map { date1.plusDays(it.toLong()) } }
     val days2 = remember(date2) { (-5..5).map { date2.plusDays(it.toLong()) } }
 
+    // TRADUCCION: Formato de fecha con Locale del dispositivo
+    val deviceLocale = Locale.getDefault()
+    val dateFormatter = DateTimeFormatter.ofPattern("dd 'de' MMMM", deviceLocale)
+
     AlertDialog(
         onDismissRequest = onDismiss,
         // CAMBIO: wrapContentHeight en lugar de fillMaxHeight(0.9f) para "recortar" abajo
@@ -1226,14 +1264,14 @@ fun SchedulePreviewDialog(
         containerColor = Color(0xFF0F172A),
         title = {
             // AJUSTE: Tamaño proporcional más moderado
-            Text("Simulación del Cambio", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.dialog_simulation_title), color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
         },
         text = {
             Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
 
                 // --- BLOQUE 1 ---
                 Text(
-                    text = "Alrededor del ${date1.format(DateTimeFormatter.ofPattern("dd 'de' MMMM", Locale("es", "ES")))}",
+                    text = stringResource(R.string.label_around_date, date1.format(dateFormatter)),
                     color = Color(0xFF54C7EC),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
@@ -1261,7 +1299,7 @@ fun SchedulePreviewDialog(
 
                 // --- BLOQUE 2 ---
                 Text(
-                    text = "Alrededor del ${date2.format(DateTimeFormatter.ofPattern("dd 'de' MMMM", Locale("es", "ES")))}",
+                    text = stringResource(R.string.label_around_date, date2.format(dateFormatter)),
                     color = Color(0xFF54C7EC),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
@@ -1285,7 +1323,7 @@ fun SchedulePreviewDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Cerrar", fontSize = 14.sp) }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.btn_close), fontSize = 14.sp) }
         }
     )
 }
@@ -1320,7 +1358,7 @@ fun ScheduleWeekView(
                         val textColor = if (isRelevant) Color(0xFF54C7EC) else Color.Gray
                         // AJUSTE: Fuentes proporcionales
                         Column(modifier = Modifier.width(dayColumnWidth), horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(text = date.dayOfWeek.getDisplayName(TextStyle.NARROW, Locale("es", "ES")).uppercase(), color = textColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text(text = date.dayOfWeek.getDisplayName(TextStyle.NARROW, Locale.getDefault()).uppercase(), color = textColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                             Text(text = "${date.dayOfMonth}", color = textColor, fontSize = 13.sp)
                         }
                     }
@@ -1464,6 +1502,9 @@ fun MyShiftsCalendarTab(
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
     val shiftsMap = remember(shifts) { shifts.associateBy { it.fullDate } }
 
+    // TRADUCCION: Formato de mes con locale
+    val deviceLocale = Locale.getDefault()
+
     Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -1474,12 +1515,16 @@ fun MyShiftsCalendarTab(
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { currentMonth = currentMonth.minusMonths(1) }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White) }
-                    Text("${currentMonth.month.getDisplayName(TextStyle.FULL, Locale("es", "ES")).uppercase()} ${currentMonth.year}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    Text("${currentMonth.month.getDisplayName(TextStyle.FULL, deviceLocale).uppercase()} ${currentMonth.year}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
                     IconButton(onClick = { currentMonth = currentMonth.plusMonths(1) }) { Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Color.White) }
                 }
+
+                // Header dias semana con string-array de resources
+                val daysOfWeekShort = androidx.compose.ui.res.stringArrayResource(R.array.days_of_week_short)
                 Row(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
-                    listOf("L", "M", "X", "J", "V", "S", "D").forEach { Text(it, modifier = Modifier.weight(1f), color = Color.Gray, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold) }
+                    daysOfWeekShort.forEach { Text(it, modifier = Modifier.weight(1f), color = Color.Gray, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold) }
                 }
+
                 val firstDay = currentMonth.atDay(1)
                 val daysInMonth = currentMonth.lengthOfMonth()
                 val offset = firstDay.dayOfWeek.value - 1
@@ -1512,17 +1557,17 @@ fun MyShiftsCalendarTab(
             val date = selectedDate!!
             val shift = shiftsMap[date]
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                Text(text = date.format(DateTimeFormatter.ofPattern("EEEE d 'de' MMMM", Locale("es", "ES"))).replaceFirstChar { it.uppercase() }, color = Color(0xFF54C7EC), style = MaterialTheme.typography.titleMedium)
+                Text(text = date.format(DateTimeFormatter.ofPattern("EEEE d 'de' MMMM", deviceLocale)).replaceFirstChar { it.uppercase() }, color = Color(0xFF54C7EC), style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))
                 if (shift != null) {
-                    Text(text = "Turno actual: ${shift.shiftName}", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                    Text(text = stringResource(R.string.label_current_turn, shift.shiftName), color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(onClick = { onSelectShiftForChange(shift) }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC), contentColor = Color.Black), modifier = Modifier.fillMaxWidth().height(50.dp)) {
                         Icon(Icons.Default.SwapHoriz, null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("BUSCAR CAMBIO", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.btn_search_swap), fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
-                } else { Text("No tienes turno este día.", color = Color.Gray) }
+                } else { Text(stringResource(R.string.msg_no_shift_today), color = Color.Gray) }
             }
         }
     }
@@ -1544,7 +1589,7 @@ fun CreateShiftRequestDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = Color(0xFF0F172A),
-        title = { Text("Solicitar Cambio Abierto", color = Color.White) },
+        title = { Text(stringResource(R.string.dialog_open_request_title), color = Color.White) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Card(
@@ -1552,32 +1597,32 @@ fun CreateShiftRequestDialog(
                     border = BorderStroke(1.dp, Color(0x4454C7EC))
                 ) {
                     Column(modifier = Modifier.padding(12.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Vas a ofrecer tu turno del:", color = Color(0xCCFFFFFF), fontSize = 12.sp)
+                        Text(stringResource(R.string.label_offering_turn_date), color = Color(0xCCFFFFFF), fontSize = 12.sp)
                         Text("${shift.date} (${shift.shiftName})", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
                 }
                 HorizontalDivider(color = Color.White.copy(0.1f))
                 Column {
-                    Text("Preferencia de Cambio:", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.label_swap_preference), color = Color.White, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilterChip(
                             selected = selectedMode == RequestMode.FLEXIBLE,
                             onClick = { selectedMode = RequestMode.FLEXIBLE },
-                            label = { Text("Flexible") },
+                            label = { Text(stringResource(R.string.chip_flexible)) },
                             leadingIcon = if (selectedMode == RequestMode.FLEXIBLE) {{ Icon(Icons.Filled.Done, null, modifier = Modifier.size(16.dp)) }} else null,
                             modifier = Modifier.weight(1f)
                         )
                         FilterChip(
                             selected = selectedMode == RequestMode.STRICT,
                             onClick = { selectedMode = RequestMode.STRICT },
-                            label = { Text("Estricto") },
+                            label = { Text(stringResource(R.string.chip_strict)) },
                             leadingIcon = if (selectedMode == RequestMode.STRICT) {{ Icon(Icons.Filled.Done, null, modifier = Modifier.size(16.dp)) }} else null,
                             modifier = Modifier.weight(1f)
                         )
                     }
                     Text(
-                        text = if(selectedMode == RequestMode.FLEXIBLE) "Se buscará cualquier compañero compatible." else "Se priorizará a quienes te deben turnos.",
+                        text = if(selectedMode == RequestMode.FLEXIBLE) stringResource(R.string.desc_flexible) else stringResource(R.string.desc_strict),
                         color = Color.Gray,
                         fontSize = 12.sp,
                         lineHeight = 14.sp
@@ -1591,11 +1636,11 @@ fun CreateShiftRequestDialog(
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC), contentColor = Color.Black),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("PUBLICAR SOLICITUD ABIERTA")
+                Text(stringResource(R.string.btn_publish_request))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) { Text("Cancelar") }
+            TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.cancel)) }
         }
     )
 }

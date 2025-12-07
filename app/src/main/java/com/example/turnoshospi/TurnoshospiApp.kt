@@ -59,6 +59,7 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -161,6 +162,9 @@ fun TurnoshospiApp(
         chatUnreadCounts.values.sum()
     }
 
+    // Contexto para resources en funciones no-composables
+    val context = LocalContext.current
+
     var userNotifications by remember { mutableStateOf<List<AppNotification>>(emptyList()) }
     val unreadNotificationsCount = remember(userNotifications) {
         userNotifications.count { !it.read }
@@ -239,7 +243,7 @@ fun TurnoshospiApp(
                 userNotifications = notifications.map {
                     AppNotification(
                         id = it.id,
-                        title = getTitleForType(it.type),
+                        title = getTitleForType(context, it.type), // Uso del context aquí
                         message = it.message,
                         timestamp = it.timestamp,
                         read = it.isRead,
@@ -370,7 +374,7 @@ fun TurnoshospiApp(
 
                 Image(
                     painter = painterResource(id = R.mipmap.ic_logo_hospi_foreground),
-                    contentDescription = "Logo Turnoshospi",
+                    contentDescription = stringResource(id = R.string.logo_desc),
                     modifier = Modifier.size(logoSize)
                 )
 
@@ -689,10 +693,10 @@ fun TurnoshospiApp(
             onDismissRequest = onErrorDismiss,
             confirmButton = {
                 TextButton(onClick = onErrorDismiss) {
-                    Text(text = "Entendido")
+                    Text(text = stringResource(id = R.string.btn_understood))
                 }
             },
-            title = { Text(text = "Aviso") },
+            title = { Text(text = stringResource(id = R.string.title_alert)) },
             text = { Text(text = errorMessage) }
         )
     }
@@ -702,11 +706,11 @@ fun TurnoshospiApp(
             onDismissRequest = { saveCompleted = false },
             confirmButton = {
                 TextButton(onClick = { saveCompleted = false }) {
-                    Text(text = "Cerrar")
+                    Text(text = stringResource(id = R.string.close_label))
                 }
             },
-            title = { Text(text = "Perfil guardado") },
-            text = { Text(text = "Los datos de tu cuenta se han actualizado correctamente.") }
+            title = { Text(text = stringResource(id = R.string.title_profile_saved)) },
+            text = { Text(text = stringResource(id = R.string.msg_profile_saved)) }
         )
     }
 
@@ -788,10 +792,10 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Configuración", color = Color.White) },
+                title = { Text(stringResource(R.string.title_settings), color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back_desc), tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -819,23 +823,23 @@ fun SettingsScreen(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("Personalizar Colores de Turnos", style = MaterialTheme.typography.titleMedium, color = Color.White)
+                    Text(stringResource(R.string.title_customize_colors), style = MaterialTheme.typography.titleMedium, color = Color.White)
                     HorizontalDivider(color = Color.White.copy(0.1f))
 
-                    ColorSettingRow("Turno Mañana", currentColors.morning) { colorPickerTarget = "morning"; showColorPickerDialog = true }
-                    ColorSettingRow("Media Mañana", currentColors.morningHalf) { colorPickerTarget = "morningHalf"; showColorPickerDialog = true }
-                    ColorSettingRow("Turno Tarde", currentColors.afternoon) { colorPickerTarget = "afternoon"; showColorPickerDialog = true }
-                    ColorSettingRow("Media Tarde", currentColors.afternoonHalf) { colorPickerTarget = "afternoonHalf"; showColorPickerDialog = true }
-                    ColorSettingRow("Turno Noche", currentColors.night) { colorPickerTarget = "night"; showColorPickerDialog = true }
-                    ColorSettingRow("Saliente", currentColors.saliente) { colorPickerTarget = "saliente"; showColorPickerDialog = true }
-                    ColorSettingRow("Libre", currentColors.free) { colorPickerTarget = "free"; showColorPickerDialog = true }
-                    ColorSettingRow("Vacaciones", currentColors.holiday) { colorPickerTarget = "holiday"; showColorPickerDialog = true }
+                    ColorSettingRow(stringResource(R.string.legend_morning), currentColors.morning) { colorPickerTarget = "morning"; showColorPickerDialog = true }
+                    ColorSettingRow(stringResource(R.string.legend_morning_half), currentColors.morningHalf) { colorPickerTarget = "morningHalf"; showColorPickerDialog = true }
+                    ColorSettingRow(stringResource(R.string.legend_afternoon), currentColors.afternoon) { colorPickerTarget = "afternoon"; showColorPickerDialog = true }
+                    ColorSettingRow(stringResource(R.string.legend_afternoon_half), currentColors.afternoonHalf) { colorPickerTarget = "afternoonHalf"; showColorPickerDialog = true }
+                    ColorSettingRow(stringResource(R.string.legend_night), currentColors.night) { colorPickerTarget = "night"; showColorPickerDialog = true }
+                    ColorSettingRow(stringResource(R.string.legend_exit_night), currentColors.saliente) { colorPickerTarget = "saliente"; showColorPickerDialog = true }
+                    ColorSettingRow(stringResource(R.string.legend_free), currentColors.free) { colorPickerTarget = "free"; showColorPickerDialog = true }
+                    ColorSettingRow(stringResource(R.string.legend_holiday), currentColors.holiday) { colorPickerTarget = "holiday"; showColorPickerDialog = true }
 
                     TextButton(
                         onClick = { onColorsChanged(ShiftColors()) },
                         modifier = Modifier.align(Alignment.End)
                     ) {
-                        Text("Restaurar colores por defecto", color = Color(0xFF54C7EC))
+                        Text(stringResource(R.string.btn_restore_colors), color = Color(0xFF54C7EC))
                     }
                 }
             }
@@ -852,7 +856,7 @@ fun SettingsScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Text(
-                        "Gestionar cuenta",
+                        stringResource(R.string.title_manage_account),
                         style = MaterialTheme.typography.titleLarge,
                         color = Color.White
                     )
@@ -861,11 +865,11 @@ fun SettingsScreen(
                         onClick = { showConfirmDialog = true },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                     ) {
-                        Text("Borrar mi cuenta")
+                        Text(stringResource(R.string.btn_delete_account))
                     }
 
                     Text(
-                        "Esta acción es permanente y no se puede deshacer. Se borrarán todos tus datos asociados a la aplicación.",
+                        stringResource(R.string.msg_delete_account_warning),
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.Gray,
                         textAlign = TextAlign.Center,
@@ -900,8 +904,8 @@ fun SettingsScreen(
     if (showConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showConfirmDialog = false },
-            title = { Text("¿Estás seguro?") },
-            text = { Text("Esta acción es irreversible. Se borrará tu cuenta y todos tus datos. ¿Deseas continuar?") },
+            title = { Text(stringResource(R.string.title_are_you_sure)) },
+            text = { Text(stringResource(R.string.msg_delete_account_confirmation)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -909,12 +913,12 @@ fun SettingsScreen(
                         onDeleteAccount()
                     }
                 ) {
-                    Text("Borrar", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.btn_delete_confirm), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showConfirmDialog = false }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.cancel_label))
                 }
             }
         )
@@ -954,7 +958,7 @@ fun SimpleColorPickerDialog(onDismiss: () -> Unit, onColorSelected: (Color) -> U
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Elige un color") },
+        title = { Text(stringResource(R.string.title_pick_color)) },
         text = {
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
@@ -976,7 +980,7 @@ fun SimpleColorPickerDialog(onDismiss: () -> Unit, onColorSelected: (Color) -> U
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel_label)) }
         }
     )
 }
@@ -993,12 +997,12 @@ fun PlantSettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Configuración de planta", color = Color.White) },
+                title = { Text(stringResource(R.string.plant_settings_label), color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver",
+                            contentDescription = stringResource(R.string.back_desc),
                             tint = Color.White
                         )
                     }
@@ -1041,11 +1045,11 @@ fun PlantSettingsScreen(
                             onClick = { showConfirmDeleteDialog = true },
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                         ) {
-                            Text("Borrar planta")
+                            Text(stringResource(R.string.btn_delete_plant))
                         }
 
                         Text(
-                            "Esta acción es permanente y no se puede deshacer. Se borrarán todos los datos de la planta y se desvincularán todos los usuarios asociados.",
+                            stringResource(R.string.msg_delete_plant_warning),
                             style = MaterialTheme.typography.bodySmall,
                             color = Color.Gray,
                             textAlign = TextAlign.Center,
@@ -1060,8 +1064,8 @@ fun PlantSettingsScreen(
     if (showConfirmDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showConfirmDeleteDialog = false },
-            title = { Text("¿Estás seguro?") },
-            text = { Text("Estás a punto de borrar la planta \"${plant?.name}\". Esta acción es irreversible y afectará a todos los usuarios asociados a ella. ¿Deseas continuar?") },
+            title = { Text(stringResource(R.string.title_are_you_sure)) },
+            text = { Text(stringResource(R.string.msg_delete_plant_confirmation, plant?.name ?: "")) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -1069,31 +1073,31 @@ fun PlantSettingsScreen(
                         plant?.id?.let { onDeletePlant(it) }
                     }
                 ) {
-                    Text("Borrar", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.btn_delete_confirm), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showConfirmDeleteDialog = false }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.cancel_label))
                 }
             }
         )
     }
 }
 
-fun getTitleForType(type: String): String {
+fun getTitleForType(context: android.content.Context, type: String): String {
     return when(type) {
-        "DIRECT_CHAT_MESSAGE" -> "Mensaje Directo" // NUEVO: Chat directo
-        "GROUP_CHAT_MESSAGE" -> "Mensaje de Grupo" // NUEVO: Chat de grupo
-        "SHIFT_ASSIGNMENT" -> "Actualización de Turno" // NUEVO: Modificación de turnos (Asignación/Desasignación)
-        "MARKETPLACE_ADD" -> "Nueva Oferta de Cambio" // NUEVO: Añadir cambio a bolsa
-        "SHIFT_RESPONSE" -> "Respuesta a Propuesta" // NUEVO: Acepta/Rechaza compañero
-        "SHIFT_PROPOSAL" -> "Propuesta de Cambio"
-        "SHIFT_UPDATE" -> "Actualización de Turno"
-        "SHIFT_APPROVED" -> "¡Cambio Aprobado!"
-        "SHIFT_REJECTED" -> "Cambio Rechazado"
-        "SUPERVISOR_ACTION" -> "Solicitud para Supervisor"
-        else -> "Notificación"
+        "DIRECT_CHAT_MESSAGE" -> context.getString(R.string.notif_title_direct_chat)
+        "GROUP_CHAT_MESSAGE" -> context.getString(R.string.notif_title_group_chat)
+        "SHIFT_ASSIGNMENT" -> context.getString(R.string.notif_title_shift_assignment)
+        "MARKETPLACE_ADD" -> context.getString(R.string.notif_title_marketplace_add)
+        "SHIFT_RESPONSE" -> context.getString(R.string.notif_title_shift_response)
+        "SHIFT_PROPOSAL" -> context.getString(R.string.notif_title_shift_proposal)
+        "SHIFT_UPDATE" -> context.getString(R.string.notif_title_shift_assignment) // Reusing as update is assignment change
+        "SHIFT_APPROVED" -> context.getString(R.string.notif_title_shift_approved)
+        "SHIFT_REJECTED" -> context.getString(R.string.notif_title_shift_rejected)
+        "SUPERVISOR_ACTION" -> context.getString(R.string.notif_title_supervisor_action)
+        else -> context.getString(R.string.notif_title_generic)
     }
 }
 

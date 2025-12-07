@@ -176,7 +176,7 @@ fun PlantDetailScreen(
         stringResource(id = R.string.role_nurse_female)
     )
     val normalizedNurseRoles = remember(nurseRoles) { nurseRoles.map { it.normalizedRole() } }
-    val auxRole = stringResource(id = R.string.role_aux_generic) // Esto ahora es "TCAE"
+    val auxRole = stringResource(id = R.string.role_aux_generic) // TCAE
     val auxRoles = listOf(
         auxRole,
         stringResource(id = R.string.role_aux_male),
@@ -198,7 +198,6 @@ fun PlantDetailScreen(
     val nurseStaff = remember(plantStaff, normalizedNurseRoles) {
         plantStaff.filter { member -> member.isNurseRole(normalizedNurseRoles) }
     }
-    // Incluimos tanto los que tengan rol TCAE como los antiguos "Auxiliar"
     val auxStaff = remember(plantStaff, normalizedAuxRoles) {
         plantStaff.filter { member -> member.isAuxRole(normalizedAuxRoles) }
     }
@@ -244,7 +243,6 @@ fun PlantDetailScreen(
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
-                // CAMBIO: Usar CenterAlignedTopAppBar en lugar de TopAppBar normal
                 CenterAlignedTopAppBar(
                     title = {
                         Text(
@@ -263,7 +261,6 @@ fun PlantDetailScreen(
                                     tint = Color.White
                                 )
                             }
-
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -358,6 +355,7 @@ fun PlantDetailScreen(
                             auxOptions = auxOptions,
                             onSaveAssignments = { states ->
                                 saveShiftAssignments(
+                                    context = context,
                                     database = database,
                                     plantId = plant.id,
                                     dateKey = dateKey,
@@ -415,7 +413,6 @@ fun PlantDetailScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Default.Person, contentDescription = null, tint = Color(0xFF54C7EC), modifier = Modifier.size(20.dp))
                                     Spacer(modifier = Modifier.width(12.dp))
-                                    Text(stringResource(id = R.string.plant_staff_list_option), color = Color.White)
                                 }
                             },
                             selected = false,
@@ -428,7 +425,7 @@ fun PlantDetailScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Default.Settings, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(20.dp))
                                     Spacer(modifier = Modifier.width(12.dp))
-                                    Text("Configuración de planta", color = Color.White)
+                                    Text(stringResource(R.string.plant_settings_label), color = Color.White)
                                 }
                             },
                             selected = false,
@@ -441,7 +438,7 @@ fun PlantDetailScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Default.Edit, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(20.dp))
                                     Spacer(modifier = Modifier.width(12.dp))
-                                    Text("Importar Turnos", color = Color.White)
+                                    Text(stringResource(R.string.import_shifts_label), color = Color.White)
                                 }
                             },
                             selected = false,
@@ -449,27 +446,23 @@ fun PlantDetailScreen(
                             colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
                         )
 
-                        // --- GESTIÓN DE CAMBIOS (SOLO SUPERVISOR) ---
-                        // Reemplaza a Bolsa y Cambios para el supervisor
                         NavigationDrawerItem(
                             modifier = Modifier.padding(horizontal = 12.dp),
                             label = {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Default.FactCheck, contentDescription = null, tint = Color(0xFFFFA726), modifier = Modifier.size(20.dp))
                                     Spacer(modifier = Modifier.width(12.dp))
-                                    Text("Gestión de Cambios", color = Color.White)
+                                    Text(stringResource(R.string.title_change_management), color = Color.White)
                                 }
                             },
                             selected = false,
                             onClick = {
                                 isMenuOpen = false
-                                onOpenShiftChange() // Reutilizamos esta pantalla, que ya tiene lógica para supervisor
+                                onOpenShiftChange()
                             },
                             colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
                         )
 
-
-                        // --- OPCIÓN COMPARTIR PLANTA ---
                         HorizontalDivider(color = Color.White.copy(alpha = 0.2f), modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp))
                         NavigationDrawerItem(
                             modifier = Modifier.padding(horizontal = 12.dp),
@@ -477,7 +470,7 @@ fun PlantDetailScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Default.Share, contentDescription = null, tint = Color(0xFF54C7EC), modifier = Modifier.size(20.dp))
                                     Spacer(modifier = Modifier.width(12.dp))
-                                    Text("Invitar compañeros", color = Color.White)
+                                    Text(stringResource(R.string.invite_colleagues_label), color = Color.White)
                                 }
                             },
                             selected = false,
@@ -493,7 +486,6 @@ fun PlantDetailScreen(
 
                     HorizontalDivider(color = Color.White.copy(alpha = 0.2f), modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp))
 
-                    // --- OPCIÓN DE VACACIONES (Para todos) ---
                     if (currentMembership?.staffId != null) {
                         NavigationDrawerItem(
                             modifier = Modifier.padding(horizontal = 12.dp),
@@ -501,7 +493,7 @@ fun PlantDetailScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Default.BeachAccess, contentDescription = null, tint = Color(0xFFE91E63), modifier = Modifier.size(20.dp))
                                     Spacer(modifier = Modifier.width(12.dp))
-                                    Text("Días de Vacaciones", color = Color.White)
+                                    Text(stringResource(R.string.vacation_days_label), color = Color.White)
                                 }
                             },
                             selected = false,
@@ -510,15 +502,13 @@ fun PlantDetailScreen(
                         )
                     }
 
-                    // --- OPCIONES COMUNES ---
-
                     NavigationDrawerItem(
                         modifier = Modifier.padding(horizontal = 12.dp),
                         label = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
                                 Spacer(modifier = Modifier.width(12.dp))
-                                Text("Chat de grupo", color = Color.White)
+                                Text(stringResource(R.string.group_chat_title), color = Color.White)
                             }
                         },
                         selected = false,
@@ -529,7 +519,6 @@ fun PlantDetailScreen(
                         colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
                     )
 
-                    // --- SI NO ES SUPERVISOR, VE LAS OPCIONES NORMALES ---
                     if (!isSupervisor) {
                         NavigationDrawerItem(
                             modifier = Modifier.padding(horizontal = 12.dp),
@@ -537,7 +526,7 @@ fun PlantDetailScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Default.SwapHoriz, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
                                     Spacer(modifier = Modifier.width(12.dp))
-                                    Text("Cambio de turnos", color = Color.White)
+                                    Text(stringResource(R.string.shift_change_label), color = Color.White)
                                 }
                             },
                             selected = false,
@@ -548,14 +537,13 @@ fun PlantDetailScreen(
                             colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
                         )
 
-                        // --- BOLSA DE TURNOS ---
                         NavigationDrawerItem(
                             modifier = Modifier.padding(horizontal = 12.dp),
                             label = {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Default.Assignment, null, tint = Color(0xFFFFC107), modifier = Modifier.size(20.dp))
                                     Spacer(modifier = Modifier.width(12.dp))
-                                    Text("Bolsa de Turnos", color = Color.White)
+                                    Text(stringResource(R.string.shift_marketplace_label), color = Color.White)
                                 }
                             },
                             selected = false,
@@ -567,14 +555,13 @@ fun PlantDetailScreen(
                         )
                     }
 
-                    // --- OPCIÓN ESTADÍSTICAS (Para todos) ---
                     NavigationDrawerItem(
                         modifier = Modifier.padding(horizontal = 12.dp),
                         label = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.AutoMirrored.Filled.ShowChart, null, modifier = Modifier.size(20.dp), tint = Color(0xFF54C7EC))
                                 Spacer(modifier = Modifier.width(12.dp))
-                                Text("Estadísticas", color = Color.White)
+                                Text(stringResource(R.string.statistics_label), color = Color.White)
                             }
                         },
                         selected = false,
@@ -647,7 +634,6 @@ fun PlantDetailScreen(
         )
     }
 
-    // --- NEW: DIALOG DE DÍAS DE VACACIONES ---
     if (showVacationDialog && plant != null && currentMembership?.staffId != null) {
         VacationDaysDialog(
             onDismiss = { showVacationDialog = false },
@@ -667,17 +653,38 @@ fun PlantDetailScreen(
 }
 
 // -----------------------------------------------------------------------------
+// FUNCIONES AUXILIARES DE ORDEN Y LOCALIZACIÓN DE TURNOS
+// -----------------------------------------------------------------------------
+
+// Asigna prioridad: 1=Mañana, 2=Tarde, 3=Noche
+fun getShiftPriority(shiftName: String): Int {
+    val lower = shiftName.lowercase().trim()
+    return when {
+        lower.contains("mañana") || lower.contains("morning") || lower.contains("día") || lower.contains("day") -> 1
+        lower.contains("tarde") || lower.contains("afternoon") -> 2
+        lower.contains("noche") || lower.contains("night") -> 3
+        else -> 99
+    }
+}
+
+// Traduce el nombre de la BD al string resource local
+@Composable
+fun getLocalizedShiftName(rawName: String): String {
+    val lower = rawName.lowercase().trim()
+    return when {
+        lower == "mañana" || lower == "morning" -> stringResource(R.string.shift_morning)
+        lower == "tarde" || lower == "afternoon" -> stringResource(R.string.shift_afternoon)
+        lower == "noche" || lower == "night" -> stringResource(R.string.shift_night)
+        lower == "día" || lower == "dia" || lower == "day" -> stringResource(R.string.shift_day)
+        else -> rawName
+    }
+}
+
+// -----------------------------------------------------------------------------
 // LÓGICA DE COMPARTIR PLANTA
 // -----------------------------------------------------------------------------
 private fun sharePlantInvitation(context: Context, plantName: String, plantId: String, accessCode: String) {
-    val message = """
-        ¡Hola! Únete a la planta "$plantName" en Turnoshospi.
-        
-        ID de Planta: $plantId
-        Código de acceso: $accessCode
-        
-        Descarga la app y únete desde el menú principal.
-    """.trimIndent()
+    val message = context.getString(R.string.share_plant_message_template, plantName, plantId, accessCode)
 
     val sendIntent: Intent = Intent().apply {
         action = Intent.ACTION_SEND
@@ -685,7 +692,8 @@ private fun sharePlantInvitation(context: Context, plantName: String, plantId: S
         type = "text/plain"
     }
 
-    val shareIntent = Intent.createChooser(sendIntent, "Invitar compañeros vía:")
+    val chooserTitle = context.getString(R.string.share_chooser_title)
+    val shareIntent = Intent.createChooser(sendIntent, chooserTitle)
     context.startActivity(shareIntent)
 }
 
@@ -693,6 +701,7 @@ private fun sharePlantInvitation(context: Context, plantName: String, plantId: S
 // LÓGICA DE PERSISTENCIA DE ASIGNACIÓN DE TURNOS CON NOTIFICACIONES
 // -----------------------------------------------------------------------------
 private fun saveShiftAssignments(
+    context: Context,
     database: FirebaseDatabase,
     plantId: String,
     dateKey: String,
@@ -759,7 +768,8 @@ private fun saveShiftAssignments(
                     val staffId = staffIdMap[name]?.id
                     val userId = staffId?.let { staffIdToUserIdMap[it] }
                     if (userId != null) {
-                        onSaveNotification(userId, "SHIFT_UNASSIGNED", "Se te ha desasignado del turno el $dateKey.", AppScreen.MainMenu.name, dateKey, {})
+                        val msg = context.getString(R.string.notif_unassigned_message, dateKey)
+                        onSaveNotification(userId, "SHIFT_UNASSIGNED", msg, AppScreen.MainMenu.name, dateKey, {})
                     }
                 }
 
@@ -768,7 +778,8 @@ private fun saveShiftAssignments(
                     val staffId = staffIdMap[name]?.id
                     val userId = staffId?.let { staffIdToUserIdMap[it] }
                     if (userId != null) {
-                        onSaveNotification(userId, "SHIFT_ASSIGNED_STAFF", "Tu turno para el $dateKey ha sido actualizado por el supervisor.", AppScreen.MainMenu.name, dateKey, {})
+                        val msg = context.getString(R.string.notif_assigned_message, dateKey)
+                        onSaveNotification(userId, "SHIFT_ASSIGNED_STAFF", msg, AppScreen.MainMenu.name, dateKey, {})
                     }
                 }
 
@@ -794,7 +805,7 @@ private fun saveVacationDaysToFirebase(
     onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit
 ) {
     if (dates.isEmpty()) {
-        Toast.makeText(context, "No se seleccionó ninguna fecha.", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.error_no_date_selected), Toast.LENGTH_SHORT).show()
         return
     }
 
@@ -818,12 +829,13 @@ private fun saveVacationDaysToFirebase(
 
     database.reference.updateChildren(updates)
         .addOnSuccessListener {
-            Toast.makeText(context, "Días de vacaciones guardados.", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, context.getString(R.string.msg_vacation_saved), Toast.LENGTH_LONG).show()
             dates.forEach { dateKey ->
+                val msg = context.getString(R.string.notif_vacation_saved_message, dateKey)
                 onSaveNotification(
                     FirebaseAuth.getInstance().currentUser?.uid ?: "",
                     "VACATION_SAVED",
-                    "Tu día de vacaciones del $dateKey ha sido registrado.",
+                    msg,
                     AppScreen.MainMenu.name,
                     dateKey,
                     {}
@@ -831,7 +843,7 @@ private fun saveVacationDaysToFirebase(
             }
         }
         .addOnFailureListener {
-            Toast.makeText(context, "Error al guardar vacaciones: ${it.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, context.getString(R.string.error_generic) + ": ${it.message}", Toast.LENGTH_LONG).show()
         }
 }
 
@@ -860,7 +872,7 @@ private fun VacationDaysDialog(
                         val date = Instant.ofEpochMilli(millis).atZone(ZoneId.of("UTC")).toLocalDate()
                         val dateStr = date.toString()
                         if (date.isBefore(LocalDate.now())) {
-                            Toast.makeText(context, "No puedes seleccionar días pasados.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.error_past_date_selection), Toast.LENGTH_SHORT).show()
                             return@TextButton
                         }
                         if (dateStr !in offeredDates) {
@@ -869,9 +881,9 @@ private fun VacationDaysDialog(
                         }
                     }
                     showDatePicker = false
-                }) { Text("Añadir") }
+                }) { Text(stringResource(R.string.btn_add)) }
             },
-            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Cancelar") } }
+            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.cancel_label)) } }
         ) {
             DatePicker(state = datePickerState)
         }
@@ -879,14 +891,14 @@ private fun VacationDaysDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Seleccionar Días de Vacaciones") },
+        title = { Text(stringResource(R.string.dialog_vacation_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("Selecciona los días que estarás de vacaciones:", color = Color.White)
+                Text(stringResource(R.string.dialog_vacation_instruction), color = Color.White)
                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = Color.White.copy(0.1f))
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     if (offeredDates.isEmpty()) {
-                        Text("No se han seleccionado días.", color = Color.Gray)
+                        Text(stringResource(R.string.label_no_days_selected), color = Color.Gray)
                     } else {
                         offeredDates.forEach { date ->
                             Row(
@@ -894,7 +906,7 @@ private fun VacationDaysDialog(
                                 modifier = Modifier.fillMaxWidth().background(Color(0x22FFFFFF), RoundedCornerShape(4.dp)).padding(horizontal = 8.dp, vertical = 4.dp)
                             ) {
                                 Text(date, color = Color.White, modifier = Modifier.weight(1f))
-                                Icon(Icons.Default.Close, "Eliminar", tint = Color(0xFFFFB4AB), modifier = Modifier.clickable { offeredDates.remove(date) }.size(16.dp))
+                                Icon(Icons.Default.Close, stringResource(R.string.delete), tint = Color(0xFFFFB4AB), modifier = Modifier.clickable { offeredDates.remove(date) }.size(16.dp))
                             }
                         }
                     }
@@ -902,7 +914,7 @@ private fun VacationDaysDialog(
                 OutlinedButton(onClick = { showDatePicker = true }, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Default.Add, null)
                     Spacer(Modifier.width(8.dp))
-                    Text("Añadir día")
+                    Text(stringResource(R.string.btn_add_day))
                 }
             }
         },
@@ -912,10 +924,10 @@ private fun VacationDaysDialog(
                 enabled = offeredDates.isNotEmpty(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E63), contentColor = Color.White)
             ) {
-                Text("Confirmar (${offeredDates.size} días)")
+                Text(stringResource(R.string.btn_confirm_days, offeredDates.size))
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel_label)) } },
         containerColor = Color(0xFF0F172A),
         titleContentColor = Color.White,
         textContentColor = Color.White
@@ -942,12 +954,12 @@ fun ImportShiftsScreen(
     ) { uri: Uri? ->
         uri?.let {
             if (plant == null) {
-                importStatus = "Error: No se ha cargado la información de la planta."
+                importStatus = context.getString(R.string.error_plant_not_loaded)
                 isError = true
                 return@let
             }
             isImporting = true
-            importStatus = "Procesando archivo..."
+            importStatus = context.getString(R.string.status_processing)
             isError = false
 
             processCsvImport(context, it, plant) { success, message ->
@@ -955,7 +967,7 @@ fun ImportShiftsScreen(
                 isError = !success
                 importStatus = message
                 if (success) {
-                    Toast.makeText(context, "Turnos importados correctamente", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, context.getString(R.string.msg_import_success), Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -964,10 +976,10 @@ fun ImportShiftsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Importar Turnos", color = Color.White) },
+                title = { Text(stringResource(R.string.title_import_shifts), color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back_desc), tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -993,14 +1005,14 @@ fun ImportShiftsScreen(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text("Opciones de importación", style = MaterialTheme.typography.titleMedium, color = Color.White)
+                    Text(stringResource(R.string.subtitle_import_options), style = MaterialTheme.typography.titleMedium, color = Color.White)
 
                     Button(
                         onClick = { copyTemplateToDownloads(context) },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC), contentColor = Color.Black)
                     ) {
-                        Text("Descargar plantilla")
+                        Text(stringResource(R.string.btn_download_template))
                     }
 
                     HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
@@ -1014,7 +1026,7 @@ fun ImportShiftsScreen(
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC), contentColor = Color.Black)
                     ) {
-                        Text(if (isImporting) "Importando..." else "Importar turnos")
+                        Text(if (isImporting) stringResource(R.string.btn_importing) else stringResource(R.string.btn_import))
                     }
 
                     if (importStatus != null) {
@@ -1043,7 +1055,7 @@ private fun processCsvImport(
         reader.close()
 
         if (lines.isEmpty()) {
-            onResult(false, "El archivo está vacío.")
+            onResult(false, context.getString(R.string.error_csv_empty))
             return
         }
 
@@ -1058,7 +1070,7 @@ private fun processCsvImport(
             val cols = line.split(",").map { it.trim() }
 
             if (cols.size < 4) {
-                onResult(false, "Error en fila $rowNum: Formato incorrecto. Faltan columnas.")
+                onResult(false, context.getString(R.string.error_csv_format, rowNum))
                 return
             }
 
@@ -1072,12 +1084,12 @@ private fun processCsvImport(
             try {
                 LocalDate.parse(dateStr)
             } catch (e: Exception) {
-                onResult(false, "Error en fila $rowNum: Fecha inválida ($dateStr). Usa AAAA-MM-DD.")
+                onResult(false, context.getString(R.string.error_csv_date, rowNum, dateStr))
                 return
             }
 
             if (shiftName !in validShifts) {
-                onResult(false, "Error en fila $rowNum: El turno '$shiftName' no existe en esta planta.")
+                onResult(false, context.getString(R.string.error_csv_shift, rowNum, shiftName))
                 return
             }
 
@@ -1086,16 +1098,16 @@ private fun processCsvImport(
             val isAux = role.contains("Auxiliar", ignoreCase = true) || role.contains("TCAE", ignoreCase = true)
 
             if (!isNurse && !isAux) {
-                onResult(false, "Error en fila $rowNum: Rol '$role' desconocido. Usa 'Enfermero', 'Auxiliar' o 'TCAE'.")
+                onResult(false, context.getString(R.string.error_csv_role, rowNum, role))
                 return
             }
 
             if (primaryName.isNotBlank() && primaryName.lowercase() !in staffNames) {
-                onResult(false, "Error en fila $rowNum: '$primaryName' no está registrado en el personal de la planta.")
+                onResult(false, context.getString(R.string.error_csv_staff_not_found, rowNum, primaryName))
                 return
             }
             if (isHalfDay && secondaryName.isNotBlank() && secondaryName.lowercase() !in staffNames) {
-                onResult(false, "Error en fila $rowNum: '$secondaryName' no está registrado en el personal de la planta.")
+                onResult(false, context.getString(R.string.error_csv_staff_not_found, rowNum, secondaryName))
                 return
             }
 
@@ -1128,12 +1140,12 @@ private fun processCsvImport(
         }
 
         database.reference.updateChildren(updates)
-            .addOnSuccessListener { onResult(true, "Importación completada con éxito.") }
-            .addOnFailureListener { onResult(false, "Error al guardar en base de datos: ${it.message}") }
+            .addOnSuccessListener { onResult(true, context.getString(R.string.msg_import_success)) }
+            .addOnFailureListener { onResult(false, context.getString(R.string.error_db_save, it.message)) }
 
     } catch (e: Exception) {
         e.printStackTrace()
-        onResult(false, "Error al leer el archivo: ${e.message}")
+        onResult(false, context.getString(R.string.error_file_read, e.message))
     }
 }
 
@@ -1144,10 +1156,10 @@ private fun copyTemplateToDownloads(context: Context) {
         val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         val outFile = File(downloadsDir, fileName)
         FileOutputStream(outFile).use { output -> inputStream.copyTo(output) }
-        Toast.makeText(context, "Plantilla guardada en Descargas", Toast.LENGTH_LONG).show()
+        Toast.makeText(context, context.getString(R.string.msg_template_saved), Toast.LENGTH_LONG).show()
     } catch (e: Exception) {
         e.printStackTrace()
-        Toast.makeText(context, "Error al guardar: ${e.message}", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.error_template_save, e.message), Toast.LENGTH_SHORT).show()
     }
 }
 
@@ -1158,6 +1170,9 @@ private fun copyTemplateToDownloads(context: Context) {
 @Composable
 fun PlantCalendar(selectedDate: LocalDate?, onDateSelected: (LocalDate) -> Unit) {
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
+    // Locale dinámico
+    val deviceLocale = Locale.getDefault()
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -1171,21 +1186,22 @@ fun PlantCalendar(selectedDate: LocalDate?, onDateSelected: (LocalDate) -> Unit)
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { currentMonth = currentMonth.minusMonths(1) }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Anterior", tint = Color.White)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.desc_prev_month), tint = Color.White)
             }
             Text(
-                text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es-ES")).uppercase()} ${currentMonth.year}",
+                text = "${currentMonth.month.getDisplayName(TextStyle.FULL, deviceLocale).uppercase()} ${currentMonth.year}",
                 color = Color.White,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
             IconButton(onClick = { currentMonth = currentMonth.plusMonths(1) }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Siguiente", tint = Color.White)
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = stringResource(R.string.desc_next_month), tint = Color.White)
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
         Row(modifier = Modifier.fillMaxWidth()) {
-            listOf("L", "M", "X", "J", "V", "S", "D").forEach { day ->
+            val daysOfWeekShort = androidx.compose.ui.res.stringArrayResource(R.array.days_of_week_short)
+            daysOfWeekShort.forEach { day ->
                 Text(text = day, modifier = Modifier.weight(1f), color = Color.Gray, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold)
             }
         }
@@ -1238,7 +1254,8 @@ private fun InfoMessage(message: String) {
 }
 
 fun formatPlantDate(date: LocalDate): String {
-    return date.format(DateTimeFormatter.ofPattern("d 'de' MMMM yyyy"))
+    // Fecha localizada
+    return date.format(DateTimeFormatter.ofPattern("d 'de' MMMM yyyy", Locale.getDefault()))
 }
 
 @Composable
@@ -1257,9 +1274,11 @@ private fun StaffListDialog(
         var editName by remember { mutableStateOf(member.name) }
 
         // CORRECCIÓN: Si el rol guardado es "Auxiliar", lo tratamos como "TCAE" para el selector
+        val roleAux = stringResource(id = R.string.role_aux_generic)
+        val roleAuxOld = "Auxiliar" // String legacy
         var editRole by remember {
             mutableStateOf(
-                if (member.role.contains("Auxiliar", ignoreCase = true)) "TCAE"
+                if (member.role.contains(roleAuxOld, ignoreCase = true)) roleAux
                 else member.role
             )
         }
@@ -1295,7 +1314,8 @@ private fun StaffListDialog(
                                 Text(member.name, style = MaterialTheme.typography.bodyLarge, color = Color.White)
 
                                 // CORRECCIÓN: Visualización en lista. Si dice "Auxiliar", mostramos "TCAE"
-                                val displayRole = if (member.role.contains("Auxiliar", ignoreCase = true)) "TCAE" else member.role
+                                val roleAux = stringResource(id = R.string.role_aux_generic)
+                                val displayRole = if (member.role.contains("Auxiliar", ignoreCase = true)) roleAux else member.role
                                 Text(displayRole, style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.7f))
                             }
                             if (isSupervisor) IconButton(onClick = { memberInEdition = member }) { Icon(Icons.Default.Edit, null, tint = Color(0xFF54C7EC)) }
@@ -1321,23 +1341,25 @@ private fun ShiftAssignmentsSection(
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(stringResource(id = R.string.plant_shifts_for_date, selectedDateLabel), color = Color.White, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
-        val preferredOrder = if (plant.shiftDuration == stringResource(id = R.string.shift_duration_8h))
-            listOf(stringResource(id = R.string.shift_morning), stringResource(id = R.string.shift_afternoon), stringResource(id = R.string.shift_night))
-        else listOf(stringResource(id = R.string.shift_day), stringResource(id = R.string.shift_night))
+        // CAMBIO: Ordenar los turnos disponibles por prioridad fija (Mañana -> Tarde -> Noche)
+        val orderedShifts = remember(plant.shiftTimes) {
+            plant.shiftTimes.entries.sortedBy { getShiftPriority(it.key) }
+        }
 
-        val orderedShifts = (preferredOrder.mapNotNull { k -> plant.shiftTimes[k]?.let { k to it } } + plant.shiftTimes.filterKeys { it !in preferredOrder }.toList()).ifEmpty { plant.shiftTimes.toList() }
+        orderedShifts.forEach { (rawShiftName, timing) ->
+            // CAMBIO: Obtener nombre localizado para mostrar en UI
+            val displayShiftName = getLocalizedShiftName(rawShiftName)
 
-        orderedShifts.forEach { (shiftName, timing) ->
-            val nurseReq = plant.staffRequirements[shiftName] ?: 0
-            val auxReq = if (allowAux) (plant.staffRequirements[shiftName] ?: 0).coerceAtLeast(1) else 0
-            val state = assignments.getOrPut(shiftName) { ShiftAssignmentState(mutableStateListOf(), mutableStateListOf()) }
+            val nurseReq = plant.staffRequirements[rawShiftName] ?: 0
+            val auxReq = if (allowAux) (plant.staffRequirements[rawShiftName] ?: 0).coerceAtLeast(1) else 0
+            val state = assignments.getOrPut(rawShiftName) { ShiftAssignmentState(mutableStateListOf(), mutableStateListOf()) }
             ensureSlotSize(state.nurseSlots, nurseReq.coerceAtLeast(1))
             if (auxReq > 0) ensureSlotSize(state.auxSlots, auxReq) else state.auxSlots.clear()
 
             Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color(0x22000000)), border = BorderStroke(1.dp, Color(0x22FFFFFF))) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(stringResource(id = R.string.plant_shift_item, shiftName, timing.start.ifEmpty { "--" }, timing.end.ifEmpty { "--" }), color = Color.White, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Text(stringResource(id = R.string.plant_staff_requirement_item, shiftName, nurseReq), color = Color(0xCCFFFFFF), style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(id = R.string.plant_shift_item, displayShiftName, timing.start.ifEmpty { "--" }, timing.end.ifEmpty { "--" }), color = Color.White, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text(stringResource(id = R.string.plant_staff_requirement_item, displayShiftName, nurseReq), color = Color(0xCCFFFFFF), style = MaterialTheme.typography.bodySmall)
 
                     state.nurseSlots.forEachIndexed { i, slot ->
                         val label = if (slot.hasHalfDay) stringResource(id = R.string.nurse_half_day_label) else stringResource(id = R.string.nurse_label, i + 1)

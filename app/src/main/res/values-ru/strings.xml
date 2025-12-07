@@ -1,0 +1,429 @@
+<resources>
+    <string name="app_name">TurnosHospi</string>
+    <string-array name="days_of_week_short">
+        <item>Al</item> <item>Ar</item> <item>Az</item> <item>Og</item> <item>Ol</item> <item>Lr</item> <item>Ig</item>
+    </string-array>
+
+    <string name="back_desc">Itzuli</string>
+    <string name="close_label">Itxi</string>
+    <string name="cancel_label">Utzi</string>
+    <string name="cancel">Utzi</string>
+    <string name="save">Gorde</string>
+    <string name="saving_label">Gordetzen…</string>
+    <string name="edit">Editatu</string>
+    <string name="delete">Ezabatu</string>
+    <string name="send_desc">Bidali</string>
+    <string name="loading_text">Kargatzen...</string>
+    <string name="menu_info">Informazioa</string>
+    <string name="menu_info_desc">Laguntza eta aplikazioaren xehetasunak.</string>
+
+    <string name="previous_month_desc">Aurreko hila</string>
+    <string name="next_month_desc">Hurrengo hila</string>
+    <string name="desc_prev_month">Aurreko hila</string>
+    <string name="desc_next_month">Hurrengo hila</string>
+    <string name="select_date_prompt">Hautatu data</string>
+    <string name="select_day">Hautatu eguna</string>
+    <string name="plant_calendar_title">Txanden egutegia</string>
+    <string name="agenda_title">Eguneko agenda: %1$s</string>
+
+    <string name="shift_detail_title">Txanda: %1$s</string>
+    <string name="nurses_list_prefix">Erizainak: %1$s</string>
+    <string name="auxiliaries_list_prefix">Laguntzaileak: %1$s</string>
+    <string name="colleagues_header">Lankideak:</string>
+    <string name="no_colleagues_found">Ez da lankiderik aurkitu.</string>
+    <string name="no_shifts_assigned">Ez dago txandarik esleituta.</string>
+
+    <string name="legend_free">Libre</string>
+    <string name="legend_morning">Goiza</string>
+    <string name="legend_morning_half">G. Erdia</string>
+    <string name="legend_afternoon">Arratsaldea</string>
+    <string name="legend_afternoon_half">A. Erdia</string>
+    <string name="legend_night">Gaua</string>
+    <string name="legend_exit_night">Gau-irteera</string>
+    <string name="legend_holiday">Oporrak</string>
+
+    <string name="shift_morning">Goiza</string>
+    <string name="shift_afternoon">Arratsaldea</string>
+    <string name="shift_night">Gaua</string>
+    <string name="shift_saliente">Gau-irteera</string>
+    <string name="shift_morning_half">Goiz Erdia</string>
+    <string name="shift_afternoon_half">Arratsalde Erdia</string>
+    <string name="shift_holiday">Oporrak</string>
+    <string name="shift_free">Libre</string>
+    <string name="shift_day">Eguna</string>
+
+    <string name="role_supervisor_male">Gainbegiralea</string>
+    <string name="role_supervisor_female">Gainbegiralea</string>
+    <string name="role_nurse_male">Erizaina</string>
+    <string name="role_nurse_female">Erizaina</string>
+    <string name="role_aux_male">Laguntzailea</string>
+    <string name="role_aux_female">Laguntzailea</string>
+    <string name="role_nurse_generic">Erizaina</string>
+    <string name="role_aux_generic">Laguntzailea</string>
+    <string name="role_nurse">Erizaina</string>
+    <string name="role_auxiliary">Laguntzailea</string>
+    <string name="gender_male">Gizona</string>
+    <string name="gender_female">Emakumea</string>
+    <string name="default_role">Rolik gabe</string>
+    <string name="default_user">Erabiltzailea</string>
+    <string name="default_user_alias">Erabiltzailea</string>
+
+    <string name="login_screen_title">Saioa hasi</string>
+    <string name="login_button">Saioa hasi</string>
+    <string name="create_account_title">Kontua sortu</string>
+    <string name="create_account_action">Kontua sortu</string>
+    <string name="register_button">Gorde profila</string>
+    <string name="forgot_password">Pasahitza ahaztu duzu?</string>
+    <string name="reset_email_sent">Berreskuratzeko esteka bidali dugu</string>
+    <string name="back_to_login_action">Itzuli saioa hastera</string>
+    <string name="sign_out">Saioa itxi</string>
+    <string name="loading_profile">Profila kargatzen…</string>
+    <string name="profile_summary_title">Zure profila</string>
+    <string name="edit_profile">Editatu profila</string>
+    <string name="email_label">E-posta</string>
+    <string name="password_label">Pasahitza</string>
+    <string name="password_hide_desc">Ezkutatu pasahitza</string>
+    <string name="password_show_desc">Erakutsi pasahitza</string>
+    <string name="confirm_password">Berretsi pasahitza</string>
+    <string name="first_name_label">Izena</string>
+    <string name="last_name_label">Abizenak</string>
+    <string name="role_dropdown_label">Kargua</string>
+    <string name="gender_select_label">Generoa</string>
+    <string name="profile_email_label">E-posta: %1$s</string>
+    <string name="profile_name_label">Izena: %1$s</string>
+    <string name="profile_role_label">Kargua: %1$s</string>
+
+    <string name="main_menu_welcome_male">Ongi etorri, %1$s</string>
+    <string name="main_menu_welcome_female">Ongi etorri, %1$s</string>
+    <string name="main_menu_subtitle">Hautatu aukera bat hasteko.</string>
+    <string name="side_menu_title">Menua</string>
+    <string name="menu_create_plant">Unitate berria sortu</string>
+    <string name="menu_create_plant_desc">Konfiguratu hutsetik.</string>
+    <string name="menu_my_plants">Nire Unitatea</string>
+    <string name="menu_my_plants_desc">Ikusi eta editatu unitateak.</string>
+    <string name="menu_settings">Ezarpenak</string>
+    <string name="menu_settings_desc">Kontua eta hobespenak.</string>
+    <string name="cd_menu">Menua</string>
+    <string name="cd_notifications">Jakinarazpenak</string>
+    <string name="cd_chats">Txatak</string>
+
+    <string name="plant_creation_title">Unitate berria sortu</string>
+    <string name="plant_general_data_title">Unitatearen datuak</string>
+    <string name="plant_name_label">Unitatearen izena</string>
+    <string name="unit_type_label">Unitate mota</string>
+    <string name="hospital_name_label">Ospitalearen izena</string>
+    <string name="create_plant_action">Sortu unitatea</string>
+    <string name="shift_configuration_title">Txanden konfigurazioa</string>
+    <string name="shift_duration_label">Txanden iraupena</string>
+    <string name="shift_duration_placeholder">Hautatu iraupena</string>
+    <string name="shift_duration_8h">8 ordu</string>
+    <string name="shift_duration_12h">12 ordu</string>
+    <string name="shift_timing_instruction">Zehaztu ordutegiak.</string>
+    <string name="shift_half_day_question">Lanaldi erdiak onartzen dira?</string>
+    <string name="shift_start_label">Hasiera</string>
+    <string name="shift_end_label">Amaiera</string>
+    <string name="plant_staff_title">Unitateko langileak</string>
+    <string name="staff_scope_question">Kudeatutako langileak</string>
+    <string name="staff_scope_nurses_only">Erizainak bakarrik</string>
+    <string name="staff_scope_with_aux">Erizainak eta Laguntzaileak</string>
+    <string name="staff_requirements_title">Gutxieneko langileak</string>
+    <string name="staff_minimum_label">Txandako gutxienekoa</string>
+    <string name="plant_created_title">Unitatea sortu da</string>
+    <string name="plant_created_message">Oinarrizko egitura prest dago.</string>
+    <string name="plant_credentials_title">Sarbideak</string>
+    <string name="plant_id_label">ID</string>
+    <string name="plant_access_password_label">Pasahitza</string>
+    <string name="plant_share_hint">Partekatu datu hauek taldearekin.</string>
+    <string name="back_to_menu">Itzuli menu nagusira</string>
+
+    <string name="refresh_plant_action">Eguneratu</string>
+    <string name="plant_location_label">%1$s • %2$s</string>
+    <string name="plant_hospital_only_label">Ospitalea: %1$s</string>
+    <string name="plant_shift_summary">%1$s-(e)ko txandak</string>
+    <string name="plant_half_day_allowed">Lanaldi erdia onartzen du</string>
+    <string name="plant_half_day_not_allowed">Ez du lanaldi erdirik onartzen</string>
+    <string name="plant_shift_times_title">Ordutegiak</string>
+    <string name="plant_shift_item">%1$s: %2$s - %3$s</string>
+    <string name="plant_staff_requirements_title">Eskkakizunak</string>
+    <string name="plant_staff_requirement_item">%1$s: %2$d pertsona</string>
+    <string name="plant_registered_users_label">Erabiltzaileak: %1$d</string>
+    <string name="open_plant_detail_action">Ikusi unitatea</string>
+    <string name="plant_detail_missing_data">Hautatu data bat.</string>
+    <string name="plant_shifts_for_date">Txandak: %1$s</string>
+
+    <string name="plant_role_options_title">Aukerak: %1$s</string>
+    <string name="plant_role_option_assign">Esleitu</string>
+    <string name="plant_role_option_add_staff">Gehitu langilea</string>
+    <string name="plant_role_option_check_half_day">Konfiguratu erdiak</string>
+    <string name="plant_role_option_view_shifts">Ikusi txandak</string>
+    <string name="plant_role_option_half_day_request">Eskatu lanaldi erdia</string>
+    <string name="nurse_label">Erizaina %1$d</string>
+    <string name="nurse_half_day_label">Erizaina (erdia)</string>
+    <string name="aux_label">Laguntzailea %1$d</string>
+    <string name="aux_half_day_label">Laguntzailea (erdia)</string>
+    <string name="staff_unassigned_option">Esleitu gabe</string>
+    <string name="half_day_readonly_label">Lanaldi erdia: %1$s</string>
+    <string name="save_assignments_action">Gorde</string>
+    <string name="edit_assignments_action">Editatu</string>
+    <string name="plant_add_staff_option">Gehitu langilea</string>
+    <string name="plant_staff_list_option">Langile zerrenda</string>
+    <string name="plant_self_assign_action">Ni aukeratu</string>
+    <string name="staff_dialog_title">Langilea gehitu</string>
+    <string name="staff_dialog_name_label">Izen osoa</string>
+    <string name="staff_dialog_role_label">Rola</string>
+    <string name="staff_dialog_save_action">Gorde</string>
+    <string name="staff_list_dialog_title">%1$s-(e)ko langileak</string>
+    <string name="staff_list_dialog_empty">Ez dago langilerik.</string>
+    <string name="edit_staff_member">Editatu</string>
+    <string name="edit_shifts">Txandak editatu</string>
+    <string name="mode_assignment">Esleipen modua</string>
+    <string name="save_and_exit">Gorde eta Irten</string>
+
+    <string name="my_plant_empty_title">Ez zaude unitatean</string>
+    <string name="my_plant_empty_message">Sartu IDa eta gonbidapen kodea.</string>
+    <string name="invitation_code_label">Kodea</string>
+    <string name="join_plant_action">Batu unitatera</string>
+    <string name="join_plant_success">Batu zara.</string>
+    <string name="join_plant_success_detail">Arrakastaz batu zara.</string>
+    <string name="loading_my_plant">Unitatea bilatzen…</string>
+    <string name="plant_staff_link_title">Aukeratu profila %1$s-(e)n</string>
+    <string name="plant_staff_link_message">Hautatu zure izena lotzeko.</string>
+    <string name="plant_staff_link_field_label">Langilea</string>
+    <string name="plant_staff_link_confirm">Lotu</string>
+    <string name="plant_staff_lookup_message">Profila bilatzen…</string>
+    <string name="plant_staff_linked_label">Lotuta: %1$s (%2$s)</string>
+    <string name="plant_staff_link_prompt">Lotu kontua sinkronizatzeko.</string>
+    <string name="staff_identity_title">Zure profila</string>
+    <string name="staff_identity_label">Hautatu zure izena</string>
+    <string name="staff_identity_hint">Gainbegiraleak kudeatzen du zerrenda.</string>
+    <string name="staff_identity_missing">Eskatu gainbegiraleari gehitzeko.</string>
+
+    <string name="notes_title">Oharrak</string>
+    <string name="add_note">Gehitu oharra</string>
+    <string name="write_here">Idatzi hemen...</string>
+    <string name="no_notes_hint">Ez dago oharrik.</string>
+    <string name="chat_screen_title">Nire Txatak</string>
+    <string name="new_chat_desc">Txat berria</string>
+    <string name="no_recent_chats">Ez dago txat berririk.</string>
+    <string name="start_chat_hint">Sakatu + hasteko.</string>
+    <string name="delete_chat_action">Ezabatu txata</string>
+    <string name="start_new_chat_title">Hasi txata</string>
+    <string name="no_users_found">Ez da erabiltzailerik aurkitu.</string>
+    <string name="message_placeholder">Mezua...</string>
+    <string name="group_chat_title">Unitateko Txata</string>
+    <string name="write_message_placeholder">Idatzi...</string>
+    <string name="notification_group_msg_template">Mezu berria (%1$s).</string>
+
+    <string name="notif_channel_name">Txanda abisuak</string>
+    <string name="notif_channel_desc">Soinua eta alerta</string>
+    <string name="notification_save_error">Errorea gordetzean:</string>
+    <string name="error_save_notification">Errorea gordetzean: %1$s</string>
+
+    <string name="password_mismatch_error">Pasahitzak ez datoz bat</string>
+    <string name="auth_weak_password">Pasahitza ahulegia da</string>
+    <string name="auth_user_collision">Erabiltzailea existitzen da</string>
+    <string name="auth_invalid_credentials">Datu okerrak</string>
+    <string name="auth_invalid_user">Erabiltzailea ez da existitzen</string>
+    <string name="auth_operation_not_allowed">Gaitu Firebase</string>
+    <string name="auth_network_error">Ez dago konexiorik.</string>
+    <string name="auth_generic_error">Errorea:</string>
+    <string name="auth_unknown_error">Errore ezezaguna.</string>
+
+    <string name="auth_login_failed">Huts egin du saioak</string>
+    <string name="auth_create_failed">Ezin izan da sortu</string>
+    <string name="auth_reset_email_failed">Ezin izan da bidali</string>
+
+    <string name="login_error_generic">Huts egin du saioak</string>
+    <string name="create_account_error">Ezin izan da sortu</string>
+    <string name="reset_email_error">Ezin izan da bidali</string>
+    <string name="error_login_required">Saioa hasi behar duzu</string>
+
+    <string name="error_save_profile">Ezin izan da gorde</string>
+    <string name="profile_save_error">Ezin izan da gorde</string>
+
+    <string name="error_db_rules">Begiratu DB arauak</string>
+    <string name="database_rules_error">Begiratu DB arauak</string>
+
+    <string name="error_delete_plant">Ezin da ezabatu.</string>
+    <string name="delete_plant_error">Ezin da ezabatu.</string>
+
+    <string name="plant_required_fields_error">Bete datuak.</string>
+    <string name="plant_save_error">Errorea gordetzean.</string>
+    <string name="plant_auth_error">Auth errorea</string>
+    <string name="staff_dialog_error">Izena beharrezkoa da.</string>
+    <string name="staff_dialog_save_error">Errorea gordetzean.</string>
+
+    <string name="join_plant_error">Errorea batzean</string>
+    <string name="join_plant_not_found">Ez da aurkitu</string>
+    <string name="invalid_invitation_code">Kode okerra</string>
+    <string name="plant_load_error">Errorea kargatzean</string>
+    <string name="title_notifications">Jakinarazpenak</string>
+    <string name="msg_no_notifications">Ez dago jakinarazpenik</string>
+    <string name="desc_back">Itzuli</string>
+    <string name="desc_delete">Ezabatu</string>
+    <string name="desc_delete_all">Ezabatu dena</string>
+    <string name="title_offline_roster">Nire Plana Offline</string>
+    <string name="btn_save">Gorde</string>
+    <string name="btn_cancel">Utzi</string>
+    <string name="dialog_edit_shift_title">Editatu - %s</string>
+
+    <string name="tab_my_shifts">Nire Txandak</string>
+    <string name="tab_management">Kudeaketa</string>
+    <string name="tab_suggestions">Iradokizunak</string>
+    <string name="title_candidate_search">Hautagaien Bilaketa</string>
+    <string name="title_change_management">Aldaketen Kudeaketa</string>
+
+    <string name="msg_request_sent">Eskaera bidalita.</string>
+    <string name="msg_request_deleted">Ezabatuta</string>
+    <string name="msg_swap_approved">Onartuta.</string>
+    <string name="msg_supervisor_rejected">Ukatuta.</string>
+    <string name="msg_partner_accepted">Lankideak onartu du.</string>
+    <string name="msg_partner_rejected">Lankideak ukatu du.</string>
+    <string name="msg_request_created">Sortuta.</string>
+
+    <string name="header_supervisor_pending">Onarpenaren zain</string>
+    <string name="header_in_process">Prozesuan</string>
+    <string name="header_my_searches">Nire bilaketak</string>
+    <string name="header_history">Historia</string>
+    <string name="msg_no_recent_activity">Jarduerarik ez.</string>
+
+    <string name="header_search_candidates">Bilatu lankideak</string>
+    <string name="desc_search_candidates">Hautatu txanda bat.</string>
+    <string name="msg_no_active_offers">Ez dago eskaintzarik.</string>
+    <string name="desc_create_offer">Sortu bat lehenengo.</string>
+    <string name="label_offering_shift">Eskaintzen duzu:</string>
+    <string name="btn_see_candidates">IKUSI HAUTAGAIAK</string>
+    <string name="badge_active">AKTIBOA</string>
+
+    <string name="card_compatible_candidates">Bateragarriak</string>
+    <string name="filter_date">Data</string>
+    <string name="filter_person">Pertsona</string>
+    <string name="filter_shift">Txanda</string>
+    <string name="msg_no_candidates_found">Ez da inor aurkitu.</string>
+    <string name="btn_preview">Aurrebista</string>
+    <string name="btn_choose">Aukeratu</string>
+
+    <string name="dialog_simulation_title">Simulazioa</string>
+    <string name="label_around_date">%1$s inguruan</string>
+    <string name="label_me">Ni</string>
+
+    <string name="label_current_turn">Oraingoa: %1$s</string>
+    <string name="msg_no_shift_today">Ez duzu txandarik.</string>
+    <string name="btn_search_swap">BILATU ALDAKETA</string>
+
+    <string name="dialog_open_request_title">Eskatu Aldaketa Irekia</string>
+    <string name="label_offering_turn_date">Eskaintzen duzu:</string>
+    <string name="label_swap_preference">Lehentasuna:</string>
+    <string name="chip_flexible">Malgua</string>
+    <string name="chip_strict">Zorrotza</string>
+    <string name="desc_flexible">Edozein lankide.</string>
+    <string name="desc_strict">Zorretan daudenak.</string>
+    <string name="btn_publish_request">ARGITARATU</string>
+
+    <string name="status_pending_supervisor">GAINBEGIRALEAREN ZAIN</string>
+    <string name="status_proposal_received">PROPOSAMENA JASO DUZU!</string>
+    <string name="status_waiting_partner">%1$s-(E)N ZAIN</string>
+    <string name="status_approved">ONARTUTA</string>
+    <string name="label_origin">Jatorria</string>
+    <string name="label_destination">Helmuga</string>
+    <string name="label_searching_candidate">Bilatzen...</string>
+    <string name="label_offering">Eskaintzen duzu: %1$s</string>
+    <string name="label_suggestion_hint">Joan 'Iradokizunak' atalera.</string>
+
+    <string name="btn_approve">Onartu</string>
+    <string name="btn_reject">Ukatu</string>
+    <string name="btn_accept">Onartu</string>
+    <string name="btn_close">Itxi</string>
+    <string name="btn_delete_history">Ezabatu historia</string>
+    <string name="btn_view_simulation">Ikusi Simulazioa</string>
+
+    <string name="title_alert">Oharra</string>
+    <string name="btn_understood">Ados</string>
+    <string name="title_profile_saved">Gordeta</string>
+    <string name="msg_profile_saved">Datuak eguneratu dira.</string>
+    <string name="logo_desc">Turnoshospi Logoa</string>
+
+    <string name="title_settings">Ezarpenak</string>
+    <string name="title_customize_colors">Pertsonalizatu Koloreak</string>
+    <string name="btn_restore_colors">Leheneratu</string>
+    <string name="title_manage_account">Kudeatu kontua</string>
+    <string name="btn_delete_account">Ezabatu kontua</string>
+    <string name="msg_delete_account_warning">Datu guztiak galduko dira.</string>
+    <string name="title_are_you_sure">Ziur zaude?</string>
+    <string name="msg_delete_account_confirmation">Kontua ezabatuko da. Jarraitu?</string>
+    <string name="btn_delete_confirm">Ezabatu</string>
+    <string name="title_pick_color">Hautatu kolorea</string>
+
+    <string name="btn_delete_plant">Ezabatu unitatea</string>
+    <string name="msg_delete_plant_warning">Datuak galduko dira.</string>
+    <string name="msg_delete_plant_confirmation">"%1$s" ezabatu nahi duzu?</string>
+
+    <string name="notif_title_direct_chat">Mezu Zuzena</string>
+    <string name="notif_title_group_chat">Talde Mezua</string>
+    <string name="notif_title_shift_assignment">Txanda Eguneratzea</string>
+    <string name="notif_title_marketplace_add">Eskaintza Berria</string>
+    <string name="notif_title_shift_response">Erantzuna</string>
+    <string name="notif_title_shift_proposal">Proposamena</string>
+    <string name="notif_title_shift_approved">Onartua!</string>
+    <string name="notif_title_shift_rejected">Ukatua</string>
+    <string name="notif_title_supervisor_action">Eskaera</string>
+    <string name="notif_title_generic">Jakinarazpena</string>
+
+    <string name="plant_settings_label">Unitate Ezarpenak</string>
+    <string name="import_shifts_label">Inportatu</string>
+    <string name="invite_colleagues_label">Gonbidatu</string>
+    <string name="vacation_days_label">Opor Egunak</string>
+    <string name="shift_change_label">Txanda Aldaketa</string>
+    <string name="shift_marketplace_label">Txanda Poltsa</string>
+    <string name="statistics_label">Estatistikak</string>
+
+    <string name="share_plant_message_template">Sartu "%1$s" unitatera Turnoshospi-n.\n\nID: %2$s\nKodea: %3$s</string>
+    <string name="share_chooser_title">Gonbidatu:</string>
+
+    <string name="notif_unassigned_message">%1$s txandatik kendu zaituzte.</string>
+    <string name="notif_assigned_message">%1$s txanda eguneratu da.</string>
+    <string name="notif_vacation_saved_message">%1$s opor eguna gorde da.</string>
+
+    <string name="dialog_vacation_title">Oporrak</string>
+    <string name="dialog_vacation_instruction">Hautatu egunak:</string>
+    <string name="label_no_days_selected">Egunik ez.</string>
+    <string name="btn_add_day">Gehitu</string>
+    <string name="btn_confirm_days">Berretsi (%1$d)</string>
+    <string name="msg_vacation_saved">Gordeta.</string>
+    <string name="error_no_date_selected">Datarik ez.</string>
+    <string name="error_past_date_selection">Ezin da iragana hautatu.</string>
+    <string name="btn_add">Gehitu</string>
+
+    <string name="title_import_shifts">Inportatu</string>
+    <string name="subtitle_import_options">Aukerak</string>
+    <string name="btn_download_template">Deskargatu txantiloia</string>
+    <string name="btn_import">Inportatu</string>
+    <string name="btn_importing">Inportatzen...</string>
+    <string name="status_processing">Prozesatzen...</string>
+    <string name="msg_import_success">Eginda</string>
+    <string name="error_plant_not_loaded">Errorea: Daturik ez.</string>
+    <string name="error_csv_empty">Fitxategi hutsa.</string>
+    <string name="error_csv_format">Errorea %1$d lerroan: Formatua.</string>
+    <string name="error_csv_date">Errorea %1$d lerroan: Data (%2$s).</string>
+    <string name="error_csv_shift">Errorea %1$d lerroan: Txanda (%2$s) ez da existitzen.</string>
+    <string name="error_csv_role">Errorea %1$d lerroan: Rola (%2$s).</string>
+    <string name="error_csv_staff_not_found">Errorea %1$d lerroan: Langilea (%2$s).</string>
+    <string name="error_db_save">DB Errorea: %1$s</string>
+    <string name="error_file_read">Irakurketa errorea: %1$s</string>
+    <string name="msg_template_saved">Txantiloia deskargatuta</string>
+    <string name="error_template_save">Gordetze errorea: %1$s</string>
+
+    <string name="error_name_required">Izena beharrezkoa</string>
+    <string name="error_generic">Errorea</string>
+
+    <string name="statistics_user_title">%1$s-(r)en estatistikak</string>
+    <string name="msg_no_staff_stats">Ordu erregistrorik ez.</string>
+    <string name="header_total_hours_general">Orduak Guztira</string>
+    <string name="format_shifts_count">%1$d txanda</string>
+    <string name="desc_view_stats">Ikusi %1$s</string>
+    <string name="header_stats_breakdown">Xehetasunak</string>
+    <string name="msg_no_user_stats">Ordu erregistrorik ez %1$s-(r)entzat.</string>
+    <string name="label_total_worked">Orduak</string>
+    <string name="format_shifts_done">%1$d txanda eginda</string>
+    <string name="header_shift_breakdown">Txandaka</string>
+</resources>

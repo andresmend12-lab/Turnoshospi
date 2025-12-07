@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource // Importante
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,6 +36,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import java.time.LocalDate
 import java.util.UUID
+import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,7 +45,7 @@ fun ShiftMarketplaceScreen(
     currentUserId: String,
     currentUserName: String,
     currentUserRole: String,
-    shiftColors: ShiftColors, // <--- NUEVO PARÁMETRO
+    shiftColors: ShiftColors,
     onBack: () -> Unit,
     onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit
 ) {
@@ -67,13 +69,17 @@ fun ShiftMarketplaceScreen(
     var previewRequest by remember { mutableStateOf<ShiftChangeRequest?>(null) }
     val requesterScheduleForPreview = remember { mutableStateMapOf<LocalDate, String>() }
 
+    val labelUser = stringResource(R.string.default_user)
+
     // Función auxiliar para resolver nombres
     fun resolveName(id: String): String {
         if (staffNamesMap.containsKey(id)) return staffNamesMap[id]!!
         val staffId = userIdToStaffIdMap[id]
         if (staffId != null && staffNamesMap.containsKey(staffId)) return staffNamesMap[staffId]!!
-        return "Usuario"
+        return labelUser
     }
+
+    val errorLoadingSchedule = stringResource(R.string.error_loading_schedule)
 
     // Función para cargar el horario del solicitante
     fun fetchWeeklySchedule(userId: String, date: LocalDate) {
@@ -115,12 +121,13 @@ fun ShiftMarketplaceScreen(
                     showPreviewDialog = true
                 }
                 override fun onCancelled(error: DatabaseError) {
-                    Toast.makeText(context, "Error cargando horario", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, errorLoadingSchedule, Toast.LENGTH_SHORT).show()
                 }
             })
     }
 
     LaunchedEffect(plantId) {
+        // ... (Tu lógica de carga sigue igual) ...
         // 1. Cargar Solicitudes Activas
         database.getReference("plants/$plantId/shift_requests")
             .orderByChild("status")
@@ -260,14 +267,18 @@ fun ShiftMarketplaceScreen(
         }
     }
 
+    // STRINGS PARA USO INTERNO
+    val msgShiftAccepted = stringResource(R.string.msg_shift_accepted)
+    val notifTemplate = stringResource(R.string.notif_shift_covered)
+
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
-                title = { Text("Bolsa de Turnos", color = Color.White, fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.title_shift_marketplace), color = Color.White, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back_desc), tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -282,7 +293,7 @@ fun ShiftMarketplaceScreen(
         ) {
             // Balances
             if (balancesMap.isNotEmpty()) {
-                Text("Mis Balances con Compañeros", color = Color(0xFF54C7EC), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(stringResource(R.string.header_balances), color = Color(0xFF54C7EC), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 Spacer(modifier = Modifier.height(8.dp))
                 LazyColumn(
                     modifier = Modifier.fillMaxWidth().heightIn(max = 250.dp),
@@ -301,8 +312,8 @@ fun ShiftMarketplaceScreen(
             }
 
             // Turnos
-            Text("Turnos Disponibles (Compatibles contigo)", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            Text("Solo se muestran turnos que puedes realizar legalmente.", color = Color.Gray, fontSize = 12.sp)
+            Text(stringResource(R.string.header_available_shifts), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(stringResource(R.string.desc_available_shifts), color = Color.Gray, fontSize = 12.sp)
             Spacer(modifier = Modifier.height(8.dp))
 
             if (isLoadingRequests || isLoadingSchedule) {
@@ -312,10 +323,10 @@ fun ShiftMarketplaceScreen(
             } else if (filteredRequests.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize().weight(1f), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("No hay turnos disponibles para ti.", color = Color.Gray)
+                        Text(stringResource(R.string.msg_no_shifts_available), color = Color.Gray)
                         if (rawMarketplaceRequests.isNotEmpty()) {
                             Spacer(modifier = Modifier.height(4.dp))
-                            Text("(Se han ocultado ${rawMarketplaceRequests.size - filteredRequests.size} turnos incompatibles)", color = Color.DarkGray, fontSize = 11.sp)
+                            Text(stringResource(R.string.msg_hidden_shifts, (rawMarketplaceRequests.size - filteredRequests.size)), color = Color.DarkGray, fontSize = 11.sp)
                         }
                     }
                 }
@@ -336,12 +347,12 @@ fun ShiftMarketplaceScreen(
                                         onSaveNotification(
                                             req.requesterId,
                                             "SHIFT_COVERED",
-                                            "$currentUserName ha aceptado cubrir tu turno. ¡Mira tu balance!",
+                                            String.format(notifTemplate, currentUserName),
                                             "ShiftMarketplaceScreen",
                                             req.id,
                                             {}
                                         )
-                                        Toast.makeText(context, "¡Turno aceptado!", Toast.LENGTH_LONG).show()
+                                        Toast.makeText(context, msgShiftAccepted, Toast.LENGTH_LONG).show()
                                     },
                                     onError = { msg -> Toast.makeText(context, msg, Toast.LENGTH_LONG).show() }
                                 )
@@ -365,7 +376,7 @@ fun ShiftMarketplaceScreen(
         SchedulePreviewDialog(
             onDismiss = { showPreviewDialog = false },
             row1Schedule = myShiftsMap,
-            row1Name = "Yo",
+            row1Name = stringResource(R.string.label_me),
             row1DateToRemove = null,
             row1DateToAdd = pivotDate,
             row1ShiftToAdd = req.requesterShiftName,
@@ -411,7 +422,7 @@ fun BalanceCard(
                     Column {
                         Text(partnerName, color = Color.White, fontWeight = FontWeight.Bold)
                         Text(
-                            text = if (isPositive) "Te debe $score favores" else "Le debes ${-score} favores",
+                            text = if (isPositive) stringResource(R.string.balance_owe_you, score) else stringResource(R.string.balance_you_owe, abs(score)),
                             color = scoreColor,
                             fontSize = 12.sp
                         )
@@ -427,7 +438,7 @@ fun BalanceCard(
                     Spacer(modifier = Modifier.width(8.dp))
                     Icon(
                         imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                        contentDescription = "Expandir",
+                        contentDescription = stringResource(R.string.desc_expand),
                         tint = Color.Gray
                     )
                 }
@@ -441,11 +452,11 @@ fun BalanceCard(
                 Column(modifier = Modifier.padding(top = 12.dp)) {
                     HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("Historial de favores:", color = Color.Gray, fontSize = 11.sp)
+                    Text(stringResource(R.string.header_favor_history), color = Color.Gray, fontSize = 11.sp)
                     Spacer(modifier = Modifier.height(4.dp))
 
                     if (history.isEmpty()) {
-                        Text("No hay historial disponible.", color = Color.Gray, fontSize = 12.sp)
+                        Text(stringResource(R.string.msg_no_history), color = Color.Gray, fontSize = 12.sp)
                     } else {
                         history.forEach { t ->
                             val isMeCovering = t.covererId == currentUserId
@@ -459,7 +470,7 @@ fun BalanceCard(
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Column {
                                     Text(
-                                        text = if (isMeCovering) "Le cubriste el turno" else "Te cubrió el turno",
+                                        text = if (isMeCovering) stringResource(R.string.msg_you_covered) else stringResource(R.string.msg_covered_you),
                                         color = Color.White,
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.SemiBold
@@ -493,15 +504,15 @@ fun MarketplaceItem(
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Solicita: ${req.requesterName}", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.label_requests, req.requesterName), color = Color.White, fontWeight = FontWeight.Bold)
                     if (balanceWithRequester != 0) {
                         Text(
-                            text = if (balanceWithRequester > 0) "Te debe $balanceWithRequester" else "Le debes ${-balanceWithRequester}",
+                            text = if (balanceWithRequester > 0) stringResource(R.string.balance_owe_you, balanceWithRequester) else stringResource(R.string.balance_you_owe, abs(balanceWithRequester)),
                             color = if (balanceWithRequester > 0) Color(0xFF4CAF50) else Color(0xFFE91E63),
                             fontSize = 11.sp
                         )
                     } else {
-                        Text("Balance neutro (0)", color = Color.Gray, fontSize = 11.sp)
+                        Text(stringResource(R.string.balance_neutral), color = Color.Gray, fontSize = 11.sp)
                     }
                 }
                 Badge(containerColor = Color(0xFF54C7EC)) {
@@ -509,7 +520,7 @@ fun MarketplaceItem(
                 }
             }
             Spacer(modifier = Modifier.height(12.dp))
-            Text("Fecha: ${req.requesterShiftDate}", color = Color(0xFF54C7EC), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.label_date_simple, req.requesterShiftDate), color = Color(0xFF54C7EC), fontSize = 18.sp, fontWeight = FontWeight.Bold)
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -521,7 +532,7 @@ fun MarketplaceItem(
                 ) {
                     Icon(Icons.AutoMirrored.Filled.Assignment, null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("CUBRIR TURNO")
+                    Text(stringResource(R.string.btn_cover_shift))
                 }
 
                 OutlinedButton(
@@ -530,13 +541,14 @@ fun MarketplaceItem(
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF54C7EC)),
                     border = BorderStroke(1.dp, Color(0xFF54C7EC))
                 ) {
-                    Text("👁 Preview", fontSize = 12.sp)
+                    Text(stringResource(R.string.btn_preview_eye), fontSize = 12.sp)
                 }
             }
         }
     }
 }
 
+// ... acceptCoverage sigue igual ...
 fun acceptCoverage(
     database: FirebaseDatabase,
     plantId: String,
@@ -546,11 +558,12 @@ fun acceptCoverage(
     onSuccess: () -> Unit,
     onError: (String) -> Unit
 ) {
+    // ... (Tu código de acceptCoverage original, no tiene strings visibles para el usuario salvo errores que puedes mapear o dejar genéricos)
     val turnosRef = database.reference.child("plants/$plantId/turnos/turnos-${req.requesterShiftDate}")
 
     turnosRef.addListenerForSingleValueEvent(object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
-            if (!snapshot.exists()) { onError("Error: El día ya no existe."); return }
+            if (!snapshot.exists()) { onError("Error: Day not found."); return } // Puedes dejarlo simple o traducirlo
 
             val shiftRef = snapshot.child(req.requesterShiftName)
 
@@ -607,14 +620,14 @@ fun acceptCoverage(
 
                             database.reference.updateChildren(updates).addOnSuccessListener { onSuccess() }
                         } else {
-                            onError("Error actualizando balances: ${error?.message}")
+                            onError("Error updating balances: ${error?.message}")
                         }
                     }
                 })
             } else {
-                onError("No se encontró al usuario original en el turno.")
+                onError("User not found in shift.")
             }
         }
-        override fun onCancelled(error: DatabaseError) { onError("Error de conexión.") }
+        override fun onCancelled(error: DatabaseError) { onError("Connection error.") }
     })
 }
