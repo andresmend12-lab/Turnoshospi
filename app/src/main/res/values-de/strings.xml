@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">TurnosHospi</string>
+    <string name="app_name">ShiftGrid</string>
 
     <string-array name="days_of_week_short">
         <item>Mo</item> <item>Di</item> <item>Mi</item> <item>Do</item> <item>Fr</item> <item>Sa</item> <item>So</item> </string-array>

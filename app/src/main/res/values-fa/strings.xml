@@ -1,480 +1,478 @@
 <resources>
-    <string name="app_name">TurnosHospi</string>
+    <string name="app_name">ShiftGrid</string>
 
     <string-array name="days_of_week_short">
-        <item>M</item> <item>T</item> <item>W</item> <item>T</item> <item>F</item> <item>S</item> <item>S</item> </string-array>
+        <item>د</item> <item>س</item> <item>چ</item> <item>پ</item> <item>ج</item> <item>ش</item> <item>ی</item> </string-array>
+    <string name="back_desc">بازگشت</string>
+    <string name="close_label">بستن</string>
+    <string name="cancel_label">لغو</string>
+    <string name="cancel">لغو</string>
+    <string name="save">ذخیره</string>
+    <string name="saving_label">در حال ذخیره…</string>
+    <string name="edit">ویرایش</string>
+    <string name="delete">حذف</string>
+    <string name="send_desc">ارسال</string>
+    <string name="loading_text">بارگذاری...</string>
+    <string name="menu_info">اطلاعات</string>
+    <string name="menu_info_desc">راهنما، پشتیبانی و جزئیات برنامه.</string>
 
-    <string name="back_desc">Back</string>
-    <string name="close_label">Close</string>
-    <string name="cancel_label">Cancel</string>
-    <string name="cancel">Cancel</string>
-    <string name="save">Save</string>
-    <string name="saving_label">Saving…</string>
-    <string name="edit">Edit</string>
-    <string name="delete">Delete</string>
-    <string name="send_desc">Send</string>
-    <string name="loading_text">Loading...</string>
-    <string name="menu_info">Information</string>
-    <string name="menu_info_desc">Help, support, and app details.</string>
+    <string name="previous_month_desc">ماه قبل</string>
+    <string name="next_month_desc">ماه بعد</string>
+    <string name="desc_prev_month">ماه قبل</string>
+    <string name="desc_next_month">ماه بعد</string>
+    <string name="select_date_prompt">یک تاریخ انتخاب کنید</string>
+    <string name="select_day">یک روز انتخاب کنید</string>
+    <string name="plant_calendar_title">تقویم شیفت</string>
+    <string name="agenda_title">برنامه روزانه: %1$s</string>
 
-    <string name="previous_month_desc">Previous month</string>
-    <string name="next_month_desc">Next month</string>
-    <string name="desc_prev_month">Previous month</string>
-    <string name="desc_next_month">Next month</string>
-    <string name="select_date_prompt">Select a date</string>
-    <string name="select_day">Select a day</string>
-    <string name="plant_calendar_title">Shift Calendar</string>
-    <string name="agenda_title">Daily Agenda: %1$s</string>
+    <string name="shift_detail_title">شیفت: %1$s</string>
+    <string name="nurses_list_prefix">پرستاران: %1$s</string>
+    <string name="auxiliaries_list_prefix">دستیاران: %1$s</string>
+    <string name="colleagues_header">همکاران:</string>
+    <string name="no_colleagues_found">همکاری یافت نشد.</string>
+    <string name="no_shifts_assigned">هیچ شیفتی اختصاص داده نشده است.</string>
 
-    <string name="shift_detail_title">Shift: %1$s</string>
-    <string name="nurses_list_prefix">Nurses: %1$s</string>
-    <string name="auxiliaries_list_prefix">Assistants: %1$s</string>
-    <string name="colleagues_header">Colleagues:</string>
-    <string name="no_colleagues_found">No colleagues found.</string>
-    <string name="no_shifts_assigned">No shifts assigned.</string>
+    <string name="legend_free">تعطیل</string>
+    <string name="legend_morning">صبح</string>
+    <string name="legend_morning_half">نیمه صبح</string>
+    <string name="legend_afternoon">عصر</string>
+    <string name="legend_afternoon_half">نیمه عصر</string>
+    <string name="legend_night">شب</string>
+    <string name="legend_exit_night">پس از شب</string>
+    <string name="legend_holiday">مرخصی</string>
 
-    <string name="legend_free">Off</string>
-    <string name="legend_morning">Morning</string>
-    <string name="legend_morning_half">Half Morning</string>
-    <string name="legend_afternoon">Afternoon</string>
-    <string name="legend_afternoon_half">Half Afternoon</string>
-    <string name="legend_night">Night</string>
-    <string name="legend_exit_night">Post-night</string>
-    <string name="legend_holiday">Vacation</string>
+    <string name="shift_morning">صبح</string>
+    <string name="shift_afternoon">عصر</string>
+    <string name="shift_night">شب</string>
+    <string name="shift_saliente">پس از شب</string>
+    <string name="shift_morning_half">نیمه صبح</string>
+    <string name="shift_afternoon_half">نیمه عصر</string>
+    <string name="shift_holiday">مرخصی</string>
+    <string name="shift_free">تعطیل</string>
+    <string name="shift_day">روز</string>
 
-    <string name="shift_morning">Morning</string>
-    <string name="shift_afternoon">Afternoon</string>
-    <string name="shift_night">Night</string>
-    <string name="shift_saliente">Post-night</string>
-    <string name="shift_morning_half">Half Morning</string>
-    <string name="shift_afternoon_half">Half Afternoon</string>
-    <string name="shift_holiday">Vacation</string>
-    <string name="shift_free">Off</string>
-    <string name="shift_day">Day</string>
+    <string name="role_supervisor_male">سرپرست</string>
+    <string name="role_supervisor_female">سرپرست</string>
+    <string name="role_nurse_male">پرستار (مرد)</string>
+    <string name="role_nurse_female">پرستار (زن)</string>
+    <string name="role_aux_male">دستیار/بهیار</string>
+    <string name="role_aux_female">دستیار/بهیار</string>
+    <string name="role_nurse_generic">پرستار</string>
+    <string name="role_aux_generic">دستیار/بهیار</string>
+    <string name="role_nurse">پرستار</string>
+    <string name="role_auxiliary">دستیار</string>
+    <string name="gender_male">مرد</string>
+    <string name="gender_female">زن</string>
+    <string name="default_role">بدون نقش</string>
+    <string name="default_user">کاربر</string>
+    <string name="default_user_alias">کاربر</string>
 
-    <string name="role_supervisor_male">Supervisor</string>
-    <string name="role_supervisor_female">Supervisor</string>
-    <string name="role_nurse_male">Nurse</string>
-    <string name="role_nurse_female">Nurse</string>
-    <string name="role_aux_male">Assistant/CNA</string>
-    <string name="role_aux_female">Assistant/CNA</string>
-    <string name="role_nurse_generic">Nurse</string>
-    <string name="role_aux_generic">Assistant/CNA</string>
-    <string name="role_nurse">Nurse</string>
-    <string name="role_auxiliary">Assistant</string>
-    <string name="gender_male">Male</string>
-    <string name="gender_female">Female</string>
-    <string name="default_role">No role</string>
-    <string name="default_user">User</string>
-    <string name="default_user_alias">User</string>
+    <string name="login_screen_title">ورود</string>
+    <string name="login_button">ورود</string>
+    <string name="create_account_title">ایجاد حساب کاربری</string>
+    <string name="create_account_action">ایجاد حساب</string>
+    <string name="register_button">ذخیره پروفایل</string>
+    <string name="forgot_password">رمز عبور را فراموش کرده‌اید؟</string>
+    <string name="reset_email_sent">لینک بازیابی ارسال شد</string>
+    <string name="back_to_login_action">بازگشت به ورود</string>
+    <string name="sign_out">خروج</string>
+    <string name="loading_profile">بارگذاری اطلاعات پروفایل شما…</string>
+    <string name="profile_summary_title">پروفایل شما</string>
+    <string name="edit_profile">ویرایش پروفایل</string>
+    <string name="email_label">ایمیل</string>
+    <string name="password_label">رمز عبور</string>
+    <string name="password_hide_desc">مخفی کردن رمز عبور</string>
+    <string name="password_show_desc">نمایش رمز عبور</string>
+    <string name="confirm_password">تایید رمز عبور</string>
+    <string name="first_name_label">نام</string>
+    <string name="last_name_label">نام خانوادگی</string>
+    <string name="role_dropdown_label">سمت</string>
+    <string name="gender_select_label">جنسیت</string>
+    <string name="profile_email_label">ایمیل: %1$s</string>
+    <string name="profile_name_label">نام: %1$s</string>
+    <string name="profile_role_label">سمت: %1$s</string>
 
-    <string name="login_screen_title">Log In</string>
-    <string name="login_button">Log In</string>
-    <string name="create_account_title">Create Account</string>
-    <string name="create_account_action">Create Account</string>
-    <string name="register_button">Save Profile</string>
-    <string name="forgot_password">Forgot your password?</string>
-    <string name="reset_email_sent">We have sent a recovery link</string>
-    <string name="back_to_login_action">Back to Log In</string>
-    <string name="sign_out">Log Out</string>
-    <string name="loading_profile">Loading your profile data…</string>
-    <string name="profile_summary_title">Your Profile</string>
-    <string name="edit_profile">Edit Profile</string>
-    <string name="email_label">Email</string>
-    <string name="password_label">Password</string>
-    <string name="password_hide_desc">Hide password</string>
-    <string name="password_show_desc">Show password</string>
-    <string name="confirm_password">Confirm Password</string>
-    <string name="first_name_label">First Name</string>
-    <string name="last_name_label">Last Name</string>
-    <string name="role_dropdown_label">Position</string>
-    <string name="gender_select_label">Gender</string>
-    <string name="profile_email_label">Email: %1$s</string>
-    <string name="profile_name_label">Name: %1$s</string>
-    <string name="profile_role_label">Position: %1$s</string>
+    <string name="main_menu_welcome_male">خوش آمدید، %1$s</string>
+    <string name="main_menu_welcome_female">خوش آمدید، %1$s</string>
+    <string name="main_menu_subtitle">برای شروع سازماندهی بخش‌های خود یک گزینه را انتخاب کنید.</string>
+    <string name="side_menu_title">منو</string>
+    <string name="menu_create_plant">ایجاد بخش جدید</string>
+    <string name="menu_create_plant_desc">یک بخش را از ابتدا پیکربندی کنید.</string>
+    <string name="menu_my_plants">بخش من</string>
+    <string name="menu_my_plants_desc">مشاهده و ویرایش بخش‌های موجود.</string>
+    <string name="menu_settings">تنظیمات</string>
+    <string name="menu_settings_desc">تنظیمات حساب کاربری و ترجیحات.</string>
+    <string name="cd_menu">منو</string>
+    <string name="cd_notifications">اعلانات</string>
+    <string name="cd_chats">چت‌ها</string>
 
-    <string name="main_menu_welcome_male">Welcome, %1$s</string>
-    <string name="main_menu_welcome_female">Welcome, %1$s</string>
-    <string name="main_menu_subtitle">Select an option to start organizing your wards.</string>
-    <string name="side_menu_title">Menu</string>
-    <string name="menu_create_plant">Create New Ward</string>
-    <string name="menu_create_plant_desc">Configure a ward from scratch.</string>
-    <string name="menu_my_plants">My Ward</string>
-    <string name="menu_my_plants_desc">View and edit your existing wards.</string>
-    <string name="menu_settings">Settings</string>
-    <string name="menu_settings_desc">Account settings and preferences.</string>
-    <string name="cd_menu">Menu</string>
-    <string name="cd_notifications">Notifications</string>
-    <string name="cd_chats">Chats</string>
+    <string name="plant_creation_title">ایجاد بخش جدید</string>
+    <string name="plant_general_data_title">اطلاعات عمومی بخش</string>
+    <string name="plant_name_label">نام بخش</string>
+    <string name="unit_type_label">نوع واحد</string>
+    <string name="hospital_name_label">نام بیمارستان</string>
+    <string name="create_plant_action">ایجاد بخش</string>
+    <string name="shift_configuration_title">پیکربندی شیفت</string>
+    <string name="shift_duration_label">مدت زمان شیفت</string>
+    <string name="shift_duration_placeholder">یک مدت زمان انتخاب کنید</string>
+    <string name="shift_duration_8h">۸ ساعت</string>
+    <string name="shift_duration_12h">۱۲ ساعت</string>
+    <string name="shift_timing_instruction">برنامه زمانی هر شیفت را بر اساس مدت زمان انتخاب شده تعریف کنید.</string>
+    <string name="shift_half_day_question">آیا شیفت‌های نیمه‌روز مجاز هستند؟</string>
+    <string name="shift_start_label">شروع</string>
+    <string name="shift_end_label">پایان</string>
+    <string name="plant_staff_title">پرسنل بخش</string>
+    <string name="staff_scope_question">پرسنل اداری</string>
+    <string name="staff_scope_nurses_only">فقط پرستاران</string>
+    <string name="staff_scope_with_aux">پرستاران و کمک‌پرستاران</string>
+    <string name="staff_requirements_title">حداقل نیازهای پرسنلی</string>
+    <string name="staff_minimum_label">حداقل تعداد کارکنان در هر شیفت</string>
+    <string name="plant_created_title">بخش ایجاد شد</string>
+    <string name="plant_created_message">بخش شما با ساختار اولیه پیکربندی شده و آماده مراحل بعدی است.</string>
+    <string name="plant_credentials_title">دسترسی به بخش</string>
+    <string name="plant_id_label">شناسه بخش</string>
+    <string name="plant_access_password_label">رمز عبور دسترسی</string>
+    <string name="plant_share_hint">این جزئیات را با تیم خود به اشتراک بگذارید تا بتوانند به بخش دسترسی داشته و آن را مدیریت کنند.</string>
+    <string name="back_to_menu">بازگشت به منوی اصلی</string>
 
-    <string name="plant_creation_title">Create New Ward</string>
-    <string name="plant_general_data_title">General Ward Data</string>
-    <string name="plant_name_label">Ward Name</string>
-    <string name="unit_type_label">Unit Type</string>
-    <string name="hospital_name_label">Hospital Name</string>
-    <string name="create_plant_action">Create Ward</string>
-    <string name="shift_configuration_title">Shift Configuration</string>
-    <string name="shift_duration_label">Shift Duration</string>
-    <string name="shift_duration_placeholder">Select a duration</string>
-    <string name="shift_duration_8h">8 hours</string>
-    <string name="shift_duration_12h">12 hours</string>
-    <string name="shift_timing_instruction">Define the schedule for each shift based on the selected duration.</string>
-    <string name="shift_half_day_question">Are half-day shifts allowed?</string>
-    <string name="shift_start_label">Start</string>
-    <string name="shift_end_label">End</string>
-    <string name="plant_staff_title">Ward Staff</string>
-    <string name="staff_scope_question">Admin Staff</string>
-    <string name="staff_scope_nurses_only">Nurses Only</string>
-    <string name="staff_scope_with_aux">Nurses and Nursing Assistants</string>
-    <string name="staff_requirements_title">Minimum Staff Requirements</string>
-    <string name="staff_minimum_label">Minimum number of staff per shift</string>
-    <string name="plant_created_title">Ward Created</string>
-    <string name="plant_created_message">Your ward has been configured with the basic structure and is ready for the next steps.</string>
-    <string name="plant_credentials_title">Ward Access</string>
-    <string name="plant_id_label">Ward ID</string>
-    <string name="plant_access_password_label">Access Password</string>
-    <string name="plant_share_hint">Share these details with your team so they can access and manage the ward.</string>
-    <string name="back_to_menu">Back to Main Menu</string>
-
-    <string name="refresh_plant_action">Update Data</string>
+    <string name="refresh_plant_action">بروزرسانی داده‌ها</string>
     <string name="plant_location_label">%1$s • %2$s</string>
-    <string name="plant_hospital_only_label">Hospital: %1$s</string>
-    <string name="plant_shift_summary">Shifts for %1$s</string>
-    <string name="plant_half_day_allowed">Allows half-day shifts</string>
-    <string name="plant_half_day_not_allowed">Does not allow half-day shifts</string>
-    <string name="plant_shift_times_title">Configured Schedules</string>
+    <string name="plant_hospital_only_label">بیمارستان: %1$s</string>
+    <string name="plant_shift_summary">شیفت‌های %1$s</string>
+    <string name="plant_half_day_allowed">شیفت‌های نیمه‌روز مجاز است</string>
+    <string name="plant_half_day_not_allowed">شیفت‌های نیمه‌روز مجاز نیست</string>
+    <string name="plant_shift_times_title">برنامه‌های تنظیم شده</string>
     <string name="plant_shift_item">%1$s: %2$s - %3$s</string>
-    <string name="plant_staff_requirements_title">Minimum Requirements</string>
-    <string name="plant_staff_requirement_item">%1$s: %2$d people</string>
-    <string name="plant_registered_users_label">Registered Users: %1$d</string>
-    <string name="open_plant_detail_action">View My Ward</string>
-    <string name="plant_detail_missing_data">Select a date and ensure a ward is loaded to view shifts.</string>
-    <string name="plant_shifts_for_date">Shifts for %1$s</string>
+    <string name="plant_staff_requirements_title">حداقل الزامات</string>
+    <string name="plant_staff_requirement_item">%1$s: %2$d نفر</string>
+    <string name="plant_registered_users_label">کاربران ثبت شده: %1$d</string>
+    <string name="open_plant_detail_action">مشاهده بخش من</string>
+    <string name="plant_detail_missing_data">برای مشاهده شیفت‌ها یک تاریخ انتخاب کنید و مطمئن شوید بخش بارگذاری شده است.</string>
+    <string name="plant_shifts_for_date">شیفت‌های %1$s</string>
 
-    <string name="plant_role_options_title">Options available for %1$s</string>
-    <string name="plant_role_option_assign">Assign Staff</string>
-    <string name="plant_role_option_add_staff">Add Staff</string>
-    <string name="plant_role_option_check_half_day">Configure Half Days</string>
-    <string name="plant_role_option_view_shifts">View Shifts</string>
-    <string name="plant_role_option_half_day_request">Request Half Day</string>
-    <string name="nurse_label">Nurse %1$d</string>
-    <string name="nurse_half_day_label">Nurse Half Day</string>
-    <string name="aux_label">Assistant %1$d</string>
-    <string name="aux_half_day_label">Assistant Half Day</string>
-    <string name="staff_unassigned_option">Unassigned</string>
-    <string name="half_day_readonly_label">Half Day: %1$s</string>
-    <string name="save_assignments_action">Save Organization</string>
-    <string name="edit_assignments_action">Edit Organization</string>
-    <string name="plant_add_staff_option">Add Ward Staff</string>
-    <string name="plant_staff_list_option">Staff List</string>
-    <string name="plant_self_assign_action">Select Myself</string>
-    <string name="staff_dialog_title">Add Staff</string>
-    <string name="staff_dialog_name_label">Full Name</string>
-    <string name="staff_dialog_role_label">Role</string>
-    <string name="staff_dialog_save_action">Save Staff</string>
-    <string name="staff_list_dialog_title">Staff of %1$s</string>
-    <string name="staff_list_dialog_empty">There is no staff registered for this ward yet.</string>
-    <string name="edit_staff_member">Edit Staff</string>
-    <string name="edit_shifts">Edit Shifts</string>
-    <string name="mode_assignment">Assignment Mode</string>
-    <string name="save_and_exit">Save and Exit</string>
+    <string name="plant_role_options_title">گزینه‌های موجود برای %1$s</string>
+    <string name="plant_role_option_assign">اختصاص پرسنل</string>
+    <string name="plant_role_option_add_staff">افزودن پرسنل</string>
+    <string name="plant_role_option_check_half_day">پیکربندی نیمه‌روزها</string>
+    <string name="plant_role_option_view_shifts">مشاهده شیفت‌ها</string>
+    <string name="plant_role_option_half_day_request">درخواست نیمه‌روز</string>
+    <string name="nurse_label">پرستار %1$d</string>
+    <string name="nurse_half_day_label">پرستار نیمه‌روز</string>
+    <string name="aux_label">دستیار %1$d</string>
+    <string name="aux_half_day_label">دستیار نیمه‌روز</string>
+    <string name="staff_unassigned_option">اختصاص داده نشده</string>
+    <string name="half_day_readonly_label">نیمه‌روز: %1$s</string>
+    <string name="save_assignments_action">ذخیره سازماندهی</string>
+    <string name="edit_assignments_action">ویرایش سازماندهی</string>
+    <string name="plant_add_staff_option">افزودن پرسنل بخش</string>
+    <string name="plant_staff_list_option">لیست پرسنل</string>
+    <string name="plant_self_assign_action">انتخاب خودم</string>
+    <string name="staff_dialog_title">افزودن پرسنل</string>
+    <string name="staff_dialog_name_label">نام کامل</string>
+    <string name="staff_dialog_role_label">نقش</string>
+    <string name="staff_dialog_save_action">ذخیره پرسنل</string>
+    <string name="staff_list_dialog_title">پرسنل %1$s</string>
+    <string name="staff_list_dialog_empty">هنوز هیچ پرسنلی برای این بخش ثبت نشده است.</string>
+    <string name="edit_staff_member">ویرایش پرسنل</string>
+    <string name="edit_shifts">ویرایش شیفت‌ها</string>
+    <string name="mode_assignment">حالت تخصیص</string>
+    <string name="save_and_exit">ذخیره و خروج</string>
 
-    <string name="my_plant_empty_title">You are not in a ward yet</string>
-    <string name="my_plant_empty_message">Enter the Ward ID and the invitation code shared by your supervisor to join.</string>
-    <string name="invitation_code_label">Invitation Code</string>
-    <string name="join_plant_action">Join Ward</string>
-    <string name="join_plant_success">You joined the ward successfully.</string>
-    <string name="join_plant_success_detail">You have successfully joined the ward.</string>
-    <string name="loading_my_plant">Searching for your ward…</string>
-    <string name="plant_staff_link_title">Choose your profile in %1$s</string>
-    <string name="plant_staff_link_message">Select the staff record that corresponds to you to link your account to this ward.</string>
-    <string name="plant_staff_link_field_label">Ward Staff</string>
-    <string name="plant_staff_link_confirm">Link</string>
-    <string name="plant_staff_lookup_message">Searching for your ward profile…</string>
-    <string name="plant_staff_linked_label">Linked as %1$s (%2$s)</string>
-    <string name="plant_staff_link_prompt">Link your account to a ward profile to keep data synchronized.</string>
-    <string name="staff_identity_title">Your Profile in the Ward</string>
-    <string name="staff_identity_label">Select your name from the list</string>
-    <string name="staff_identity_hint">The supervisor manages this staff list.</string>
-    <string name="staff_identity_missing">Ask the supervisor to add the staff so you can be assigned.</string>
+    <string name="my_plant_empty_title">شما هنوز در هیچ بخشی نیستید</string>
+    <string name="my_plant_empty_message">برای عضویت، شناسه بخش و کد دعوتی که سرپرست به اشتراک گذاشته است را وارد کنید.</string>
+    <string name="invitation_code_label">کد دعوت</string>
+    <string name="join_plant_action">عضویت در بخش</string>
+    <string name="join_plant_success">شما با موفقیت به بخش پیوستید.</string>
+    <string name="join_plant_success_detail">شما با موفقیت به بخش ملحق شدید.</string>
+    <string name="loading_my_plant">در حال جستجوی بخش شما…</string>
+    <string name="plant_staff_link_title">پروفایل خود را در %1$s انتخاب کنید</string>
+    <string name="plant_staff_link_message">رکورد پرسنلی مربوط به خود را انتخاب کنید تا حساب کاربری شما به این بخش متصل شود.</string>
+    <string name="plant_staff_link_field_label">پرسنل بخش</string>
+    <string name="plant_staff_link_confirm">اتصال</string>
+    <string name="plant_staff_lookup_message">در حال جستجوی پروفایل بخش شما…</string>
+    <string name="plant_staff_linked_label">متصل شده به عنوان %1$s (%2$s)</string>
+    <string name="plant_staff_link_prompt">حساب خود را به یک پروفایل بخش متصل کنید تا داده‌ها همگام‌سازی شوند.</string>
+    <string name="staff_identity_title">پروفایل شما در بخش</string>
+    <string name="staff_identity_label">نام خود را از لیست انتخاب کنید</string>
+    <string name="staff_identity_hint">سرپرست این لیست پرسنل را مدیریت می‌کند.</string>
+    <string name="staff_identity_missing">از سرپرست بخواهید پرسنل را اضافه کند تا بتوانید اختصاص داده شوید.</string>
 
-    <string name="notes_title">Notes</string>
-    <string name="add_note">Add Note</string>
-    <string name="write_here">Write here...</string>
-    <string name="no_notes_hint">No notes. Tap + to create one.</string>
-    <string name="chat_screen_title">My Chats</string>
-    <string name="new_chat_desc">New Chat</string>
-    <string name="no_recent_chats">You have no recent chats.</string>
-    <string name="start_chat_hint">Tap + to start.</string>
-    <string name="delete_chat_action">Delete chat</string>
-    <string name="start_new_chat_title">Start New Chat</string>
-    <string name="no_users_found">No other registered users found in this ward.</string>
-    <string name="message_placeholder">Message...</string>
-    <string name="group_chat_title">Ward Chat</string>
-    <string name="write_message_placeholder">Type a message...</string>
-    <string name="notification_group_msg_template">New message from %1$s in the ward chat.</string>
+    <string name="notes_title">یادداشت‌ها</string>
+    <string name="add_note">افزودن یادداشت</string>
+    <string name="write_here">اینجا بنویسید...</string>
+    <string name="no_notes_hint">یادداشتی وجود ندارد. برای ایجاد + را لمس کنید.</string>
+    <string name="chat_screen_title">چت‌های من</string>
+    <string name="new_chat_desc">چت جدید</string>
+    <string name="no_recent_chats">شما چت اخیری ندارید.</string>
+    <string name="start_chat_hint">برای شروع + را لمس کنید.</string>
+    <string name="delete_chat_action">حذف چت</string>
+    <string name="start_new_chat_title">شروع چت جدید</string>
+    <string name="no_users_found">هیچ کاربر ثبت شده دیگری در این بخش یافت نشد.</string>
+    <string name="message_placeholder">پیام...</string>
+    <string name="group_chat_title">چت بخش</string>
+    <string name="write_message_placeholder">پیامی بنویسید...</string>
+    <string name="notification_group_msg_template">پیام جدید از طرف %1$s در چت بخش.</string>
 
-    <string name="notif_channel_name">Shift Alerts</string>
-    <string name="notif_channel_desc">Notifications with sound and visual alert</string>
-    <string name="notification_save_error">Error saving notification:</string>
-    <string name="error_save_notification">Error saving notification: %1$s</string>
+    <string name="notif_channel_name">هشدارهای شیفت</string>
+    <string name="notif_channel_desc">اعلانات با صدا و هشدار تصویری</string>
+    <string name="notification_save_error">خطا در ذخیره اعلان:</string>
+    <string name="error_save_notification">خطا در ذخیره اعلان: %1$s</string>
 
-    <string name="password_mismatch_error">Passwords do not match</string>
-    <string name="auth_weak_password">Password is too weak; it must be at least 6 characters</string>
-    <string name="auth_user_collision">An account is already registered with this email</string>
-    <string name="auth_invalid_credentials">Email or password are invalid</string>
-    <string name="auth_invalid_user">This account does not exist or was disabled</string>
-    <string name="auth_operation_not_allowed">Enable Email/Password provider in Firebase console</string>
-    <string name="auth_network_error">No server connection. Check your internet connection</string>
-    <string name="auth_generic_error">Authentication error:</string>
-    <string name="auth_unknown_error">Could not complete operation. Try again</string>
+    <string name="password_mismatch_error">رمزهای عبور مطابقت ندارند</string>
+    <string name="auth_weak_password">رمز عبور خیلی ضعیف است؛ باید حداقل ۶ کاراکتر باشد</string>
+    <string name="auth_user_collision">حسابی قبلاً با این ایمیل ثبت شده است</string>
+    <string name="auth_invalid_credentials">ایمیل یا رمز عبور نامعتبر است</string>
+    <string name="auth_invalid_user">این حساب وجود ندارد یا غیرفعال شده است</string>
+    <string name="auth_operation_not_allowed">ارائه‌دهنده ایمیل/رمز عبور را در کنسول فایربیس فعال کنید</string>
+    <string name="auth_network_error">اتصال به سرور برقرار نیست. اتصال اینترنت خود را بررسی کنید</string>
+    <string name="auth_generic_error">خطای احراز هویت:</string>
+    <string name="auth_unknown_error">عملیات تکمیل نشد. دوباره تلاش کنید</string>
 
-    <string name="auth_login_failed">Could not log in with that email</string>
-    <string name="auth_create_failed">Could not create account</string>
-    <string name="auth_reset_email_failed">Could not send recovery email</string>
+    <string name="auth_login_failed">ورود با آن ایمیل امکان‌پذیر نبود</string>
+    <string name="auth_create_failed">امکان ایجاد حساب وجود نداشت</string>
+    <string name="auth_reset_email_failed">امکان ارسال ایمیل بازیابی وجود نداشت</string>
 
-    <string name="login_error_generic">Could not log in with that email</string>
-    <string name="create_account_error">Could not create account</string>
-    <string name="reset_email_error">Could not send recovery email</string>
-    <string name="error_login_required">You must log in to continue</string>
+    <string name="login_error_generic">ورود با آن ایمیل امکان‌پذیر نبود</string>
+    <string name="create_account_error">امکان ایجاد حساب وجود نداشت</string>
+    <string name="reset_email_error">امکان ارسال ایمیل بازیابی وجود نداشت</string>
+    <string name="error_login_required">برای ادامه باید وارد شوید</string>
 
-    <string name="error_save_profile">Could not save profile in real time</string>
-    <string name="profile_save_error">Could not save profile in real time</string>
+    <string name="error_save_profile">امکان ذخیره پروفایل به صورت آنی وجود نداشت</string>
+    <string name="profile_save_error">امکان ذخیره پروفایل به صورت آنی وجود نداشت</string>
 
-    <string name="error_db_rules">Check Realtime Database rules and write permissions</string>
-    <string name="database_rules_error">Check Realtime Database rules and write permissions</string>
+    <string name="error_db_rules">قوانین Realtime Database و مجوزهای نوشتن را بررسی کنید</string>
+    <string name="database_rules_error">قوانین Realtime Database و مجوزهای نوشتن را بررسی کنید</string>
 
-    <string name="error_delete_plant">Could not delete the ward. Try again.</string>
-    <string name="delete_plant_error">Could not delete the ward. Try again.</string>
+    <string name="error_delete_plant">امکان حذف بخش وجود نداشت. دوباره تلاش کنید.</string>
+    <string name="delete_plant_error">امکان حذف بخش وجود نداشت. دوباره تلاش کنید.</string>
 
-    <string name="plant_required_fields_error">Complete the general ward data.</string>
-    <string name="plant_save_error">Could not save the ward. Check your connection and try again.</string>
-    <string name="plant_auth_error">Authentication error when loading ward</string>
-    <string name="staff_dialog_error">Complete the name to continue.</string>
-    <string name="staff_dialog_save_error">Could not save staff. Try again.</string>
+    <string name="plant_required_fields_error">اطلاعات عمومی بخش را تکمیل کنید.</string>
+    <string name="plant_save_error">امکان ذخیره بخش وجود نداشت. اتصال خود را بررسی و دوباره تلاش کنید.</string>
+    <string name="plant_auth_error">خطای احراز هویت هنگام بارگذاری بخش</string>
+    <string name="staff_dialog_error">نام را برای ادامه تکمیل کنید.</string>
+    <string name="staff_dialog_save_error">امکان ذخیره پرسنل وجود نداشت. دوباره تلاش کنید.</string>
 
-    <string name="join_plant_error">Error joining the ward</string>
-    <string name="join_plant_not_found">Ward not found</string>
-    <string name="invalid_invitation_code">Invalid invitation code</string>
-    <string name="plant_load_error">Error loading the ward</string>
-    <string name="title_notifications">Notifications</string>
-    <string name="msg_no_notifications">You have no notifications</string>
-    <string name="desc_back">Back</string>
-    <string name="desc_delete">Delete</string>
-    <string name="desc_delete_all">Delete All</string>
-    <string name="title_offline_roster">My Offline Roster</string>
-    <string name="btn_save">Save</string>
-    <string name="btn_cancel">Cancel</string>
-    <string name="dialog_edit_shift_title">Edit Shift - %s</string>
-    <string name="tab_my_shifts">My Shifts</string>
-    <string name="tab_management">Management</string>
-    <string name="tab_suggestions">Suggestions</string>
-    <string name="title_candidate_search">Candidate Search</string>
-    <string name="title_change_management">Shift Management</string>
+    <string name="join_plant_error">خطا در پیوستن به بخش</string>
+    <string name="join_plant_not_found">بخش یافت نشد</string>
+    <string name="invalid_invitation_code">کد دعوت نامعتبر</string>
+    <string name="plant_load_error">خطا در بارگذاری بخش</string>
+    <string name="title_notifications">اعلانات</string>
+    <string name="msg_no_notifications">شما هیچ اعلانی ندارید</string>
+    <string name="desc_back">بازگشت</string>
+    <string name="desc_delete">حذف</string>
+    <string name="desc_delete_all">حذف همه</string>
+    <string name="title_offline_roster">برنامه آفلاین من</string>
+    <string name="btn_save">ذخیره</string>
+    <string name="btn_cancel">لغو</string>
+    <string name="dialog_edit_shift_title">ویرایش شیفت - %s</string>
+    <string name="tab_my_shifts">شیفت‌های من</string>
+    <string name="tab_management">مدیریت</string>
+    <string name="tab_suggestions">پیشنهادات</string>
+    <string name="title_candidate_search">جستجوی کاندیدا</string>
+    <string name="title_change_management">مدیریت شیفت</string>
 
-    <string name="msg_request_sent">Request sent. Waiting for colleague acceptance.</string>
-    <string name="msg_request_deleted">Request deleted</string>
-    <string name="msg_swap_approved">Change executed and approved.</string>
-    <string name="msg_supervisor_rejected">Supervisor rejected the change.</string>
-    <string name="msg_partner_accepted">Your colleague accepted. Waiting for Supervisor.</string>
-    <string name="msg_partner_rejected">Colleague rejected the change.</string>
-    <string name="msg_request_created">Request created. Go to \'Suggestions\' to find candidates.</string>
+    <string name="msg_request_sent">درخواست ارسال شد. در انتظار پذیرش همکار.</string>
+    <string name="msg_request_deleted">درخواست حذف شد</string>
+    <string name="msg_swap_approved">تغییر اجرا و تایید شد.</string>
+    <string name="msg_supervisor_rejected">سرپرست تغییر را رد کرد.</string>
+    <string name="msg_partner_accepted">همکار شما پذیرفت. در انتظار سرپرست.</string>
+    <string name="msg_partner_rejected">همکار تغییر را رد کرد.</string>
+    <string name="msg_request_created">درخواست ایجاد شد. برای یافتن کاندیداها به \'پیشنهادات\' بروید.</string>
 
-    <string name="header_supervisor_pending">Pending Approval (Supervisor)</string>
-    <string name="header_in_process">In Process</string>
-    <string name="header_my_searches">My Active Searches</string>
-    <string name="header_history">History</string>
-    <string name="msg_no_recent_activity">No recent activity.</string>
+    <string name="header_supervisor_pending">در انتظار تایید (سرپرست)</string>
+    <string name="header_in_process">در حال پردازش</string>
+    <string name="header_my_searches">جستجوهای فعال من</string>
+    <string name="header_history">تاریخچه</string>
+    <string name="msg_no_recent_activity">فعالیت اخیری وجود ندارد.</string>
 
-    <string name="header_search_candidates">Find candidates for your shifts</string>
-    <string name="desc_search_candidates">Select one of your offered shifts to see who can swap with you.</string>
-    <string name="msg_no_active_offers">You have no active offers.</string>
-    <string name="desc_create_offer">Create one in \'My Shifts\' first.</string>
-    <string name="label_offering_shift">Offering shift of:</string>
-    <string name="btn_see_candidates">SEE COMPATIBLE CANDIDATES</string>
-    <string name="badge_active">ACTIVE</string>
+    <string name="header_search_candidates">یافتن کاندیدا برای شیفت‌های شما</string>
+    <string name="desc_search_candidates">یکی از شیفت‌های پیشنهادی خود را انتخاب کنید تا ببینید چه کسی می‌تواند با شما جابجا شود.</string>
+    <string name="msg_no_active_offers">شما هیچ پیشنهاد فعالی ندارید.</string>
+    <string name="desc_create_offer">ابتدا یکی در \'شیفت‌های من\' ایجاد کنید.</string>
+    <string name="label_offering_shift">پیشنهاد شیفت:</string>
+    <string name="btn_see_candidates">مشاهده کاندیداهای سازگار</string>
+    <string name="badge_active">فعال</string>
 
-    <string name="card_compatible_candidates">Compatible Candidates</string>
-    <string name="filter_date">Date</string>
-    <string name="filter_person">Person</string>
-    <string name="filter_shift">Shift</string>
-    <string name="msg_no_candidates_found">No available colleagues found with these filters.</string>
-    <string name="btn_preview">Preview</string>
-    <string name="btn_choose">Choose</string>
+    <string name="card_compatible_candidates">کاندیداهای سازگار</string>
+    <string name="filter_date">تاریخ</string>
+    <string name="filter_person">شخص</string>
+    <string name="filter_shift">شیفت</string>
+    <string name="msg_no_candidates_found">هیچ همکاری با این فیلترها یافت نشد.</string>
+    <string name="btn_preview">پیش‌نمایش</string>
+    <string name="btn_choose">انتخاب</string>
 
-    <string name="dialog_simulation_title">Swap Simulation</string>
-    <string name="label_around_date">Around %1$s</string>
-    <string name="label_me">Me</string>
+    <string name="dialog_simulation_title">شبیه‌سازی جابجایی</string>
+    <string name="label_around_date">در حدود %1$s</string>
+    <string name="label_me">من</string>
 
-    <string name="label_current_turn">Current shift: %1$s</string>
-    <string name="msg_no_shift_today">You have no shift this day.</string>
-    <string name="btn_search_swap">SEARCH SWAP</string>
+    <string name="label_current_turn">شیفت فعلی: %1$s</string>
+    <string name="msg_no_shift_today">شما امروز هیچ شیفتی ندارید.</string>
+    <string name="btn_search_swap">جستجوی جابجایی</string>
 
-    <string name="dialog_open_request_title">Request Open Swap</string>
-    <string name="label_offering_turn_date">You are offering your shift of:</string>
-    <string name="label_swap_preference">Swap Preference:</string>
-    <string name="chip_flexible">Flexible</string>
-    <string name="chip_strict">Strict</string>
-    <string name="desc_flexible">Any compatible colleague will be sought.</string>
-    <string name="desc_strict">Priority will be given to those who owe you shifts.</string>
-    <string name="btn_publish_request">PUBLISH REQUEST</string>
+    <string name="dialog_open_request_title">درخواست جابجایی باز</string>
+    <string name="label_offering_turn_date">شما شیفت خود در تاریخ زیر را پیشنهاد می‌دهید:</string>
+    <string name="label_swap_preference">ترجیح جابجایی:</string>
+    <string name="chip_flexible">منعطف</string>
+    <string name="chip_strict">سخت‌گیرانه</string>
+    <string name="desc_flexible">هر همکار سازگاری جستجو خواهد شد.</string>
+    <string name="desc_strict">اولویت با کسانی خواهد بود که به شما شیفت بدهکارند.</string>
+    <string name="btn_publish_request">انتشار درخواست</string>
 
-    <string name="status_pending_supervisor">AWAITING SUPERVISOR APPROVAL</string>
-    <string name="status_proposal_received">YOU HAVE BEEN PROPOSED A SWAP!</string>
-    <string name="status_waiting_partner">WAITING FOR %1$s RESPONSE</string>
-    <string name="status_approved">SWAP APPROVED</string>
-    <string name="label_origin">Origin</string>
-    <string name="label_destination">Destination</string>
-    <string name="label_searching_candidate">Searching candidate...</string>
-    <string name="label_offering">You offer: %1$s</string>
-    <string name="label_suggestion_hint">Go to \'Suggestions\' tab to propose a swap.</string>
-    <string name="btn_approve">Approve</string>
-    <string name="btn_reject">Reject</string>
-    <string name="btn_accept">Accept Swap</string>
-    <string name="btn_close">Close</string>
-    <string name="btn_delete_history">Clear History</string>
-    <string name="btn_view_simulation">View Simulation</string>
-    <string name="title_shift_marketplace">Shift Marketplace</string>
-    <string name="header_balances">My Balances with Colleagues</string>
-    <string name="balance_owe_you">Owes you %1$d favors</string>
-    <string name="balance_you_owe">You owe %1$d favors</string>
-    <string name="desc_expand">Expand</string>
-    <string name="header_favor_history">Favor History:</string>
-    <string name="msg_no_history">No history available.</string>
-    <string name="msg_you_covered">You covered their shift</string>
-    <string name="msg_covered_you">Covered your shift</string>
-    <string name="header_available_shifts">Available Shifts (Compatible with you)</string>
-    <string name="desc_available_shifts">Only shifts you can legally perform are shown.</string>
-    <string name="msg_no_shifts_available">No shifts available for you.</string>
-    <string name="msg_hidden_shifts">(%1$d incompatible shifts hidden)</string>
-    <string name="label_requests">Request: %1$s</string>
-    <string name="balance_neutral">Neutral balance (0)</string>
-    <string name="label_date_simple">Date: %1$s</string>
-    <string name="btn_cover_shift">COVER SHIFT</string>
-    <string name="btn_preview_eye">👁 Preview</string>
-    <string name="msg_shift_accepted">Shift accepted!</string>
-    <string name="error_loading_schedule">Error loading schedule</string>
-    <string name="notif_shift_covered">%1$s accepted to cover your shift. Check your balance!</string>
+    <string name="status_pending_supervisor">در انتظار تایید سرپرست</string>
+    <string name="status_proposal_received">یک جابجایی به شما پیشنهاد شده است!</string>
+    <string name="status_waiting_partner">در انتظار پاسخ %1$s</string>
+    <string name="status_approved">جابجایی تایید شد</string>
+    <string name="label_origin">مبدا</string>
+    <string name="label_destination">مقصد</string>
+    <string name="label_searching_candidate">در حال جستجوی کاندیدا...</string>
+    <string name="label_offering">شما پیشنهاد می‌دهید: %1$s</string>
+    <string name="label_suggestion_hint">برای پیشنهاد جابجایی به برگه \'پیشنهادات\' بروید.</string>
+    <string name="btn_approve">تایید</string>
+    <string name="btn_reject">رد کردن</string>
+    <string name="btn_accept">پذیرش جابجایی</string>
+    <string name="btn_close">بستن</string>
+    <string name="btn_delete_history">پاک کردن تاریخچه</string>
+    <string name="btn_view_simulation">مشاهده شبیه‌سازی</string>
+    <string name="title_shift_marketplace">بازار شیفت</string>
+    <string name="header_balances">ترازهای من با همکاران</string>
+    <string name="balance_owe_you">%1$d لطف به شما بدهکار است</string>
+    <string name="balance_you_owe">شما %1$d لطف بدهکارید</string>
+    <string name="desc_expand">گسترش</string>
+    <string name="header_favor_history">تاریخچه لطف‌ها:</string>
+    <string name="msg_no_history">تاریخچه‌ای موجود نیست.</string>
+    <string name="msg_you_covered">شما شیفت آنها را پوشش دادید</string>
+    <string name="msg_covered_you">شیفت شما را پوشش داد</string>
+    <string name="header_available_shifts">شیفت‌های موجود (سازگار با شما)</string>
+    <string name="desc_available_shifts">فقط شیفت‌هایی که قانوناً مجاز به انجام آنها هستید نمایش داده می‌شود.</string>
+    <string name="msg_no_shifts_available">هیچ شیفتی برای شما موجود نیست.</string>
+    <string name="msg_hidden_shifts">(%1$d شیفت ناسازگار پنهان شده است)</string>
+    <string name="label_requests">درخواست: %1$s</string>
+    <string name="balance_neutral">تراز خنثی (۰)</string>
+    <string name="label_date_simple">تاریخ: %1$s</string>
+    <string name="btn_cover_shift">پوشش شیفت</string>
+    <string name="btn_preview_eye">👁 پیش‌نمایش</string>
+    <string name="msg_shift_accepted">شیفت پذیرفته شد!</string>
+    <string name="error_loading_schedule">خطا در بارگذاری برنامه</string>
+    <string name="notif_shift_covered">%1$s پذیرفت شیفت شما را پوشش دهد. تراز خود را بررسی کنید!</string>
 
-    <string name="menu_plant_settings">Plant Settings</string>
-    <string name="menu_import_shifts">Import Shifts</string>
-    <string name="menu_invite_colleagues">Invite Colleagues</string>
-    <string name="menu_vacation_days">Vacation Days</string>
-    <string name="menu_group_chat">Group Chat</string>
-    <string name="menu_shift_change">Shift Change</string>
-    <string name="menu_shift_marketplace">Shift Marketplace</string>
-    <string name="menu_statistics">Statistics</string>
-    <string name="error_name_required">Name is required</string>
-    <string name="error_generic">Error</string>
-    <string name="invite_message_template">Hello! Join the ward \"%1$s\" in TurnosHospi.\n\nWard ID: %2$s\nAccess Code: %3$s\n\nDownload the app and join from the main menu.</string>
-    <string name="invite_chooser_title">Invite colleagues via:</string>
-    <string name="notif_unassigned">You have been unassigned from the shift on %1$s.</string>
-    <string name="notif_assigned">Your shift for %1$s has been updated by the supervisor.</string>
-    <string name="msg_no_date_selected">No date selected.</string>
-    <string name="notif_vacation_saved">Your vacation day on %1$s has been registered.</string>
-    <string name="error_save_vacation">Error saving vacations: %1$s</string>
-    <string name="error_past_dates">You cannot select past dates.</string>
-    <string name="title_select_vacation">Select Vacation Days</string>
-    <string name="desc_select_vacation">Select the days you will be on vacation:</string>
-    <string name="msg_no_days_selected">No days selected.</string>
-    <string name="btn_confirm_count">Confirm (%1$d days)</string>
-    <string name="title_import_options">Import Options</string>
+    <string name="menu_plant_settings">تنظیمات بخش</string>
+    <string name="menu_import_shifts">وارد کردن شیفت‌ها</string>
+    <string name="menu_invite_colleagues">دعوت از همکاران</string>
+    <string name="menu_vacation_days">روزهای مرخصی</string>
+    <string name="menu_group_chat">چت گروهی</string>
+    <string name="menu_shift_change">تغییر شیفت</string>
+    <string name="menu_shift_marketplace">بازار شیفت</string>
+    <string name="menu_statistics">آمار</string>
+    <string name="error_name_required">نام الزامی است</string>
+    <string name="error_generic">خطا</string>
+    <string name="invite_message_template">سلام! به بخش «%1$s» در TurnosHospi بپیوندید.\n\nشناسه بخش: %2$s\nکد دسترسی: %3$s\n\nبرنامه را دانلود کرده و از منوی اصلی بپیوندید.</string>
+    <string name="invite_chooser_title">دعوت از همکاران از طریق:</string>
+    <string name="notif_unassigned">شما از شیفت در تاریخ %1$s حذف شدید.</string>
+    <string name="notif_assigned">شیفت شما برای %1$s توسط سرپرست بروزرسانی شده است.</string>
+    <string name="msg_no_date_selected">هیچ تاریخی انتخاب نشده است.</string>
+    <string name="notif_vacation_saved">روز مرخصی شما در تاریخ %1$s ثبت شده است.</string>
+    <string name="error_save_vacation">خطا در ذخیره مرخصی‌ها: %1$s</string>
+    <string name="error_past_dates">نمی‌توانید تاریخ‌های گذشته را انتخاب کنید.</string>
+    <string name="title_select_vacation">انتخاب روزهای مرخصی</string>
+    <string name="desc_select_vacation">روزهایی که در مرخصی خواهید بود را انتخاب کنید:</string>
+    <string name="msg_no_days_selected">هیچ روزی انتخاب نشده است.</string>
+    <string name="btn_confirm_count">تایید (%1$d روز)</string>
+    <string name="title_import_options">گزینه‌های وارد کردن</string>
 
-    <string name="error_empty_file">The file is empty.</string>
-    <string name="error_row_format">Error in row %1$d: Incorrect format. Missing columns.</string>
-    <string name="error_date_invalid">Error in row %1$d: Invalid date (%2$s). Use YYYY-MM-DD.</string>
-    <string name="error_shift_not_found">Error in row %1$d: Shift \'%2$s\' does not exist in this ward.</string>
-    <string name="error_role_unknown">Error in row %1$d: Unknown role \'%2$s\'. Use \'Nurse\', \'Assistant\' or \'CNA\'.</string>
-    <string name="error_user_not_found">Error in row %1$d: \'%2$s\' is not registered in the ward staff.</string>
-    <string name="msg_import_complete">Import completed successfully.</string>
-    <string name="error_db_save">Error saving to database: %1$s</string>
-    <string name="error_read_file">Error reading file: %1$s</string>
-    <string name="msg_template_saved">Template saved to Downloads</string>
-    <string name="error_save_generic">Error saving: %1$s</string>
-    <string name="desc_prev">Previous</string>
-    <string name="desc_next">Next</string>
-    <string name="plant_settings_label">Ward Settings</string>
-    <string name="import_shifts_label">Import Shifts</string>
-    <string name="invite_colleagues_label">Invite Colleagues</string>
-    <string name="vacation_days_label">Vacation Days</string>
-    <string name="shift_change_label">Shift Changes</string>
-    <string name="shift_marketplace_label">Shift Marketplace</string>
-    <string name="statistics_label">Statistics</string>
+    <string name="error_empty_file">فایل خالی است.</string>
+    <string name="error_row_format">خطا در ردیف %1$d: فرمت نادرست. ستون‌ها ناقص هستند.</string>
+    <string name="error_date_invalid">خطا در ردیف %1$d: تاریخ نامعتبر (%2$s). از YYYY-MM-DD استفاده کنید.</string>
+    <string name="error_shift_not_found">خطا در ردیف %1$d: شیفت \'%2$s\' در این بخش وجود ندارد.</string>
+    <string name="error_role_unknown">خطا در ردیف %1$d: نقش \'%2$s\' ناشناخته است. از \'Nurse\'، \'Assistant\' یا \'CNA\' استفاده کنید.</string>
+    <string name="error_user_not_found">خطا در ردیف %1$d: \'%2$s\' در پرسنل بخش ثبت نشده است.</string>
+    <string name="msg_import_complete">وارد کردن با موفقیت انجام شد.</string>
+    <string name="error_db_save">خطا در ذخیره در پایگاه داده: %1$s</string>
+    <string name="error_read_file">خطا در خواندن فایل: %1$s</string>
+    <string name="msg_template_saved">قالب در پوشه دانلودها ذخیره شد</string>
+    <string name="error_save_generic">خطا در ذخیره: %1$s</string>
+    <string name="desc_prev">قبلی</string>
+    <string name="desc_next">بعدی</string>
+    <string name="plant_settings_label">تنظیمات بخش</string>
+    <string name="import_shifts_label">وارد کردن شیفت‌ها</string>
+    <string name="invite_colleagues_label">دعوت از همکاران</string>
+    <string name="vacation_days_label">روزهای مرخصی</string>
+    <string name="shift_change_label">تغییرات شیفت</string>
+    <string name="shift_marketplace_label">بازار شیفت</string>
+    <string name="statistics_label">آمار</string>
 
-    <string name="share_plant_message_template">Hello! Join the ward "%1$s" in Turnoshospi.\n\nWard ID: %2$s\nAccess Code: %3$s\n\nDownload the app and join from the main menu.</string>
-    <string name="share_chooser_title">Invite colleagues via:</string>
+    <string name="share_plant_message_template">سلام! به بخش «%1$s» در TurnosHospi بپیوندید.\n\nشناسه بخش: %2$s\nکد دسترسی: %3$s\n\nبرنامه را دانلود کرده و از منوی اصلی بپیوندید.</string>
+    <string name="share_chooser_title">دعوت از همکاران از طریق:</string>
 
-    <string name="notif_unassigned_message">You have been unassigned from the shift on %1$s.</string>
-    <string name="notif_assigned_message">Your shift for %1$s has been updated by the supervisor.</string>
-    <string name="notif_vacation_saved_message">Your vacation day for %1$s has been registered.</string>
+    <string name="notif_unassigned_message">شما از شیفت در تاریخ %1$s حذف شدید.</string>
+    <string name="notif_assigned_message">شیفت شما برای %1$s توسط سرپرست بروزرسانی شده است.</string>
+    <string name="notif_vacation_saved_message">روز مرخصی شما برای %1$s ثبت شده است.</string>
 
-    <string name="dialog_vacation_title">Select Vacation Days</string>
-    <string name="dialog_vacation_instruction">Select the days you will be on vacation:</string>
-    <string name="label_no_days_selected">No days selected.</string>
-    <string name="btn_add_day">Add Day</string>
-    <string name="btn_confirm_days">Confirm (%1$d days)</string>
-    <string name="msg_vacation_saved">Vacation days saved.</string>
-    <string name="error_no_date_selected">No date selected.</string>
-    <string name="error_past_date_selection">You cannot select past dates.</string>
-    <string name="btn_add">Add</string>
+    <string name="dialog_vacation_title">انتخاب روزهای مرخصی</string>
+    <string name="dialog_vacation_instruction">روزهایی که در مرخصی خواهید بود را انتخاب کنید:</string>
+    <string name="label_no_days_selected">هیچ روزی انتخاب نشده است.</string>
+    <string name="btn_add_day">افزودن روز</string>
+    <string name="btn_confirm_days">تایید (%1$d روز)</string>
+    <string name="msg_vacation_saved">روزهای مرخصی ذخیره شد.</string>
+    <string name="error_no_date_selected">هیچ تاریخی انتخاب نشده است.</string>
+    <string name="error_past_date_selection">نمی‌توانید تاریخ‌های گذشته را انتخاب کنید.</string>
+    <string name="btn_add">افزودن</string>
 
-    <string name="title_import_shifts">Import Shifts</string>
-    <string name="subtitle_import_options">Import Options</string>
-    <string name="btn_download_template">Download Template</string>
-    <string name="btn_import">Import Shifts</string>
-    <string name="btn_importing">Importing...</string>
-    <string name="status_processing">Processing file...</string>
-    <string name="msg_import_success">Shifts imported successfully</string>
-    <string name="error_plant_not_loaded">Error: Ward information not loaded.</string>
-    <string name="error_csv_empty">The file is empty.</string>
-    <string name="error_csv_format">Error in row %1$d: Incorrect format. Missing columns.</string>
-    <string name="error_csv_date">Error in row %1$d: Invalid date (%2$s). Use YYYY-MM-DD.</string>
-    <string name="error_csv_shift">Error in row %1$d: Shift \'%2$s\' does not exist in this ward.</string>
-    <string name="error_csv_role">Error in row %1$d: Role \'%2$s\' unknown. Use \'Enfermero\', \'Auxiliar\' or \'TCAE\'.</string>
-    <string name="error_csv_staff_not_found">Error in row %1$d: \'%2$s\' is not registered in the ward staff.</string>
-    <string name="error_file_read">Error reading file: %1$s</string>
-    <string name="error_template_save">Error saving: %1$s</string>
-    <string name="statistics_user_title">Statistics for %1$s</string>
-    <string name="msg_no_staff_stats">No hours recorded for any staff this month.</string>
-    <string name="header_total_hours_general">Total Staff Hours (General)</string>
-    <string name="format_shifts_count">%1$d shifts</string>
-    <string name="desc_view_stats">View statistics for %1$s</string>
-    <string name="header_stats_breakdown">Statistics Breakdown</string>
-    <string name="msg_no_user_stats">No hours recorded this month for %1$s.</string>
-    <string name="label_total_worked">Total Hours Worked</string>
-    <string name="format_shifts_done">%1$d shifts completed</string>
-    <string name="header_shift_breakdown">Shift Breakdown</string>
-    <string name="title_alert">Notice</string>
-    <string name="btn_understood">Understood</string>
-    <string name="title_profile_saved">Profile Saved</string>
-    <string name="msg_profile_saved">Your account details have been successfully updated.</string>
-    <string name="logo_desc">Turnoshospi Logo</string>
+    <string name="title_import_shifts">وارد کردن شیفت‌ها</string>
+    <string name="subtitle_import_options">گزینه‌های وارد کردن</string>
+    <string name="btn_download_template">دانلود قالب</string>
+    <string name="btn_import">وارد کردن شیفت‌ها</string>
+    <string name="btn_importing">در حال وارد کردن...</string>
+    <string name="status_processing">در حال پردازش فایل...</string>
+    <string name="msg_import_success">شیفت‌ها با موفقیت وارد شدند</string>
+    <string name="error_plant_not_loaded">خطا: اطلاعات بخش بارگذاری نشده است.</string>
+    <string name="error_csv_empty">فایل خالی است.</string>
+    <string name="error_csv_format">خطا در ردیف %1$d: فرمت نادرست. ستون‌ها ناقص هستند.</string>
+    <string name="error_csv_date">خطا در ردیف %1$d: تاریخ نامعتبر (%2$s). از YYYY-MM-DD استفاده کنید.</string>
+    <string name="error_csv_shift">خطا در ردیف %1$d: شیفت \'%2$s\' در این بخش وجود ندارد.</string>
+    <string name="error_csv_role">خطا در ردیف %1$d: نقش \'%2$s\' ناشناخته است. از \'Enfermero\'، \'Auxiliar\' یا \'TCAE\' استفاده کنید.</string>
+    <string name="error_csv_staff_not_found">خطا در ردیف %1$d: \'%2$s\' در پرسنل بخش ثبت نشده است.</string>
+    <string name="error_file_read">خطا در خواندن فایل: %1$s</string>
+    <string name="error_template_save">خطا در ذخیره: %1$s</string>
+    <string name="statistics_user_title">آمار برای %1$s</string>
+    <string name="msg_no_staff_stats">هیچ ساعتی برای هیچ پرسنلی در این ماه ثبت نشده است.</string>
+    <string name="header_total_hours_general">مجموع ساعات پرسنل (کل)</string>
+    <string name="format_shifts_count">%1$d شیفت</string>
+    <string name="desc_view_stats">مشاهده آمار برای %1$s</string>
+    <string name="header_stats_breakdown">تفکیک آمار</string>
+    <string name="msg_no_user_stats">هیچ ساعتی در این ماه برای %1$s ثبت نشده است.</string>
+    <string name="label_total_worked">مجموع ساعات کارکرد</string>
+    <string name="format_shifts_done">%1$d شیفت تکمیل شده</string>
+    <string name="header_shift_breakdown">تفکیک شیفت</string>
+    <string name="title_alert">توجه</string>
+    <string name="btn_understood">متوجه شدم</string>
+    <string name="title_profile_saved">پروفایل ذخیره شد</string>
+    <string name="msg_profile_saved">جزئیات حساب شما با موفقیت بروزرسانی شد.</string>
+    <string name="logo_desc">لوگوی Turnoshospi</string>
 
-    <string name="title_settings">Settings</string>
-    <string name="title_customize_colors">Customize Shift Colors</string>
-    <string name="btn_restore_colors">Restore Default Colors</string>
-    <string name="title_manage_account">Manage Account</string>
-    <string name="btn_delete_account">Delete My Account</string>
-    <string name="msg_delete_account_warning">This action is permanent and cannot be undone. All your data associated with the app will be deleted.</string>
-    <string name="title_are_you_sure">Are you sure?</string>
-    <string name="msg_delete_account_confirmation">This action is irreversible. Your account and all your data will be deleted. Do you want to continue?</string>
-    <string name="btn_delete_confirm">Delete</string>
-    <string name="title_pick_color">Pick a Color</string>
+    <string name="title_settings">تنظیمات</string>
+    <string name="title_customize_colors">شخصی‌سازی رنگ شیفت‌ها</string>
+    <string name="btn_restore_colors">بازیابی رنگ‌های پیش‌فرض</string>
+    <string name="title_manage_account">مدیریت حساب</string>
+    <string name="btn_delete_account">حذف حساب من</string>
+    <string name="msg_delete_account_warning">این اقدام دائمی است و قابل بازگشت نیست. تمام داده‌های شما مرتبط با برنامه حذف خواهد شد.</string>
+    <string name="title_are_you_sure">آیا مطمئن هستید؟</string>
+    <string name="msg_delete_account_confirmation">این اقدام غیرقابل بازگشت است. حساب شما و تمام داده‌هایتان حذف خواهد شد. آیا می‌خواهید ادامه دهید؟</string>
+    <string name="btn_delete_confirm">حذف</string>
+    <string name="title_pick_color">یک رنگ انتخاب کنید</string>
 
-    <string name="btn_delete_plant">Delete Ward</string>
-    <string name="msg_delete_plant_warning">This action is permanent and cannot be undone. All ward data will be deleted and all associated users will be unlinked.</string>
-    <string name="msg_delete_plant_confirmation">You are about to delete the ward "%1$s". This action is irreversible and will affect all associated users. Do you want to continue?</string>
+    <string name="btn_delete_plant">حذف بخش</string>
+    <string name="msg_delete_plant_warning">این اقدام دائمی است و قابل بازگشت نیست. تمام داده‌های بخش حذف خواهد شد و تمام کاربران متصل جدا خواهند شد.</string>
+    <string name="msg_delete_plant_confirmation">شما در حال حذف بخش «%1$s» هستید. این اقدام غیرقابل بازگشت است و بر تمام کاربران متصل تأثیر خواهد گذاشت. آیا می‌خواهید ادامه دهید؟</string>
 
-    <string name="notif_title_direct_chat">Direct Message</string>
-    <string name="notif_title_group_chat">Group Message</string>
-    <string name="notif_title_shift_assignment">Shift Update</string>
-    <string name="notif_title_marketplace_add">New Swap Offer</string>
-    <string name="notif_title_shift_response">Response to Proposal</string>
-    <string name="notif_title_shift_proposal">Swap Proposal</string>
-    <string name="notif_title_shift_approved">Swap Approved!</string>
-    <string name="notif_title_shift_rejected">Swap Rejected</string>
-    <string name="notif_title_supervisor_action">Request for Supervisor</string>
-    <string name="notif_title_generic">Notification</string>
-
+    <string name="notif_title_direct_chat">پیام مستقیم</string>
+    <string name="notif_title_group_chat">پیام گروهی</string>
+    <string name="notif_title_shift_assignment">بروزرسانی شیفت</string>
+    <string name="notif_title_marketplace_add">پیشنهاد جابجایی جدید</string>
+    <string name="notif_title_shift_response">پاسخ به پیشنهاد</string>
+    <string name="notif_title_shift_proposal">پیشنهاد جابجایی</string>
+    <string name="notif_title_shift_approved">جابجایی تایید شد!</string>
+    <string name="notif_title_shift_rejected">جابجایی رد شد</string>
+    <string name="notif_title_supervisor_action">درخواست برای سرپرست</string>
+    <string name="notif_title_generic">اعلان</string>
 
 </resources>
