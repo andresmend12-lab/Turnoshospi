@@ -290,7 +290,7 @@
     <string name="header_search_candidates">Найти кандидатов</string>
     <string name="desc_search_candidates">Выберите смену для обмена.</string>
     <string name="msg_no_active_offers">Нет активных предложений.</string>
-    <string name="desc_create_offer">Создайте предложение во вкладке 'Мои Смены'.</string>
+    <string name="desc_create_offer">Создайте предложение во вкладке \'Мои Смены'.</string>
     <string name="label_offering_shift">Вы предлагаете:</string>
     <string name="btn_see_candidates">НАЙТИ КАНДИДАТОВ</string>
     <string name="badge_active">АКТИВНО</string>
@@ -328,7 +328,7 @@
     <string name="label_destination">Назначение</string>
     <string name="label_searching_candidate">Поиск...</string>
     <string name="label_offering">Предлагаете: %1$s</string>
-    <string name="label_suggestion_hint">Идите в 'Предложения'.</string>
+    <string name="label_suggestion_hint">Идите в \'Предложения'.</string>
 
     <string name="btn_approve">Одобрить</string>
     <string name="btn_reject">Отклонить</string>
@@ -405,9 +405,9 @@
     <string name="error_csv_empty">Пустой файл.</string>
     <string name="error_csv_format">Ошибка в строке %1$d: Формат.</string>
     <string name="error_csv_date">Ошибка в строке %1$d: Дата (%2$s).</string>
-    <string name="error_csv_shift">Ошибка в строке %1$d: Смены '%2$s' нет.</string>
-    <string name="error_csv_role">Ошибка в строке %1$d: Роль '%2$s'.</string>
-    <string name="error_csv_staff_not_found">Ошибка в строке %1$d: Персонал '%2$s' не найден.</string>
+    <string name="error_csv_shift">Ошибка в строке %1$d: Смены \'%2$s' нет.</string>
+    <string name="error_csv_role">Ошибка в строке %1$d: Роль \'%2$s'.</string>
+    <string name="error_csv_staff_not_found">Ошибка в строке %1$d: Персонал \'%2$s' не найден.</string>
     <string name="error_db_save">Ошибка БД: %1$s</string>
     <string name="error_file_read">Ошибка чтения: %1$s</string>
     <string name="msg_template_saved">Шаблон сохранен</string>

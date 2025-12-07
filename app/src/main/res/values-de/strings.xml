@@ -279,7 +279,7 @@
     <string name="msg_supervisor_rejected">Die Leitung hat den Tausch abgelehnt.</string>
     <string name="msg_partner_accepted">Kollege hat akzeptiert. Warte auf Leitung.</string>
     <string name="msg_partner_rejected">Kollege hat den Tausch abgelehnt.</string>
-    <string name="msg_request_created">Anfrage erstellt. Gehe zu 'Vorschläge' für Kandidaten.</string>
+    <string name="msg_request_created">Anfrage erstellt. Gehe zu \'Vorschläge' für Kandidaten.</string>
 
     <string name="header_supervisor_pending">Warte auf Genehmigung (Leitung)</string>
     <string name="header_in_process">In Bearbeitung</string>
@@ -290,7 +290,7 @@
     <string name="header_search_candidates">Kandidaten finden</string>
     <string name="desc_search_candidates">Wählen Sie eine Ihrer Schichten, um Tauschpartner zu finden.</string>
     <string name="msg_no_active_offers">Sie haben keine aktiven Angebote.</string>
-    <string name="desc_create_offer">Erstellen Sie zuerst eines unter 'Meine Schichten'.</string>
+    <string name="desc_create_offer">Erstellen Sie zuerst eines unter \'Meine Schichten'.</string>
     <string name="label_offering_shift">Sie bieten die Schicht vom:</string>
     <string name="btn_see_candidates">KOMPATIBLE KANDIDATEN SEHEN</string>
     <string name="badge_active">AKTIV</string>
@@ -328,7 +328,7 @@
     <string name="label_destination">Ziel</string>
     <string name="label_searching_candidate">Suche Kandidat...</string>
     <string name="label_offering">Sie bieten: %1$s</string>
-    <string name="label_suggestion_hint">Gehe zu 'Vorschläge', um Tausch anzubieten.</string>
+    <string name="label_suggestion_hint">Gehe zu \'Vorschläge\', um Tausch anzubieten.</string>
 
     <string name="btn_approve">Genehmigen</string>
     <string name="btn_reject">Ablehnen</string>
@@ -405,9 +405,9 @@
     <string name="error_csv_empty">Die Datei ist leer.</string>
     <string name="error_csv_format">Fehler in Zeile %1$d: Falsches Format. Fehlende Spalten.</string>
     <string name="error_csv_date">Fehler in Zeile %1$d: Ungültiges Datum (%2$s). Nutzen Sie YYYY-MM-DD.</string>
-    <string name="error_csv_shift">Fehler in Zeile %1$d: Schicht '%2$s' existiert in dieser Station nicht.</string>
-    <string name="error_csv_role">Fehler in Zeile %1$d: Rolle '%2$s' unbekannt.</string>
-    <string name="error_csv_staff_not_found">Fehler in Zeile %1$d: '%2$s' ist kein registriertes Personal.</string>
+    <string name="error_csv_shift">Fehler in Zeile %1$d: Schicht \'%2$s\' existiert in dieser Station nicht.</string>
+    <string name="error_csv_role">Fehler in Zeile %1$d: Rolle \'%2$s' unbekannt.</string>
+    <string name="error_csv_staff_not_found">Fehler in Zeile %1$d: \'%2$s\' ist kein registriertes Personal.</string>
     <string name="error_db_save">Datenbankfehler: %1$s</string>
     <string name="error_file_read">Lesefehler: %1$s</string>
     <string name="msg_template_saved">Vorlage in Downloads gespeichert</string>

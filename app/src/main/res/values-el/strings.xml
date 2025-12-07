@@ -1,0 +1,429 @@
+<resources>
+    <string name="app_name">TurnosHospi</string>
+
+    <string-array name="days_of_week_short">
+        <item>Δ</item> <item>Τ</item> <item>Τ</item> <item>Π</item> <item>Π</item> <item>Σ</item> <item>Κ</item> </string-array>
+
+    <string name="back_desc">Πίσω</string>
+    <string name="close_label">Κλείσιμο</string>
+    <string name="cancel_label">Ακύρωση</string>
+    <string name="cancel">Ακύρωση</string>
+    <string name="save">Αποθήκευση</string>
+    <string name="saving_label">Αποθήκευση…</string>
+    <string name="edit">Επεξεργασία</string>
+    <string name="delete">Διαγραφή</string>
+    <string name="send_desc">Αποστολή</string>
+    <string name="loading_text">Φόρτωση...</string>
+    <string name="menu_info">Πληροφορίες</string>
+    <string name="menu_info_desc">Βοήθεια, υποστήριξη και λεπτομέρειες εφαρμογής.</string>
+
+    <string name="previous_month_desc">Προηγούμενος μήνας</string>
+    <string name="next_month_desc">Επόμενος μήνας</string>
+    <string name="desc_prev_month">Προηγούμενος μήνας</string>
+    <string name="desc_next_month">Επόμενος μήνας</string>
+    <string name="select_date_prompt">Επιλέξτε ημερομηνία</string>
+    <string name="select_day">Επιλέξτε ημέρα</string>
+    <string name="plant_calendar_title">Ημερολόγιο βαρδιών</string>
+    <string name="agenda_title">Πρόγραμμα ημέρας: %1$s</string>
+
+    <string name="shift_detail_title">Βάρδια: %1$s</string>
+    <string name="nurses_list_prefix">Νοσηλευτές: %1$s</string>
+    <string name="auxiliaries_list_prefix">Βοηθοί: %1$s</string>
+    <string name="colleagues_header">Συνάδελφοι:</string>
+    <string name="no_colleagues_found">Δεν βρέθηκαν συνάδελφοι.</string>
+    <string name="no_shifts_assigned">Δεν έχουν ανατεθεί βάρδιες.</string>
+
+    <string name="legend_free">Ρεπό</string>
+    <string name="legend_morning">Πρωί</string>
+    <string name="legend_morning_half">Μισό Πρωί</string>
+    <string name="legend_afternoon">Απόγευμα</string>
+    <string name="legend_afternoon_half">Μισό Απόγ.</string>
+    <string name="legend_night">Νύχτα</string>
+    <string name="legend_exit_night">Έξοδος Νύχτας</string>
+    <string name="legend_holiday">Άδεια</string>
+
+    <string name="shift_morning">Πρωινή</string>
+    <string name="shift_afternoon">Απογευματινή</string>
+    <string name="shift_night">Νυχτερινή</string>
+    <string name="shift_saliente">Έξοδος Νύχτας</string>
+    <string name="shift_morning_half">Μισή Πρωινή</string>
+    <string name="shift_afternoon_half">Μισή Απογευματινή</string>
+    <string name="shift_holiday">Άδεια</string>
+    <string name="shift_free">Ρεπό</string>
+    <string name="shift_day">Ημερήσια</string>
+
+    <string name="role_supervisor_male">Προϊστάμενος</string>
+    <string name="role_supervisor_female">Προϊσταμένη</string>
+    <string name="role_nurse_male">Νοσηλευτής</string>
+    <string name="role_nurse_female">Νοσηλεύτρια</string>
+    <string name="role_aux_male">Βοηθός Νοσηλευτή</string>
+    <string name="role_aux_female">Βοηθός Νοσηλευτή</string>
+    <string name="role_nurse_generic">Νοσηλευτής/τρια</string>
+    <string name="role_aux_generic">Βοηθός Νοσηλευτή</string>
+    <string name="role_nurse">Νοσηλευτής/τρια</string>
+    <string name="role_auxiliary">Βοηθός</string>
+    <string name="gender_male">Άνδρας</string>
+    <string name="gender_female">Γυναίκα</string>
+    <string name="default_role">Χωρίς ρόλο</string>
+    <string name="default_user">Χρήστης</string>
+    <string name="default_user_alias">Χρήστης</string>
+
+    <string name="login_screen_title">Σύνδεση</string>
+    <string name="login_button">Σύνδεση</string>
+    <string name="create_account_title">Δημιουργία λογαριασμού</string>
+    <string name="create_account_action">Δημιουργία λογαριασμού</string>
+    <string name="register_button">Αποθήκευση προφίλ</string>
+    <string name="forgot_password">Ξεχάσατε τον κωδικό;</string>
+    <string name="reset_email_sent">Στείλαμε σύνδεσμο ανάκτησης</string>
+    <string name="back_to_login_action">Επιστροφή στη σύνδεση</string>
+    <string name="sign_out">Αποσύνδεση</string>
+    <string name="loading_profile">Φόρτωση προφίλ…</string>
+    <string name="profile_summary_title">Το προφίλ σας</string>
+    <string name="edit_profile">Επεξεργασία προφίλ</string>
+    <string name="email_label">Email</string>
+    <string name="password_label">Κωδικός πρόσβασης</string>
+    <string name="password_hide_desc">Απόκρυψη κωδικού</string>
+    <string name="password_show_desc">Εμφάνιση κωδικού</string>
+    <string name="confirm_password">Επιβεβαίωση κωδικού</string>
+    <string name="first_name_label">Όνομα</string>
+    <string name="last_name_label">Επίθετο</string>
+    <string name="role_dropdown_label">Θέση</string>
+    <string name="gender_select_label">Φύλο</string>
+    <string name="profile_email_label">Email: %1$s</string>
+    <string name="profile_name_label">Όνομα: %1$s</string>
+    <string name="profile_role_label">Θέση: %1$s</string>
+
+    <string name="main_menu_welcome_male">Καλωσήρθες, %1$s</string>
+    <string name="main_menu_welcome_female">Καλωσήρθες, %1$s</string>
+    <string name="main_menu_subtitle">Επιλέξτε μια επιλογή για να οργανώσετε τις πτέρυγές σας.</string>
+    <string name="side_menu_title">Μενού</string>
+    <string name="menu_create_plant">Δημιουργία νέας πτέρυγας</string>
+    <string name="menu_create_plant_desc">Ρύθμιση πτέρυγας από την αρχή.</string>
+    <string name="menu_my_plants">Η Πτέρυγά μου</string>
+    <string name="menu_my_plants_desc">Προβολή και επεξεργασία υπαρχουσών πτερύγων.</string>
+    <string name="menu_settings">Ρυθμίσεις</string>
+    <string name="menu_settings_desc">Ρυθμίσεις λογαριασμού και προτιμήσεις.</string>
+    <string name="cd_menu">Μενού</string>
+    <string name="cd_notifications">Ειδοποιήσεις</string>
+    <string name="cd_chats">Συνομιλίες</string>
+
+    <string name="plant_creation_title">Δημιουργία νέας πτέρυγας</string>
+    <string name="plant_general_data_title">Γενικά στοιχεία πτέρυγας</string>
+    <string name="plant_name_label">Όνομα πτέρυγας</string>
+    <string name="unit_type_label">Τύπος μονάδας</string>
+    <string name="hospital_name_label">Όνομα νοσοκομείου</string>
+    <string name="create_plant_action">Δημιουργία πτέρυγας</string>
+    <string name="shift_configuration_title">Ρύθμιση βαρδιών</string>
+    <string name="shift_duration_label">Διάρκεια βαρδιών</string>
+    <string name="shift_duration_placeholder">Επιλέξτε διάρκεια</string>
+    <string name="shift_duration_8h">8 ώρες</string>
+    <string name="shift_duration_12h">12 ώρες</string>
+    <string name="shift_timing_instruction">Ορίστε τα ωράρια για κάθε βάρδια.</string>
+    <string name="shift_half_day_question">Επιτρέπονται μισές βάρδιες;</string>
+    <string name="shift_start_label">Έναρξη</string>
+    <string name="shift_end_label">Λήξη</string>
+    <string name="plant_staff_title">Προσωπικό πτέρυγας</string>
+    <string name="staff_scope_question">Διαχειριστικό προσωπικό</string>
+    <string name="staff_scope_nurses_only">Μόνο νοσηλευτές</string>
+    <string name="staff_scope_with_aux">Νοσηλευτές και Βοηθοί</string>
+    <string name="staff_requirements_title">Ελάχιστες απαιτήσεις προσωπικού</string>
+    <string name="staff_minimum_label">Ελάχιστος αριθμός ανά βάρδια</string>
+    <string name="plant_created_title">Η πτέρυγα δημιουργήθηκε</string>
+    <string name="plant_created_message">Η πτέρυγά σας έχει ρυθμιστεί και είναι έτοιμη.</string>
+    <string name="plant_credentials_title">Πρόσβαση πτέρυγας</string>
+    <string name="plant_id_label">ID Πτέρυγας</string>
+    <string name="plant_access_password_label">Κωδικός πρόσβασης</string>
+    <string name="plant_share_hint">Μοιραστείτε αυτά τα στοιχεία με την ομάδα σας.</string>
+    <string name="back_to_menu">Επιστροφή στο μενού</string>
+
+    <string name="refresh_plant_action">Ανανέωση δεδομένων</string>
+    <string name="plant_location_label">%1$s • %2$s</string>
+    <string name="plant_hospital_only_label">Νοσοκομείο: %1$s</string>
+    <string name="plant_shift_summary">Βάρδιες %1$s</string>
+    <string name="plant_half_day_allowed">Επιτρέπονται μισές βάρδιες</string>
+    <string name="plant_half_day_not_allowed">Δεν επιτρέπονται μισές βάρδιες</string>
+    <string name="plant_shift_times_title">Ρυθμισμένα ωράρια</string>
+    <string name="plant_shift_item">%1$s: %2$s - %3$s</string>
+    <string name="plant_staff_requirements_title">Ελάχιστες απαιτήσεις</string>
+    <string name="plant_staff_requirement_item">%1$s: %2$d άτομα</string>
+    <string name="plant_registered_users_label">Εγγεγραμμένοι χρήστες: %1$d</string>
+    <string name="open_plant_detail_action">Προβολή πτέρυγας</string>
+    <string name="plant_detail_missing_data">Επιλέξτε ημερομηνία για να δείτε τις βάρδιες.</string>
+    <string name="plant_shifts_for_date">Βάρδιες για %1$s</string>
+
+    <string name="plant_role_options_title">Επιλογές για %1$s</string>
+    <string name="plant_role_option_assign">Ανάθεση προσωπικού</string>
+    <string name="plant_role_option_add_staff">Προσθήκη προσωπικού</string>
+    <string name="plant_role_option_check_half_day">Ρύθμιση μισών βαρδιών</string>
+    <string name="plant_role_option_view_shifts">Προβολή βαρδιών</string>
+    <string name="plant_role_option_half_day_request">Αίτημα μισής βάρδιας</string>
+    <string name="nurse_label">Νοσηλευτής/τρια %1$d</string>
+    <string name="nurse_half_day_label">Νοσηλευτής (μισή)</string>
+    <string name="aux_label">Βοηθός %1$d</string>
+    <string name="aux_half_day_label">Βοηθός (μισή)</string>
+    <string name="staff_unassigned_option">Μη ανατεθειμένο</string>
+    <string name="half_day_readonly_label">Μισή βάρδια: %1$s</string>
+    <string name="save_assignments_action">Αποθήκευση προγράμματος</string>
+    <string name="edit_assignments_action">Επεξεργασία προγράμματος</string>
+    <string name="plant_add_staff_option">Προσθήκη προσωπικού πτέρυγας</string>
+    <string name="plant_staff_list_option">Λίστα προσωπικού</string>
+    <string name="plant_self_assign_action">Επιλογή εαυτού</string>
+    <string name="staff_dialog_title">Προσθήκη προσωπικού</string>
+    <string name="staff_dialog_name_label">Ονοματεπώνυμο</string>
+    <string name="staff_dialog_role_label">Ρόλος</string>
+    <string name="staff_dialog_save_action">Αποθήκευση προσωπικού</string>
+    <string name="staff_list_dialog_title">Προσωπικό %1$s</string>
+    <string name="staff_list_dialog_empty">Δεν υπάρχει ακόμη προσωπικό.</string>
+    <string name="edit_staff_member">Επεξεργασία προσωπικού</string>
+    <string name="edit_shifts">Επεξεργασία βαρδιών</string>
+    <string name="mode_assignment">Λειτουργία Ανάθεσης</string>
+    <string name="save_and_exit">Αποθήκευση &amp; Έξοδος</string>
+
+    <string name="my_plant_empty_title">Δεν είστε ακόμη σε πτέρυγα</string>
+    <string name="my_plant_empty_message">Εισάγετε το ID πτέρυγας και τον κωδικό πρόσκλησης.</string>
+    <string name="invitation_code_label">Κωδικός πρόσκλησης</string>
+    <string name="join_plant_action">Συμμετοχή στην πτέρυγα</string>
+    <string name="join_plant_success">Επιτυχής συμμετοχή.</string>
+    <string name="join_plant_success_detail">Συμμετέχετε στην πτέρυγα με επιτυχία.</string>
+    <string name="loading_my_plant">Αναζήτηση πτέρυγας…</string>
+    <string name="plant_staff_link_title">Επιλέξτε το προφίλ σας στο %1$s</string>
+    <string name="plant_staff_link_message">Επιλέξτε την εγγραφή προσωπικού που σας αντιστοιχεί.</string>
+    <string name="plant_staff_link_field_label">Προσωπικό πτέρυγας</string>
+    <string name="plant_staff_link_confirm">Σύνδεση</string>
+    <string name="plant_staff_lookup_message">Αναζήτηση προφίλ…</string>
+    <string name="plant_staff_linked_label">Συνδεδεμένος ως %1$s (%2$s)</string>
+    <string name="plant_staff_link_prompt">Συνδέστε το λογαριασμό σας για συγχρονισμό.</string>
+    <string name="staff_identity_title">Το προφίλ σας στην πτέρυγα</string>
+    <string name="staff_identity_label">Επιλέξτε το όνομά σας από τη λίστα</string>
+    <string name="staff_identity_hint">Ο προϊστάμενος διαχειρίζεται τη λίστα.</string>
+    <string name="staff_identity_missing">Ζητήστε να σας προσθέσουν για να γίνει η ανάθεση.</string>
+
+    <string name="notes_title">Σημειώσεις</string>
+    <string name="add_note">Προσθήκη σημείωσης</string>
+    <string name="write_here">Γράψτε εδώ...</string>
+    <string name="no_notes_hint">Καμία σημείωση. Πατήστε + για δημιουργία.</string>
+    <string name="chat_screen_title">Συνομιλίες</string>
+    <string name="new_chat_desc">Νέα συνομιλία</string>
+    <string name="no_recent_chats">Καμία πρόσφατη συνομιλία.</string>
+    <string name="start_chat_hint">Πατήστε + για έναρξη.</string>
+    <string name="delete_chat_action">Διαγραφή συνομιλίας</string>
+    <string name="start_new_chat_title">Έναρξη νέας συνομιλίας</string>
+    <string name="no_users_found">Δεν βρέθηκαν άλλοι χρήστες.</string>
+    <string name="message_placeholder">Μήνυμα...</string>
+    <string name="group_chat_title">Ομαδική συνομιλία</string>
+    <string name="write_message_placeholder">Γράψτε ένα μήνυμα...</string>
+    <string name="notification_group_msg_template">Νέο μήνυμα από %1$s στην ομαδική.</string>
+
+    <string name="notif_channel_name">Ειδοποιήσεις Βαρδιών</string>
+    <string name="notif_channel_desc">Ειδοποιήσεις με ήχο και οπτική σήμανση</string>
+    <string name="notification_save_error">Σφάλμα αποθήκευσης ειδοποίησης:</string>
+    <string name="error_save_notification">Σφάλμα αποθήκευσης ειδοποίησης: %1$s</string>
+
+    <string name="password_mismatch_error">Οι κωδικοί δεν ταιριάζουν</string>
+    <string name="auth_weak_password">Ο κωδικός είναι αδύναμος (τουλάχιστον 6 χαρακτήρες)</string>
+    <string name="auth_user_collision">Υπάρχει ήδη λογαριασμός με αυτό το email</string>
+    <string name="auth_invalid_credentials">Άκυρο email ή κωδικός</string>
+    <string name="auth_invalid_user">Ο λογαριασμός δεν υπάρχει ή απενεργοποιήθηκε</string>
+    <string name="auth_operation_not_allowed">Ενεργοποιήστε την είσοδο με Email/Κωδικό</string>
+    <string name="auth_network_error">Δεν υπάρχει σύνδεση δικτύου</string>
+    <string name="auth_generic_error">Σφάλμα πιστοποίησης:</string>
+    <string name="auth_unknown_error">Άγνωστο σφάλμα. Δοκιμάστε ξανά.</string>
+
+    <string name="auth_login_failed">Αποτυχία σύνδεσης</string>
+    <string name="auth_create_failed">Αποτυχία δημιουργίας λογαριασμού</string>
+    <string name="auth_reset_email_failed">Αποτυχία αποστολής email ανάκτησης</string>
+
+    <string name="login_error_generic">Αποτυχία σύνδεσης</string>
+    <string name="create_account_error">Αποτυχία δημιουργίας λογαριασμού</string>
+    <string name="reset_email_error">Σφάλμα αποστολής email</string>
+    <string name="error_login_required">Απαιτείται σύνδεση</string>
+
+    <string name="error_save_profile">Αποτυχία αποθήκευσης προφίλ</string>
+    <string name="profile_save_error">Αποτυχία αποθήκευσης προφίλ</string>
+
+    <string name="error_db_rules">Ελέγξτε κανόνες DB (δικαιώματα εγγραφής)</string>
+    <string name="database_rules_error">Ελέγξτε κανόνες DB (δικαιώματα εγγραφής)</string>
+
+    <string name="error_delete_plant">Αποτυχία διαγραφής πτέρυγας.</string>
+    <string name="delete_plant_error">Αποτυχία διαγραφής πτέρυγας.</string>
+
+    <string name="plant_required_fields_error">Συμπληρώστε τα γενικά στοιχεία.</string>
+    <string name="plant_save_error">Σφάλμα αποθήκευσης. Ελέγξτε τη σύνδεση.</string>
+    <string name="plant_auth_error">Σφάλμα πιστοποίησης κατά τη φόρτωση</string>
+    <string name="staff_dialog_error">Το όνομα είναι υποχρεωτικό.</string>
+    <string name="staff_dialog_save_error">Σφάλμα αποθήκευσης προσωπικού.</string>
+
+    <string name="join_plant_error">Σφάλμα συμμετοχής</string>
+    <string name="join_plant_not_found">Η πτέρυγα δεν βρέθηκε</string>
+    <string name="invalid_invitation_code">Άκυρος κωδικός</string>
+    <string name="plant_load_error">Σφάλμα φόρτωσης</string>
+    <string name="title_notifications">Ειδοποιήσεις</string>
+    <string name="msg_no_notifications">Καμία ειδοποίηση</string>
+    <string name="desc_back">Πίσω</string>
+    <string name="desc_delete">Διαγραφή</string>
+    <string name="desc_delete_all">Διαγραφή όλων</string>
+    <string name="title_offline_roster">Offline Πρόγραμμα</string>
+    <string name="btn_save">Αποθήκευση</string>
+    <string name="btn_cancel">Ακύρωση</string>
+    <string name="dialog_edit_shift_title">Επεξεργασία Βάρδιας - %s</string>
+
+    <string name="tab_my_shifts">Οι Βάρδιες μου</string>
+    <string name="tab_management">Διαχείριση</string>
+    <string name="tab_suggestions">Προτάσεις</string>
+    <string name="title_candidate_search">Αναζήτηση Υποψηφίων</string>
+    <string name="title_change_management">Διαχείριση Αλλαγών</string>
+
+    <string name="msg_request_sent">Αίτημα εστάλη. Αναμονή αποδοχής.</string>
+    <string name="msg_request_deleted">Αίτημα διεγράφη</string>
+    <string name="msg_swap_approved">Η αλλαγή εγκρίθηκε.</string>
+    <string name="msg_supervisor_rejected">Ο προϊστάμενος απέρριψε την αλλαγή.</string>
+    <string name="msg_partner_accepted">Ο συνάδελφος αποδέχτηκε. Αναμονή προϊσταμένου.</string>
+    <string name="msg_partner_rejected">Ο συνάδελφος απέρριψε την αλλαγή.</string>
+    <string name="msg_request_created">Αίτημα δημιουργήθηκε. Δείτε τις \'Προτάσεις\'.</string>
+
+    <string name="header_supervisor_pending">Αναμονή Έγκρισης (Προϊστάμενος)</string>
+    <string name="header_in_process">Σε Εξέλιξη</string>
+    <string name="header_my_searches">Ενεργές Αναζητήσεις</string>
+    <string name="header_history">Ιστορικό</string>
+    <string name="msg_no_recent_activity">Καμία πρόσφατη δραστηριότητα.</string>
+
+    <string name="header_search_candidates">Βρείτε υποψηφίους</string>
+    <string name="desc_search_candidates">Επιλέξτε μια βάρδια για αλλαγή.</string>
+    <string name="msg_no_active_offers">Δεν υπάρχουν ενεργές προσφορές.</string>
+    <string name="desc_create_offer">Δημιουργήστε μία στις \'Βάρδιες μου\'.</string>
+    <string name="label_offering_shift">Προσφέρετε τη βάρδια:</string>
+    <string name="btn_see_candidates">ΠΡΟΒΟΛΗ ΥΠΟΨΗΦΙΩΝ</string>
+    <string name="badge_active">ΕΝΕΡΓΗ</string>
+
+    <string name="card_compatible_candidates">Συμβατοί Υποψήφιοι</string>
+    <string name="filter_date">Ημερομηνία</string>
+    <string name="filter_person">Άτομο</string>
+    <string name="filter_shift">Βάρδια</string>
+    <string name="msg_no_candidates_found">Δεν βρέθηκαν διαθέσιμοι συνάδελφοι.</string>
+    <string name="btn_preview">Προεπισκόπηση</string>
+    <string name="btn_choose">Επιλογή</string>
+
+    <string name="dialog_simulation_title">Προσομοίωση Αλλαγής</string>
+    <string name="label_around_date">Γύρω στις %1$s</string>
+    <string name="label_me">Εγώ</string>
+
+    <string name="label_current_turn">Τρέχουσα βάρδια: %1$s</string>
+    <string name="msg_no_shift_today">Δεν έχετε βάρδια σήμερα.</string>
+    <string name="btn_search_swap">ΑΝΑΖΗΤΗΣΗ ΑΛΛΑΓΗΣ</string>
+
+    <string name="dialog_open_request_title">Αίτημα Ανοιχτής Αλλαγής</string>
+    <string name="label_offering_turn_date">Προσφέρετε τη βάρδια του:</string>
+    <string name="label_swap_preference">Προτίμηση:</string>
+    <string name="chip_flexible">Ευέλικτη</string>
+    <string name="chip_strict">Αυστηρή</string>
+    <string name="desc_flexible">Οποιοσδήποτε συμβατός συνάδελφος.</string>
+    <string name="desc_strict">Προτεραιότητα σε όσους χρωστάνε.</string>
+    <string name="btn_publish_request">ΔΗΜΟΣΙΕΥΣΗ</string>
+
+    <string name="status_pending_supervisor">ΑΝΑΜΟΝΗ ΠΡΟΪΣΤΑΜΕΝΟΥ</string>
+    <string name="status_proposal_received">ΠΡΟΤΑΣΗ ΑΛΛΑΓΗΣ!</string>
+    <string name="status_waiting_partner">ΑΝΑΜΟΝΗ %1$s</string>
+    <string name="status_approved">ΕΓΚΡΙΘΗΚΕ</string>
+    <string name="label_origin">Από</string>
+    <string name="label_destination">Προς</string>
+    <string name="label_searching_candidate">Αναζήτηση...</string>
+    <string name="label_offering">Προσφέρετε: %1$s</string>
+    <string name="label_suggestion_hint">Πηγαίνετε στις \'Προτάσεις\'.</string>
+
+    <string name="btn_approve">Έγκριση</string>
+    <string name="btn_reject">Απόρριψη</string>
+    <string name="btn_accept">Αποδοχή</string>
+    <string name="btn_close">Κλείσιμο</string>
+    <string name="btn_delete_history">Καθαρισμός Ιστορικού</string>
+    <string name="btn_view_simulation">Προβολή Προσομοίωσης</string>
+
+    <string name="title_alert">Ειδοποίηση</string>
+    <string name="btn_understood">Κατανοητό</string>
+    <string name="title_profile_saved">Προφίλ Αποθηκεύτηκε</string>
+    <string name="msg_profile_saved">Τα στοιχεία ενημερώθηκαν.</string>
+    <string name="logo_desc">Λογότυπο Turnoshospi</string>
+
+    <string name="title_settings">Ρυθμίσεις</string>
+    <string name="title_customize_colors">Χρώματα Βαρδιών</string>
+    <string name="btn_restore_colors">Επαναφορά</string>
+    <string name="title_manage_account">Λογαριασμός</string>
+    <string name="btn_delete_account">Διαγραφή Λογαριασμού</string>
+    <string name="msg_delete_account_warning">Η ενέργεια είναι μόνιμη. Όλα τα δεδομένα θα χαθούν.</string>
+    <string name="title_are_you_sure">Είστε σίγουροι;</string>
+    <string name="msg_delete_account_confirmation">Η διαγραφή είναι οριστική. Συνέχεια;</string>
+    <string name="btn_delete_confirm">Διαγραφή</string>
+    <string name="title_pick_color">Επιλογή Χρώματος</string>
+
+    <string name="btn_delete_plant">Διαγραφή Πτέρυγας</string>
+    <string name="msg_delete_plant_warning">Η ενέργεια είναι μόνιμη. Τα δεδομένα της πτέρυγας θα χαθούν.</string>
+    <string name="msg_delete_plant_confirmation">Πρόκειται να διαγράψετε την πτέρυγα "%1$s". Συνέχεια;</string>
+
+    <string name="notif_title_direct_chat">Άμεσο Μήνυμα</string>
+    <string name="notif_title_group_chat">Ομαδικό Μήνυμα</string>
+    <string name="notif_title_shift_assignment">Ενημέρωση Βάρδιας</string>
+    <string name="notif_title_marketplace_add">Νέα Προσφορά Αλλαγής</string>
+    <string name="notif_title_shift_response">Απάντηση σε Πρόταση</string>
+    <string name="notif_title_shift_proposal">Πρόταση Αλλαγής</string>
+    <string name="notif_title_shift_approved">Αλλαγή Εγκρίθηκε!</string>
+    <string name="notif_title_shift_rejected">Αλλαγή Απορρίφθηκε</string>
+    <string name="notif_title_supervisor_action">Αίτημα Προϊσταμένου</string>
+    <string name="notif_title_generic">Ειδοποίηση</string>
+
+    <string name="plant_settings_label">Ρυθμίσεις Πτέρυγας</string>
+    <string name="import_shifts_label">Εισαγωγή Βαρδιών</string>
+    <string name="invite_colleagues_label">Πρόσκληση Συναδέλφων</string>
+    <string name="vacation_days_label">Ημέρες Άδειας</string>
+    <string name="shift_change_label">Αλλαγές Βαρδιών</string>
+    <string name="shift_marketplace_label">Αγορά Βαρδιών</string>
+    <string name="statistics_label">Στατιστικά</string>
+
+    <string name="share_plant_message_template">Γεια! Μπες στην πτέρυγα "%1$s" στο Turnoshospi.\n\nID: %2$s\nΚωδικός: %3$s\n\nΚατέβασε την εφαρμογή.</string>
+    <string name="share_chooser_title">Πρόσκληση μέσω:</string>
+
+    <string name="notif_unassigned_message">Αφαιρεθήκατε από τη βάρδια στις %1$s.</string>
+    <string name="notif_assigned_message">Η βάρδιά σας στις %1$s ενημερώθηκε.</string>
+    <string name="notif_vacation_saved_message">Η άδεια για τις %1$s αποθηκεύτηκε.</string>
+
+    <string name="dialog_vacation_title">Επιλογή Αδειών</string>
+    <string name="dialog_vacation_instruction">Επιλέξτε ημέρες άδειας:</string>
+    <string name="label_no_days_selected">Καμία ημέρα.</string>
+    <string name="btn_add_day">Προσθήκη</string>
+    <string name="btn_confirm_days">Επιβεβαίωση (%1$d)</string>
+    <string name="msg_vacation_saved">Άδειες αποθηκεύτηκαν.</string>
+    <string name="error_no_date_selected">Επιλέξτε ημερομηνία.</string>
+    <string name="error_past_date_selection">Μη έγκυρη ημερομηνία (παρελθόν).</string>
+    <string name="btn_add">Προσθήκη</string>
+
+    <string name="title_import_shifts">Εισαγωγή Βαρδιών</string>
+    <string name="subtitle_import_options">Επιλογές</string>
+    <string name="btn_download_template">Λήψη προτύπου</string>
+    <string name="btn_import">Εισαγωγή</string>
+    <string name="btn_importing">Εισαγωγή...</string>
+    <string name="status_processing">Επεξεργασία...</string>
+    <string name="msg_import_success">Επιτυχής εισαγωγή</string>
+    <string name="error_plant_not_loaded">Σφάλμα φόρτωσης δεδομένων.</string>
+    <string name="error_csv_empty">Κενό αρχείο.</string>
+    <string name="error_csv_format">Σφάλμα γραμμής %1$d: Λάθος μορφή.</string>
+    <string name="error_csv_date">Σφάλμα γραμμής %1$d: Άκυρη ημερομηνία (%2$s).</string>
+    <string name="error_csv_shift">Σφάλμα γραμμής %1$d: Άγνωστη βάρδια '%2$s'.</string>
+    <string name="error_csv_role">Σφάλμα γραμμής %1$d: Άγνωστος ρόλος '%2$s'.</string>
+    <string name="error_csv_staff_not_found">Σφάλμα γραμμής %1$d: Το άτομο '%2$s' δεν βρέθηκε.</string>
+    <string name="error_db_save">Σφάλμα βάσης: %1$s</string>
+    <string name="error_file_read">Σφάλμα ανάγνωσης: %1$s</string>
+    <string name="msg_template_saved">Πρότυπο αποθηκεύτηκε</string>
+    <string name="error_template_save">Σφάλμα αποθήκευσης: %1$s</string>
+
+    <string name="error_name_required">Απαιτείται όνομα</string>
+    <string name="error_generic">Σφάλμα</string>
+
+    <string name="statistics_user_title">Στατιστικά %1$s</string>
+    <string name="msg_no_staff_stats">Καμία καταγραφή ωρών αυτό το μήνα.</string>
+    <string name="header_total_hours_general">Συνολικές Ώρες (Γενικά)</string>
+    <string name="format_shifts_count">%1$d βάρδιες</string>
+    <string name="desc_view_stats">Προβολή στατιστικών για %1$s</string>
+    <string name="header_stats_breakdown">Ανάλυση</string>
+    <string name="msg_no_user_stats">Καμία καταγραφή για %1$s.</string>
+    <string name="label_total_worked">Σύνολο Ωρών</string>
+    <string name="format_shifts_done">%1$d βάρδιες</string>
+    <string name="header_shift_breakdown">Ανάλυση ανά Βάρδια</string>
+</resources>

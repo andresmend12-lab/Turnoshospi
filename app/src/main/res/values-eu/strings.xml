@@ -328,7 +328,7 @@
     <string name="label_destination">Helmuga</string>
     <string name="label_searching_candidate">Bilatzen...</string>
     <string name="label_offering">Eskaintzen duzu: %1$s</string>
-    <string name="label_suggestion_hint">Joan 'Iradokizunak' atalera.</string>
+    <string name="label_suggestion_hint">Joan \'Iradokizunak\' atalera.</string>
 
     <string name="btn_approve">Onartu</string>
     <string name="btn_reject">Ukatu</string>
