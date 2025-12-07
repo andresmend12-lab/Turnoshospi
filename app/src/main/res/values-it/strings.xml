@@ -426,4 +426,112 @@
     <string name="label_total_worked">Ore Totali</string>
     <string name="format_shifts_done">%1$d turni fatti</string>
     <string name="header_shift_breakdown">Dettaglio per Turno</string>
+    <string name="title_shift_marketplace">Shift Marketplace</string>
+    
+    <string name="header_balances">My Balances with Colleagues</string>
+    
+    <string name="balance_owe_you">Owes you %1$d favors</string>
+    
+    <string name="balance_you_owe">You owe %1$d favors</string>
+    
+    <string name="desc_expand">Expand</string>
+    
+    <string name="header_favor_history">Favor History:</string>
+    
+    <string name="msg_no_history">No history available.</string>
+    
+    <string name="msg_you_covered">You covered their shift</string>
+    
+    <string name="msg_covered_you">Covered your shift</string>
+    
+    <string name="header_available_shifts">Available Shifts (Compatible with you)</string>
+    
+    <string name="desc_available_shifts">Only shifts you can legally perform are shown.</string>
+    
+    <string name="msg_no_shifts_available">No shifts available for you.</string>
+    
+    <string name="msg_hidden_shifts">(%1$d incompatible shifts hidden)</string>
+    
+    <string name="label_requests">Request: %1$s</string>
+    
+    <string name="balance_neutral">Neutral balance (0)</string>
+    
+    <string name="label_date_simple">Date: %1$s</string>
+    
+    <string name="btn_cover_shift">COVER SHIFT</string>
+    
+    <string name="btn_preview_eye">👁 Preview</string>
+    
+    <string name="msg_shift_accepted">Shift accepted!</string>
+    
+    <string name="error_loading_schedule">Error loading schedule</string>
+    
+    <string name="notif_shift_covered">%1$s accepted to cover your shift. Check your balance!</string>
+
+    
+    <string name="menu_plant_settings">Plant Settings</string>
+    
+    <string name="menu_import_shifts">Import Shifts</string>
+    
+    <string name="menu_invite_colleagues">Invite Colleagues</string>
+    
+    <string name="menu_vacation_days">Vacation Days</string>
+    
+    <string name="menu_group_chat">Group Chat</string>
+    
+    <string name="menu_shift_change">Shift Change</string>
+    
+    <string name="menu_shift_marketplace">Shift Marketplace</string>
+    
+    <string name="menu_statistics">Statistics</string>
+    
+    <string name="invite_message_template">Hello! Join the ward \"%1$s\" in TurnosHospi.\n\nWard ID: %2$s\nAccess Code: %3$s\n\nDownload the app and join from the main menu.</string>
+    
+    <string name="invite_chooser_title">Invite colleagues via:</string>
+    
+    <string name="notif_unassigned">You have been unassigned from the shift on %1$s.</string>
+    
+    <string name="notif_assigned">Your shift for %1$s has been updated by the supervisor.</string>
+    
+    <string name="msg_no_date_selected">No date selected.</string>
+    
+    <string name="notif_vacation_saved">Your vacation day on %1$s has been registered.</string>
+    
+    <string name="error_save_vacation">Error saving vacations: %1$s</string>
+    
+    <string name="error_past_dates">You cannot select past dates.</string>
+    
+    <string name="title_select_vacation">Select Vacation Days</string>
+    
+    <string name="desc_select_vacation">Select the days you will be on vacation:</string>
+    
+    <string name="msg_no_days_selected">No days selected.</string>
+    
+    <string name="btn_confirm_count">Confirm (%1$d days)</string>
+    
+    <string name="title_import_options">Import Options</string>
+
+    
+    <string name="error_empty_file">The file is empty.</string>
+    
+    <string name="error_row_format">Error in row %1$d: Incorrect format. Missing columns.</string>
+    
+    <string name="error_date_invalid">Error in row %1$d: Invalid date (%2$s). Use YYYY-MM-DD.</string>
+    
+    <string name="error_shift_not_found">Error in row %1$d: Shift \'%2$s\' does not exist in this ward.</string>
+    
+    <string name="error_role_unknown">Error in row %1$d: Unknown role \'%2$s\'. Use \'Nurse\', \'Assistant\' or \'CNA\'.</string>
+    
+    <string name="error_user_not_found">Error in row %1$d: \'%2$s\' is not registered in the ward staff.</string>
+    
+    <string name="msg_import_complete">Import completed successfully.</string>
+    
+    <string name="error_read_file">Error reading file: %1$s</string>
+    
+    <string name="error_save_generic">Error saving: %1$s</string>
+    
+    <string name="desc_prev">Previous</string>
+    
+    <string name="desc_next">Next</string>
+    
 </resources>
