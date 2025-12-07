@@ -1,0 +1,430 @@
+<resources>
+    <string name="app_name">TurnosHospi</string>
+
+    <string-array name="days_of_week_short">
+        <item>Пн</item> <item>Вт</item> <item>Ср</item> <item>Чт</item> <item>Пт</item> <item>Сб</item> <item>Нд</item>
+    </string-array>
+
+    <string name="back_desc">Назад</string>
+    <string name="close_label">Закрити</string>
+    <string name="cancel_label">Скасувати</string>
+    <string name="cancel">Скасувати</string>
+    <string name="save">Зберегти</string>
+    <string name="saving_label">Збереження…</string>
+    <string name="edit">Редагувати</string>
+    <string name="delete">Видалити</string>
+    <string name="send_desc">Надіслати</string>
+    <string name="loading_text">Завантаження...</string>
+    <string name="menu_info">Інформація</string>
+    <string name="menu_info_desc">Довідка, підтримка та деталі додатка.</string>
+
+    <string name="previous_month_desc">Попередній місяць</string>
+    <string name="next_month_desc">Наступний місяць</string>
+    <string name="desc_prev_month">Попередній місяць</string>
+    <string name="desc_next_month">Наступний місяць</string>
+    <string name="select_date_prompt">Виберіть дату</string>
+    <string name="select_day">Виберіть день</string>
+    <string name="plant_calendar_title">Календар змін</string>
+    <string name="agenda_title">Порядок денний: %1$s</string>
+
+    <string name="shift_detail_title">Зміна: %1$s</string>
+    <string name="nurses_list_prefix">Медсестри/брати: %1$s</string>
+    <string name="auxiliaries_list_prefix">Санітари: %1$s</string>
+    <string name="colleagues_header">Колеги:</string>
+    <string name="no_colleagues_found">Колег не знайдено.</string>
+    <string name="no_shifts_assigned">Зміни не призначено.</string>
+
+    <string name="legend_free">Вихідний</string>
+    <string name="legend_morning">Ранок</string>
+    <string name="legend_morning_half">Півранок</string>
+    <string name="legend_afternoon">Вечір</string>
+    <string name="legend_afternoon_half">Піввечір</string>
+    <string name="legend_night">Ніч</string>
+    <string name="legend_exit_night">Після нічної</string>
+    <string name="legend_holiday">Відпустка</string>
+
+    <string name="shift_morning">Ранок</string>
+    <string name="shift_afternoon">Вечір</string>
+    <string name="shift_night">Ніч</string>
+    <string name="shift_saliente">Після нічної</string>
+    <string name="shift_morning_half">Півранок</string>
+    <string name="shift_afternoon_half">Піввечір</string>
+    <string name="shift_holiday">Відпустка</string>
+    <string name="shift_free">Вихідний</string>
+    <string name="shift_day">День</string>
+
+    <string name="role_supervisor_male">Старший медбрат</string>
+    <string name="role_supervisor_female">Старша медсестра</string>
+    <string name="role_nurse_male">Медбрат</string>
+    <string name="role_nurse_female">Медсестра</string>
+    <string name="role_aux_male">Санітар</string>
+    <string name="role_aux_female">Санітарка</string>
+    <string name="role_nurse_generic">Медсестра/брат</string>
+    <string name="role_aux_generic">Санітар(ка)</string>
+    <string name="role_nurse">Медсестра/брат</string>
+    <string name="role_auxiliary">Санітар(ка)</string>
+    <string name="gender_male">Чоловік</string>
+    <string name="gender_female">Жінка</string>
+    <string name="default_role">Без ролі</string>
+    <string name="default_user">Користувач</string>
+    <string name="default_user_alias">Користувач</string>
+
+    <string name="login_screen_title">Вхід</string>
+    <string name="login_button">Увійти</string>
+    <string name="create_account_title">Створити акаунт</string>
+    <string name="create_account_action">Створити акаунт</string>
+    <string name="register_button">Зберегти профіль</string>
+    <string name="forgot_password">Забули пароль?</string>
+    <string name="reset_email_sent">Ми надіслали посилання для відновлення</string>
+    <string name="back_to_login_action">Назад до входу</string>
+    <string name="sign_out">Вийти</string>
+    <string name="loading_profile">Завантаження профілю…</string>
+    <string name="profile_summary_title">Ваш профіль</string>
+    <string name="edit_profile">Редагувати профіль</string>
+    <string name="email_label">Email</string>
+    <string name="password_label">Пароль</string>
+    <string name="password_hide_desc">Приховати пароль</string>
+    <string name="password_show_desc">Показати пароль</string>
+    <string name="confirm_password">Підтвердити пароль</string>
+    <string name="first_name_label">Ім\'я</string>
+    <string name="last_name_label">Прізвище</string>
+    <string name="role_dropdown_label">Посада</string>
+    <string name="gender_select_label">Стать</string>
+    <string name="profile_email_label">Email: %1$s</string>
+    <string name="profile_name_label">Ім\'я: %1$s</string>
+    <string name="profile_role_label">Посада: %1$s</string>
+
+    <string name="main_menu_welcome_male">Вітаємо, %1$s</string>
+    <string name="main_menu_welcome_female">Вітаємо, %1$s</string>
+    <string name="main_menu_subtitle">Виберіть опцію, щоб почати організацію відділень.</string>
+    <string name="side_menu_title">Меню</string>
+    <string name="menu_create_plant">Створити нове відділення</string>
+    <string name="menu_create_plant_desc">Налаштувати відділення з нуля.</string>
+    <string name="menu_my_plants">Моє відділення</string>
+    <string name="menu_my_plants_desc">Перегляд та редагування існуючих відділень.</string>
+    <string name="menu_settings">Налаштування</string>
+    <string name="menu_settings_desc">Налаштування акаунту та вподобання.</string>
+    <string name="cd_menu">Меню</string>
+    <string name="cd_notifications">Сповіщення</string>
+    <string name="cd_chats">Чати</string>
+
+    <string name="plant_creation_title">Створити нове відділення</string>
+    <string name="plant_general_data_title">Загальні дані відділення</string>
+    <string name="plant_name_label">Назва відділення</string>
+    <string name="unit_type_label">Тип підрозділу</string>
+    <string name="hospital_name_label">Назва лікарні</string>
+    <string name="create_plant_action">Створити відділення</string>
+    <string name="shift_configuration_title">Налаштування змін</string>
+    <string name="shift_duration_label">Тривалість зміни</string>
+    <string name="shift_duration_placeholder">Виберіть тривалість</string>
+    <string name="shift_duration_8h">8 годин</string>
+    <string name="shift_duration_12h">12 годин</string>
+    <string name="shift_timing_instruction">Визначте розклад для кожної зміни на основі обраної тривалості.</string>
+    <string name="shift_half_day_question">Чи дозволені зміни на півдня?</string>
+    <string name="shift_start_label">Початок</string>
+    <string name="shift_end_label">Кінець</string>
+    <string name="plant_staff_title">Персонал відділення</string>
+    <string name="staff_scope_question">Керований персонал</string>
+    <string name="staff_scope_nurses_only">Тільки медсестри</string>
+    <string name="staff_scope_with_aux">Медсестри та санітари</string>
+    <string name="staff_requirements_title">Мінімальні вимоги до персоналу</string>
+    <string name="staff_minimum_label">Мінімальна кількість персоналу на зміну</string>
+    <string name="plant_created_title">Відділення створено</string>
+    <string name="plant_created_message">Ваше відділення налаштовано та готове до наступних кроків.</string>
+    <string name="plant_credentials_title">Доступ до відділення</string>
+    <string name="plant_id_label">ID відділення</string>
+    <string name="plant_access_password_label">Пароль доступу</string>
+    <string name="plant_share_hint">Поділіться цими даними з вашою командою, щоб вони могли приєднатися.</string>
+    <string name="back_to_menu">Повернутися до головного меню</string>
+
+    <string name="refresh_plant_action">Оновити дані</string>
+    <string name="plant_location_label">%1$s • %2$s</string>
+    <string name="plant_hospital_only_label">Лікарня: %1$s</string>
+    <string name="plant_shift_summary">Зміни %1$s</string>
+    <string name="plant_half_day_allowed">Дозволяє півдня</string>
+    <string name="plant_half_day_not_allowed">Не дозволяє півдня</string>
+    <string name="plant_shift_times_title">Налаштований час</string>
+    <string name="plant_shift_item">%1$s: %2$s - %3$s</string>
+    <string name="plant_staff_requirements_title">Мінімальні вимоги</string>
+    <string name="plant_staff_requirement_item">%1$s: %2$d осіб</string>
+    <string name="plant_registered_users_label">Зареєстровані користувачі: %1$d</string>
+    <string name="open_plant_detail_action">Переглянути моє відділення</string>
+    <string name="plant_detail_missing_data">Виберіть дату, щоб переглянути зміни, та переконайтеся, що відділення завантажено.</string>
+    <string name="plant_shifts_for_date">Зміни на %1$s</string>
+
+    <string name="plant_role_options_title">Опції для %1$s</string>
+    <string name="plant_role_option_assign">Призначити персонал</string>
+    <string name="plant_role_option_add_staff">Додати персонал</string>
+    <string name="plant_role_option_check_half_day">Налаштувати півдня</string>
+    <string name="plant_role_option_view_shifts">Переглянути зміни</string>
+    <string name="plant_role_option_half_day_request">Запросити півдня</string>
+    <string name="nurse_label">Медсестра %1$d</string>
+    <string name="nurse_half_day_label">Медсестра (півдня)</string>
+    <string name="aux_label">Санітар %1$d</string>
+    <string name="aux_half_day_label">Санітар (півдня)</string>
+    <string name="staff_unassigned_option">Не призначено</string>
+    <string name="half_day_readonly_label">Півдня: %1$s</string>
+    <string name="save_assignments_action">Зберегти організацію</string>
+    <string name="edit_assignments_action">Редагувати організацію</string>
+    <string name="plant_add_staff_option">Додати персонал відділення</string>
+    <string name="plant_staff_list_option">Список персоналу</string>
+    <string name="plant_self_assign_action">Вибрати себе</string>
+    <string name="staff_dialog_title">Додати персонал</string>
+    <string name="staff_dialog_name_label">Повне ім\'я</string>
+    <string name="staff_dialog_role_label">Роль</string>
+    <string name="staff_dialog_save_action">Зберегти персонал</string>
+    <string name="staff_list_dialog_title">Персонал %1$s</string>
+    <string name="staff_list_dialog_empty">Для цього відділення ще немає зареєстрованого персоналу.</string>
+    <string name="edit_staff_member">Редагувати персонал</string>
+    <string name="edit_shifts">Редагувати зміни</string>
+    <string name="mode_assignment">Режим призначення</string>
+    <string name="save_and_exit">Зберегти та вийти</string>
+
+    <string name="my_plant_empty_title">Ви ще не у відділенні</string>
+    <string name="my_plant_empty_message">Введіть ID відділення та код запрошення, наданий вашим керівником, щоб приєднатися.</string>
+    <string name="invitation_code_label">Код запрошення</string>
+    <string name="join_plant_action">Приєднатися до відділення</string>
+    <string name="join_plant_success">Ви успішно приєдналися до відділення.</string>
+    <string name="join_plant_success_detail">Ви успішно приєдналися до відділення.</string>
+    <string name="loading_my_plant">Пошук вашого відділення…</string>
+    <string name="plant_staff_link_title">Виберіть свій профіль у %1$s</string>
+    <string name="plant_staff_link_message">Виберіть запис персоналу, що відповідає вам, щоб прив\'язати ваш акаунт.</string>
+    <string name="plant_staff_link_field_label">Персонал відділення</string>
+    <string name="plant_staff_link_confirm">Прив\'язати</string>
+    <string name="plant_staff_lookup_message">Пошук профілю відділення…</string>
+    <string name="plant_staff_linked_label">Прив\'язано як %1$s (%2$s)</string>
+    <string name="plant_staff_link_prompt">Прив\'яжіть свій акаунт до профілю відділення для синхронізації даних.</string>
+    <string name="staff_identity_title">Ваш профіль у відділенні</string>
+    <string name="staff_identity_label">Виберіть своє ім\'я зі списку</string>
+    <string name="staff_identity_hint">Керівник керує цим списком персоналу.</string>
+    <string name="staff_identity_missing">Попросіть керівника додати вас до списку.</string>
+
+    <string name="notes_title">Нотатки</string>
+    <string name="add_note">Додати нотатку</string>
+    <string name="write_here">Пишіть тут...</string>
+    <string name="no_notes_hint">Немає нотаток. Натисніть +, щоб створити.</string>
+    <string name="chat_screen_title">Мої чати</string>
+    <string name="new_chat_desc">Новий чат</string>
+    <string name="no_recent_chats">У вас немає недавніх чатів.</string>
+    <string name="start_chat_hint">Натисніть +, щоб почати.</string>
+    <string name="delete_chat_action">Видалити чат</string>
+    <string name="start_new_chat_title">Почати новий чат</string>
+    <string name="no_users_found">Інших зареєстрованих користувачів у цьому відділенні не знайдено.</string>
+    <string name="message_placeholder">Повідомлення...</string>
+    <string name="group_chat_title">Чат відділення</string>
+    <string name="write_message_placeholder">Напишіть повідомлення...</string>
+    <string name="notification_group_msg_template">Нове повідомлення від %1$s у чаті відділення.</string>
+
+    <string name="notif_channel_name">Сповіщення про зміни</string>
+    <string name="notif_channel_desc">Сповіщення зі звуком та візуальним попередженням</string>
+    <string name="notification_save_error">Помилка збереження сповіщення:</string>
+    <string name="error_save_notification">Помилка збереження сповіщення: %1$s</string>
+
+    <string name="password_mismatch_error">Паролі не співпадають</string>
+    <string name="auth_weak_password">Пароль занадто слабкий; має бути не менше 6 символів</string>
+    <string name="auth_user_collision">Акаунт з такою поштою вже існує</string>
+    <string name="auth_invalid_credentials">Невірна пошта або пароль</string>
+    <string name="auth_invalid_user">Акаунт не існує або вимкнений</string>
+    <string name="auth_operation_not_allowed">Увімкніть Email/Password у консолі Firebase</string>
+    <string name="auth_network_error">Немає з\'єднання з сервером. Перевірте інтернет</string>
+    <string name="auth_generic_error">Помилка автентифікації:</string>
+    <string name="auth_unknown_error">Помилка. Спробуйте ще раз</string>
+
+    <string name="auth_login_failed">Не вдалося увійти з цією поштою</string>
+    <string name="auth_create_failed">Не вдалося створити акаунт</string>
+    <string name="auth_reset_email_failed">Не вдалося надіслати лист відновлення</string>
+
+    <string name="login_error_generic">Не вдалося увійти з цією поштою</string>
+    <string name="create_account_error">Не вдалося створити акаунт</string>
+    <string name="reset_email_error">Не вдалося надіслати лист відновлення</string>
+    <string name="error_login_required">Ви повинні увійти, щоб продовжити</string>
+
+    <string name="error_save_profile">Не вдалося зберегти профіль</string>
+    <string name="profile_save_error">Не вдалося зберегти профіль</string>
+
+    <string name="error_db_rules">Перевірте правила БД та права запису</string>
+    <string name="database_rules_error">Перевірте правила БД та права запису</string>
+
+    <string name="error_delete_plant">Не вдалося видалити відділення. Спробуйте ще раз.</string>
+    <string name="delete_plant_error">Не вдалося видалити відділення. Спробуйте ще раз.</string>
+
+    <string name="plant_required_fields_error">Заповніть загальні дані відділення.</string>
+    <string name="plant_save_error">Не вдалося зберегти. Перевірте з\'єднання.</string>
+    <string name="plant_auth_error">Помилка автентифікації при завантаженні відділення</string>
+    <string name="staff_dialog_error">Введіть ім\'я, щоб продовжити.</string>
+    <string name="staff_dialog_save_error">Не вдалося зберегти персонал. Спробуйте ще раз.</string>
+
+    <string name="join_plant_error">Помилка приєднання до відділення</string>
+    <string name="join_plant_not_found">Відділення не знайдено</string>
+    <string name="invalid_invitation_code">Невірний код запрошення</string>
+    <string name="plant_load_error">Помилка завантаження відділення</string>
+    <string name="title_notifications">Сповіщення</string>
+    <string name="msg_no_notifications">У вас немає сповіщень</string>
+    <string name="desc_back">Назад</string>
+    <string name="desc_delete">Видалити</string>
+    <string name="desc_delete_all">Видалити все</string>
+    <string name="title_offline_roster">Мій офлайн розклад</string>
+    <string name="btn_save">Зберегти</string>
+    <string name="btn_cancel">Скасувати</string>
+    <string name="dialog_edit_shift_title">Редагувати зміну - %s</string>
+
+    <string name="tab_my_shifts">Мої зміни</string>
+    <string name="tab_management">Управління</string>
+    <string name="tab_suggestions">Пропозиції</string>
+    <string name="title_candidate_search">Пошук кандидатів</string>
+    <string name="title_change_management">Управління обміном</string>
+
+    <string name="msg_request_sent">Запит надіслано. Очікування прийняття колегою.</string>
+    <string name="msg_request_deleted">Запит видалено</string>
+    <string name="msg_swap_approved">Обмін виконано та затверджено.</string>
+    <string name="msg_supervisor_rejected">Керівник відхилив обмін.</string>
+    <string name="msg_partner_accepted">Колега прийняв. Очікування керівника.</string>
+    <string name="msg_partner_rejected">Колега відхилив обмін.</string>
+    <string name="msg_request_created">Запит створено. Перейдіть до \'Пропозиції\' для пошуку кандидатів.</string>
+
+    <string name="header_supervisor_pending">Очікує затвердження (Керівник)</string>
+    <string name="header_in_process">В процесі</string>
+    <string name="header_my_searches">Мої активні пошуки</string>
+    <string name="header_history">Історія</string>
+    <string name="msg_no_recent_activity">Немає недавньої активності.</string>
+
+    <string name="header_search_candidates">Знайти кандидатів для ваших змін</string>
+    <string name="desc_search_candidates">Виберіть одну з запропонованих змін, щоб знайти заміну.</string>
+    <string name="msg_no_active_offers">У вас немає активних пропозицій.</string>
+    <string name="desc_create_offer">Спочатку створіть її в \'Мої зміни\'.</string>
+    <string name="label_offering_shift">Пропонуєте зміну:</string>
+    <string name="btn_see_candidates">ПЕРЕГЛЯНУТИ СУМІСНИХ КАНДИДАТІВ</string>
+    <string name="badge_active">АКТИВНО</string>
+
+    <string name="card_compatible_candidates">Сумісні кандидати</string>
+    <string name="filter_date">Дата</string>
+    <string name="filter_person">Особа</string>
+    <string name="filter_shift">Зміна</string>
+    <string name="msg_no_candidates_found">Не знайдено доступних колег.</string>
+    <string name="btn_preview">Попередній перегляд</string>
+    <string name="btn_choose">Вибрати</string>
+
+    <string name="dialog_simulation_title">Симуляція обміну</string>
+    <string name="label_around_date">Близько %1$s</string>
+    <string name="label_me">Я</string>
+
+    <string name="label_current_turn">Поточна зміна: %1$s</string>
+    <string name="msg_no_shift_today">У вас немає зміни в цей день.</string>
+    <string name="btn_search_swap">ШУКАТИ ОБМІН</string>
+
+    <string name="dialog_open_request_title">Запит на відкритий обмін</string>
+    <string name="label_offering_turn_date">Ви пропонуєте зміну:</string>
+    <string name="label_swap_preference">Вподобання обміну:</string>
+    <string name="chip_flexible">Гнучкий</string>
+    <string name="chip_strict">Суворий</string>
+    <string name="desc_flexible">Буде знайдено будь-якого сумісного колегу.</string>
+    <string name="desc_strict">Пріоритет тим, хто винен вам зміни.</string>
+    <string name="btn_publish_request">ОПУБЛІКУВАТИ ЗАПИТ</string>
+
+    <string name="status_pending_supervisor">ОЧІКУВАННЯ КЕРІВНИКА</string>
+    <string name="status_proposal_received">ОТРИМАНО ПРОПОЗИЦІЮ ОБМІНУ!</string>
+    <string name="status_waiting_partner">ОЧІКУВАННЯ ВІДПОВІДІ %1$s</string>
+    <string name="status_approved">ОБМІН ЗАТВЕРДЖЕНО</string>
+    <string name="label_origin">Походження</string>
+    <string name="label_destination">Призначення</string>
+    <string name="label_searching_candidate">Пошук кандидата...</string>
+    <string name="label_offering">Ви пропонуєте: %1$s</string>
+    <string name="label_suggestion_hint">Перейдіть до \'Пропозиції\', щоб запропонувати обмін.</string>
+
+    <string name="btn_approve">Затвердити</string>
+    <string name="btn_reject">Відхилити</string>
+    <string name="btn_accept">Прийняти обмін</string>
+    <string name="btn_close">Закрити</string>
+    <string name="btn_delete_history">Очистити історію</string>
+    <string name="btn_view_simulation">Переглянути симуляцію</string>
+
+    <string name="title_alert">Повідомлення</string>
+    <string name="btn_understood">Зрозуміло</string>
+    <string name="title_profile_saved">Профіль збережено</string>
+    <string name="msg_profile_saved">Дані вашого акаунту успішно оновлено.</string>
+    <string name="logo_desc">Логотип Turnoshospi</string>
+
+    <string name="title_settings">Налаштування</string>
+    <string name="title_customize_colors">Налаштувати кольори змін</string>
+    <string name="btn_restore_colors">Відновити кольори за замовчуванням</string>
+    <string name="title_manage_account">Управління акаунтом</string>
+    <string name="btn_delete_account">Видалити акаунт</string>
+    <string name="msg_delete_account_warning">Ця дія є постійною і не може бути скасована. Всі ваші дані буде видалено.</string>
+    <string name="title_are_you_sure">Ви впевнені?</string>
+    <string name="msg_delete_account_confirmation">Ця дія незворотна. Ваш акаунт буде видалено. Продовжити?</string>
+    <string name="btn_delete_confirm">Видалити</string>
+    <string name="title_pick_color">Виберіть колір</string>
+
+    <string name="btn_delete_plant">Видалити відділення</string>
+    <string name="msg_delete_plant_warning">Ця дія є постійною. Всі дані відділення буде втрачено.</string>
+    <string name="msg_delete_plant_confirmation">Ви збираєтеся видалити відділення "%1$s". Продовжити?</string>
+
+    <string name="notif_title_direct_chat">Особисте повідомлення</string>
+    <string name="notif_title_group_chat">Групове повідомлення</string>
+    <string name="notif_title_shift_assignment">Оновлення зміни</string>
+    <string name="notif_title_marketplace_add">Нова пропозиція обміну</string>
+    <string name="notif_title_shift_response">Відповідь на пропозицію</string>
+    <string name="notif_title_shift_proposal">Пропозиція обміну</string>
+    <string name="notif_title_shift_approved">Обмін затверджено!</string>
+    <string name="notif_title_shift_rejected">Обмін відхилено</string>
+    <string name="notif_title_supervisor_action">Запит керівнику</string>
+    <string name="notif_title_generic">Сповіщення</string>
+
+    <string name="plant_settings_label">Налаштування відділення</string>
+    <string name="import_shifts_label">Імпорт змін</string>
+    <string name="invite_colleagues_label">Запросити колег</string>
+    <string name="vacation_days_label">Дні відпустки</string>
+    <string name="shift_change_label">Обмін змінами</string>
+    <string name="shift_marketplace_label">Біржа змін</string>
+    <string name="statistics_label">Статистика</string>
+
+    <string name="share_plant_message_template">Привіт! Приєднуйся до відділення "%1$s" в Turnoshospi.\n\nID: %2$s\nКод: %3$s\n\nЗавантаж додаток та приєднуйся через головне меню.</string>
+    <string name="share_chooser_title">Запросити через:</string>
+
+    <string name="notif_unassigned_message">Вас знято зі зміни %1$s.</string>
+    <string name="notif_assigned_message">Вашу зміну на %1$s оновлено.</string>
+    <string name="notif_vacation_saved_message">Ваш день відпустки %1$s зареєстровано.</string>
+
+    <string name="dialog_vacation_title">Виберіть дні відпустки</string>
+    <string name="dialog_vacation_instruction">Виберіть дні вашої відпустки:</string>
+    <string name="label_no_days_selected">Дні не вибрано.</string>
+    <string name="btn_add_day">Додати день</string>
+    <string name="btn_confirm_days">Підтвердити (%1$d дн)</string>
+    <string name="msg_vacation_saved">Дні відпустки збережено.</string>
+    <string name="error_no_date_selected">Дата не вибрана.</string>
+    <string name="error_past_date_selection">Не можна вибирати минулі дати.</string>
+    <string name="btn_add">Додати</string>
+
+    <string name="title_import_shifts">Імпорт змін</string>
+    <string name="subtitle_import_options">Опції імпорту</string>
+    <string name="btn_download_template">Завантажити шаблон</string>
+    <string name="btn_import">Імпортувати зміни</string>
+    <string name="btn_importing">Імпорт...</string>
+    <string name="status_processing">Обробка файлу...</string>
+    <string name="msg_import_success">Зміни успішно імпортовано</string>
+    <string name="error_plant_not_loaded">Помилка: Дані відділення не завантажено.</string>
+    <string name="error_csv_empty">Файл порожній.</string>
+    <string name="error_csv_format">Помилка в рядку %1$d: Невірний формат. Відсутні стовпці.</string>
+    <string name="error_csv_date">Помилка в рядку %1$d: Невірна дата (%2$s). Використовуйте YYYY-MM-DD.</string>
+    <string name="error_csv_shift">Помилка в рядку %1$d: Зміна \'%2$s\' не існує в цьому відділенні.</string>
+    <string name="error_csv_role">Помилка в рядку %1$d: Роль \'%2$s\' невідома. Використовуйте \'Nurse\', \'Assistant\' або \'CNA\'.</string>
+    <string name="error_csv_staff_not_found">Помилка в рядку %1$d: \'%2$s\' не зареєстровано в персоналі.</string>
+    <string name="error_db_save">Помилка збереження в БД: %1$s</string>
+    <string name="error_file_read">Помилка читання файлу: %1$s</string>
+    <string name="msg_template_saved">Шаблон збережено в Завантаження</string>
+    <string name="error_template_save">Помилка збереження: %1$s</string>
+
+    <string name="error_name_required">Ім\'я обов\'язкове</string>
+    <string name="error_generic">Помилка</string>
+
+    <string name="statistics_user_title">Статистика для %1$s</string>
+    <string name="msg_no_staff_stats">Немає записаних годин для персоналу в цьому місяці.</string>
+    <string name="header_total_hours_general">Загальні години персоналу</string>
+    <string name="format_shifts_count">%1$d змін</string>
+    <string name="desc_view_stats">Переглянути статистику для %1$s</string>
+    <string name="header_stats_breakdown">Деталі статистики</string>
+    <string name="msg_no_user_stats">Немає записаних годин для %1$s в цьому місяці.</string>
+    <string name="label_total_worked">Всього відпрацьовано годин</string>
+    <string name="format_shifts_done">%1$d змін виконано</string>
+    <string name="header_shift_breakdown">Деталі по змінах</string>
+</resources>

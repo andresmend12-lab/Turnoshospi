@@ -1,0 +1,430 @@
+<resources>
+    <string name="app_name">TurnosHospi</string>
+
+    <string-array name="days_of_week_short">
+        <item>จ</item> <item>อ</item> <item>พ</item> <item>พฤ</item> <item>ศ</item> <item>ส</item> <item>อา</item>
+    </string-array>
+
+    <string name="back_desc">กลับ</string>
+    <string name="close_label">ปิด</string>
+    <string name="cancel_label">ยกเลิก</string>
+    <string name="cancel">ยกเลิก</string>
+    <string name="save">บันทึก</string>
+    <string name="saving_label">กำลังบันทึก…</string>
+    <string name="edit">แก้ไข</string>
+    <string name="delete">ลบ</string>
+    <string name="send_desc">ส่ง</string>
+    <string name="loading_text">กำลังโหลด...</string>
+    <string name="menu_info">ข้อมูล</string>
+    <string name="menu_info_desc">ความช่วยเหลือ การสนับสนุน และรายละเอียดแอป</string>
+
+    <string name="previous_month_desc">เดือนก่อนหน้า</string>
+    <string name="next_month_desc">เดือนถัดไป</string>
+    <string name="desc_prev_month">เดือนก่อนหน้า</string>
+    <string name="desc_next_month">เดือนถัดไป</string>
+    <string name="select_date_prompt">เลือกวันที่</string>
+    <string name="select_day">เลือกวัน</string>
+    <string name="plant_calendar_title">ปฏิทินกะงาน</string>
+    <string name="agenda_title">วาระประจำวัน: %1$s</string>
+
+    <string name="shift_detail_title">กะ: %1$s</string>
+    <string name="nurses_list_prefix">พยาบาล: %1$s</string>
+    <string name="auxiliaries_list_prefix">ผู้ช่วย: %1$s</string>
+    <string name="colleagues_header">เพื่อนร่วมงาน:</string>
+    <string name="no_colleagues_found">ไม่พบเพื่อนร่วมงาน</string>
+    <string name="no_shifts_assigned">ไม่มีการมอบหมายกะ</string>
+
+    <string name="legend_free">หยุด</string>
+    <string name="legend_morning">เช้า</string>
+    <string name="legend_morning_half">ครึ่งเช้า</string>
+    <string name="legend_afternoon">บ่าย</string>
+    <string name="legend_afternoon_half">ครึ่งบ่าย</string>
+    <string name="legend_night">ดึก</string>
+    <string name="legend_exit_night">ออกดึก</string>
+    <string name="legend_holiday">วันหยุด</string>
+
+    <string name="shift_morning">เช้า</string>
+    <string name="shift_afternoon">บ่าย</string>
+    <string name="shift_night">ดึก</string>
+    <string name="shift_saliente">ออกดึก</string>
+    <string name="shift_morning_half">ครึ่งเช้า</string>
+    <string name="shift_afternoon_half">ครึ่งบ่าย</string>
+    <string name="shift_holiday">วันหยุด</string>
+    <string name="shift_free">หยุด</string>
+    <string name="shift_day">วัน</string>
+
+    <string name="role_supervisor_male">หัวหน้างาน</string>
+    <string name="role_supervisor_female">หัวหน้างาน</string>
+    <string name="role_nurse_male">พยาบาล</string>
+    <string name="role_nurse_female">พยาบาล</string>
+    <string name="role_aux_male">ผู้ช่วยพยาบาล</string>
+    <string name="role_aux_female">ผู้ช่วยพยาบาล</string>
+    <string name="role_nurse_generic">พยาบาล</string>
+    <string name="role_aux_generic">ผู้ช่วยพยาบาล</string>
+    <string name="role_nurse">พยาบาล</string>
+    <string name="role_auxiliary">ผู้ช่วย</string>
+    <string name="gender_male">ชาย</string>
+    <string name="gender_female">หญิง</string>
+    <string name="default_role">ไม่มีบทบาท</string>
+    <string name="default_user">ผู้ใช้</string>
+    <string name="default_user_alias">ผู้ใช้</string>
+
+    <string name="login_screen_title">เข้าสู่ระบบ</string>
+    <string name="login_button">เข้าสู่ระบบ</string>
+    <string name="create_account_title">สร้างบัญชี</string>
+    <string name="create_account_action">สร้างบัญชี</string>
+    <string name="register_button">บันทึกโปรไฟล์</string>
+    <string name="forgot_password">ลืมรหัสผ่าน?</string>
+    <string name="reset_email_sent">เราได้ส่งลิงก์กู้คืนไปแล้ว</string>
+    <string name="back_to_login_action">กลับไปเข้าสู่ระบบ</string>
+    <string name="sign_out">ออกจากระบบ</string>
+    <string name="loading_profile">กำลังโหลดโปรไฟล์…</string>
+    <string name="profile_summary_title">โปรไฟล์ของคุณ</string>
+    <string name="edit_profile">แก้ไขโปรไฟล์</string>
+    <string name="email_label">อีเมล</string>
+    <string name="password_label">รหัสผ่าน</string>
+    <string name="password_hide_desc">ซ่อนรหัสผ่าน</string>
+    <string name="password_show_desc">แสดงรหัสผ่าน</string>
+    <string name="confirm_password">ยืนยันรหัสผ่าน</string>
+    <string name="first_name_label">ชื่อ</string>
+    <string name="last_name_label">นามสกุล</string>
+    <string name="role_dropdown_label">ตำแหน่ง</string>
+    <string name="gender_select_label">เพศ</string>
+    <string name="profile_email_label">อีเมล: %1$s</string>
+    <string name="profile_name_label">ชื่อ: %1$s</string>
+    <string name="profile_role_label">ตำแหน่ง: %1$s</string>
+
+    <string name="main_menu_welcome_male">ยินดีต้อนรับ, %1$s</string>
+    <string name="main_menu_welcome_female">ยินดีต้อนรับ, %1$s</string>
+    <string name="main_menu_subtitle">เลือกตัวเลือกเพื่อเริ่มจัดการวอร์ดของคุณ</string>
+    <string name="side_menu_title">เมนู</string>
+    <string name="menu_create_plant">สร้างวอร์ดใหม่</string>
+    <string name="menu_create_plant_desc">ตั้งค่าวอร์ดตั้งแต่เริ่มต้น</string>
+    <string name="menu_my_plants">วอร์ดของฉัน</string>
+    <string name="menu_my_plants_desc">ดูและแก้ไขวอร์ดที่คุณมีอยู่</string>
+    <string name="menu_settings">การตั้งค่า</string>
+    <string name="menu_settings_desc">การตั้งค่าบัญชีและการตั้งค่าอื่นๆ</string>
+    <string name="cd_menu">เมนู</string>
+    <string name="cd_notifications">การแจ้งเตือน</string>
+    <string name="cd_chats">แชท</string>
+
+    <string name="plant_creation_title">สร้างวอร์ดใหม่</string>
+    <string name="plant_general_data_title">ข้อมูลทั่วไปของวอร์ด</string>
+    <string name="plant_name_label">ชื่อวอร์ด</string>
+    <string name="unit_type_label">ประเภทหน่วยงาน</string>
+    <string name="hospital_name_label">ชื่อโรงพยาบาล</string>
+    <string name="create_plant_action">สร้างวอร์ด</string>
+    <string name="shift_configuration_title">การตั้งค่ากะ</string>
+    <string name="shift_duration_label">ระยะเวลากะ</string>
+    <string name="shift_duration_placeholder">เลือกระยะเวลา</string>
+    <string name="shift_duration_8h">8 ชั่วโมง</string>
+    <string name="shift_duration_12h">12 ชั่วโมง</string>
+    <string name="shift_timing_instruction">กำหนดเวลาสำหรับแต่ละกะตามระยะเวลาที่เลือก</string>
+    <string name="shift_half_day_question">อนุญาตให้มีกะครึ่งวันหรือไม่?</string>
+    <string name="shift_start_label">เริ่ม</string>
+    <string name="shift_end_label">สิ้นสุด</string>
+    <string name="plant_staff_title">เจ้าหน้าที่วอร์ด</string>
+    <string name="staff_scope_question">เจ้าหน้าที่ที่ดูแล</string>
+    <string name="staff_scope_nurses_only">เฉพาะพยาบาล</string>
+    <string name="staff_scope_with_aux">พยาบาลและผู้ช่วย</string>
+    <string name="staff_requirements_title">ความต้องการบุคลากรขั้นต่ำ</string>
+    <string name="staff_minimum_label">จำนวนเจ้าหน้าที่ขั้นต่ำต่อกะ</string>
+    <string name="plant_created_title">สร้างวอร์ดแล้ว</string>
+    <string name="plant_created_message">วอร์ดของคุณได้รับการตั้งค่าโครงสร้างพื้นฐานแล้วและพร้อมสำหรับขั้นตอนต่อไป</string>
+    <string name="plant_credentials_title">การเข้าถึงวอร์ด</string>
+    <string name="plant_id_label">รหัสวอร์ด</string>
+    <string name="plant_access_password_label">รหัสผ่านเข้าถึง</string>
+    <string name="plant_share_hint">แชร์รายละเอียดเหล่านี้กับทีมของคุณเพื่อให้พวกเขาสามารถเข้าถึงและจัดการวอร์ดได้</string>
+    <string name="back_to_menu">กลับไปที่เมนูหลัก</string>
+
+    <string name="refresh_plant_action">อัปเดตข้อมูล</string>
+    <string name="plant_location_label">%1$s • %2$s</string>
+    <string name="plant_hospital_only_label">โรงพยาบาล: %1$s</string>
+    <string name="plant_shift_summary">กะของ %1$s</string>
+    <string name="plant_half_day_allowed">อนุญาตให้มีกะครึ่งวัน</string>
+    <string name="plant_half_day_not_allowed">ไม่อนุญาตให้มีกะครึ่งวัน</string>
+    <string name="plant_shift_times_title">เวลาที่ตั้งค่าไว้</string>
+    <string name="plant_shift_item">%1$s: %2$s - %3$s</string>
+    <string name="plant_staff_requirements_title">ความต้องการขั้นต่ำ</string>
+    <string name="plant_staff_requirement_item">%1$s: %2$d คน</string>
+    <string name="plant_registered_users_label">ผู้ใช้ที่ลงทะเบียน: %1$d</string>
+    <string name="open_plant_detail_action">ดูวอร์ดของฉัน</string>
+    <string name="plant_detail_missing_data">เลือกวันที่เพื่อดูกะ และตรวจสอบให้แน่ใจว่าโหลดวอร์ดแล้ว</string>
+    <string name="plant_shifts_for_date">กะสำหรับ %1$s</string>
+
+    <string name="plant_role_options_title">ตัวเลือกสำหรับ %1$s</string>
+    <string name="plant_role_option_assign">มอบหมายเจ้าหน้าที่</string>
+    <string name="plant_role_option_add_staff">เพิ่มเจ้าหน้าที่</string>
+    <string name="plant_role_option_check_half_day">ตั้งค่าครึ่งวัน</string>
+    <string name="plant_role_option_view_shifts">ดูกะ</string>
+    <string name="plant_role_option_half_day_request">ขอลาครึ่งวัน</string>
+    <string name="nurse_label">พยาบาล %1$d</string>
+    <string name="nurse_half_day_label">พยาบาลครึ่งวัน</string>
+    <string name="aux_label">ผู้ช่วย %1$d</string>
+    <string name="aux_half_day_label">ผู้ช่วยครึ่งวัน</string>
+    <string name="staff_unassigned_option">ยังไม่ได้รับมอบหมาย</string>
+    <string name="half_day_readonly_label">ครึ่งวัน: %1$s</string>
+    <string name="save_assignments_action">บันทึกการจัดองค์กร</string>
+    <string name="edit_assignments_action">แก้ไขการจัดองค์กร</string>
+    <string name="plant_add_staff_option">เพิ่มเจ้าหน้าที่วอร์ด</string>
+    <string name="plant_staff_list_option">รายชื่อเจ้าหน้าที่</string>
+    <string name="plant_self_assign_action">เลือกตัวเอง</string>
+    <string name="staff_dialog_title">เพิ่มเจ้าหน้าที่</string>
+    <string name="staff_dialog_name_label">ชื่อ - นามสกุล</string>
+    <string name="staff_dialog_role_label">บทบาท</string>
+    <string name="staff_dialog_save_action">บันทึกเจ้าหน้าที่</string>
+    <string name="staff_list_dialog_title">เจ้าหน้าที่ของ %1$s</string>
+    <string name="staff_list_dialog_empty">ยังไม่มีเจ้าหน้าที่ลงทะเบียนสำหรับวอร์ดนี้</string>
+    <string name="edit_staff_member">แก้ไขเจ้าหน้าที่</string>
+    <string name="edit_shifts">แก้ไขกะ</string>
+    <string name="mode_assignment">โหมดการมอบหมาย</string>
+    <string name="save_and_exit">บันทึกและออก</string>
+
+    <string name="my_plant_empty_title">คุณยังไม่ได้อยู่ในวอร์ด</string>
+    <string name="my_plant_empty_message">ป้อนรหัสวอร์ดและรหัสเชิญที่หัวหน้างานแชร์ให้คุณเพื่อเข้าร่วม</string>
+    <string name="invitation_code_label">รหัสเชิญ</string>
+    <string name="join_plant_action">เข้าร่วมวอร์ด</string>
+    <string name="join_plant_success">คุณเข้าร่วมวอร์ดสำเร็จแล้ว</string>
+    <string name="join_plant_success_detail">คุณได้เข้าร่วมวอร์ดเรียบร้อยแล้ว</string>
+    <string name="loading_my_plant">กำลังค้นหาวอร์ดของคุณ…</string>
+    <string name="plant_staff_link_title">เลือกโปรไฟล์ของคุณใน %1$s</string>
+    <string name="plant_staff_link_message">เลือกรายการเจ้าหน้าที่ที่ตรงกับคุณเพื่อเชื่อมโยงบัญชีของคุณกับวอร์ดนี้</string>
+    <string name="plant_staff_link_field_label">เจ้าหน้าที่วอร์ด</string>
+    <string name="plant_staff_link_confirm">เชื่อมโยง</string>
+    <string name="plant_staff_lookup_message">กำลังค้นหาโปรไฟล์วอร์ดของคุณ…</string>
+    <string name="plant_staff_linked_label">เชื่อมโยงเป็น %1$s (%2$s)</string>
+    <string name="plant_staff_link_prompt">เชื่อมโยงบัญชีของคุณกับโปรไฟล์วอร์ดเพื่อให้ข้อมูลซิงค์กัน</string>
+    <string name="staff_identity_title">โปรไฟล์ของคุณในวอร์ด</string>
+    <string name="staff_identity_label">เลือกชื่อของคุณจากรายการ</string>
+    <string name="staff_identity_hint">หัวหน้างานจัดการรายชื่อเจ้าหน้าที่นี้</string>
+    <string name="staff_identity_missing">ขอให้หัวหน้างานเพิ่มคุณเข้าไปเพื่อให้สามารถมอบหมายงานได้</string>
+
+    <string name="notes_title">บันทึกย่อ</string>
+    <string name="add_note">เพิ่มบันทึก</string>
+    <string name="write_here">เขียนที่นี่...</string>
+    <string name="no_notes_hint">ไม่มีบันทึก แตะ + เพื่อสร้าง</string>
+    <string name="chat_screen_title">แชทของฉัน</string>
+    <string name="new_chat_desc">แชทใหม่</string>
+    <string name="no_recent_chats">คุณไม่มีแชทล่าสุด</string>
+    <string name="start_chat_hint">แตะ + เพื่อเริ่ม</string>
+    <string name="delete_chat_action">ลบแชท</string>
+    <string name="start_new_chat_title">เริ่มแชทใหม่</string>
+    <string name="no_users_found">ไม่พบผู้ใช้ที่ลงทะเบียนคนอื่นในวอร์ดนี้</string>
+    <string name="message_placeholder">ข้อความ...</string>
+    <string name="group_chat_title">แชทวอร์ด</string>
+    <string name="write_message_placeholder">พิมพ์ข้อความ...</string>
+    <string name="notification_group_msg_template">ข้อความใหม่จาก %1$s ในแชทวอร์ด</string>
+
+    <string name="notif_channel_name">การแจ้งเตือนกะ</string>
+    <string name="notif_channel_desc">การแจ้งเตือนพร้อมเสียงและภาพเตือน</string>
+    <string name="notification_save_error">เกิดข้อผิดพลาดในการบันทึกการแจ้งเตือน:</string>
+    <string name="error_save_notification">เกิดข้อผิดพลาดในการบันทึกการแจ้งเตือน: %1$s</string>
+
+    <string name="password_mismatch_error">รหัสผ่านไม่ตรงกัน</string>
+    <string name="auth_weak_password">รหัสผ่านอ่อนเกินไป; ต้องมีอย่างน้อย 6 ตัวอักษร</string>
+    <string name="auth_user_collision">มีบัญชีที่ลงทะเบียนด้วยอีเมลนี้แล้ว</string>
+    <string name="auth_invalid_credentials">อีเมลหรือรหัสผ่านไม่ถูกต้อง</string>
+    <string name="auth_invalid_user">บัญชีนี้ไม่มีอยู่จริงหรือถูกปิดใช้งาน</string>
+    <string name="auth_operation_not_allowed">เปิดใช้งานผู้ให้บริการอีเมล/รหัสผ่านในคอนโซล Firebase</string>
+    <string name="auth_network_error">ไม่มีการเชื่อมต่อเซิร์ฟเวอร์ ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตของคุณ</string>
+    <string name="auth_generic_error">ข้อผิดพลาดในการตรวจสอบสิทธิ์:</string>
+    <string name="auth_unknown_error">ไม่สามารถดำเนินการได้ ลองอีกครั้ง</string>
+
+    <string name="auth_login_failed">ไม่สามารถเข้าสู่ระบบด้วยอีเมลนั้น</string>
+    <string name="auth_create_failed">ไม่สามารถสร้างบัญชี</string>
+    <string name="auth_reset_email_failed">ไม่สามารถส่งอีเมลกู้คืน</string>
+
+    <string name="login_error_generic">ไม่สามารถเข้าสู่ระบบด้วยอีเมลนั้น</string>
+    <string name="create_account_error">ไม่สามารถสร้างบัญชี</string>
+    <string name="reset_email_error">ไม่สามารถส่งอีเมลกู้คืน</string>
+    <string name="error_login_required">คุณต้องเข้าสู่ระบบเพื่อดำเนินการต่อ</string>
+
+    <string name="error_save_profile">ไม่สามารถบันทึกโปรไฟล์แบบเรียลไทม์</string>
+    <string name="profile_save_error">ไม่สามารถบันทึกโปรไฟล์แบบเรียลไทม์</string>
+
+    <string name="error_db_rules">ตรวจสอบกฎ Realtime Database และสิทธิ์การเขียน</string>
+    <string name="database_rules_error">ตรวจสอบกฎ Realtime Database และสิทธิ์การเขียน</string>
+
+    <string name="error_delete_plant">ไม่สามารถลบวอร์ดได้ ลองอีกครั้ง</string>
+    <string name="delete_plant_error">ไม่สามารถลบวอร์ดได้ ลองอีกครั้ง</string>
+
+    <string name="plant_required_fields_error">กรอกข้อมูลทั่วไปของวอร์ดให้ครบถ้วน</string>
+    <string name="plant_save_error">ไม่สามารถบันทึกวอร์ดได้ ตรวจสอบการเชื่อมต่อและลองอีกครั้ง</string>
+    <string name="plant_auth_error">ข้อผิดพลาดในการตรวจสอบสิทธิ์เมื่อโหลดวอร์ด</string>
+    <string name="staff_dialog_error">กรอกชื่อให้ครบถ้วนเพื่อดำเนินการต่อ</string>
+    <string name="staff_dialog_save_error">ไม่สามารถบันทึกเจ้าหน้าที่ได้ ลองอีกครั้ง</string>
+
+    <string name="join_plant_error">ข้อผิดพลาดในการเข้าร่วมวอร์ด</string>
+    <string name="join_plant_not_found">ไม่พบวอร์ด</string>
+    <string name="invalid_invitation_code">รหัสเชิญไม่ถูกต้อง</string>
+    <string name="plant_load_error">ข้อผิดพลาดในการโหลดวอร์ด</string>
+    <string name="title_notifications">การแจ้งเตือน</string>
+    <string name="msg_no_notifications">คุณไม่มีการแจ้งเตือน</string>
+    <string name="desc_back">กลับ</string>
+    <string name="desc_delete">ลบ</string>
+    <string name="desc_delete_all">ลบทั้งหมด</string>
+    <string name="title_offline_roster">ตารางงานออฟไลน์ของฉัน</string>
+    <string name="btn_save">บันทึก</string>
+    <string name="btn_cancel">ยกเลิก</string>
+    <string name="dialog_edit_shift_title">แก้ไขกะ - %s</string>
+
+    <string name="tab_my_shifts">กะของฉัน</string>
+    <string name="tab_management">การจัดการ</string>
+    <string name="tab_suggestions">ข้อเสนอแนะ</string>
+    <string name="title_candidate_search">ค้นหาผู้สมัคร</string>
+    <string name="title_change_management">การจัดการแลกเปลี่ยน</string>
+
+    <string name="msg_request_sent">ส่งคำขอแล้ว รอเพื่อนร่วมงานตอบรับ</string>
+    <string name="msg_request_deleted">คำขอลบแล้ว</string>
+    <string name="msg_swap_approved">การเปลี่ยนแปลงดำเนินการและอนุมัติแล้ว</string>
+    <string name="msg_supervisor_rejected">หัวหน้างานปฏิเสธการเปลี่ยนแปลง</string>
+    <string name="msg_partner_accepted">เพื่อนร่วมงานของคุณตอบรับแล้ว รอหัวหน้างาน</string>
+    <string name="msg_partner_rejected">เพื่อนร่วมงานปฏิเสธการเปลี่ยนแปลง</string>
+    <string name="msg_request_created">สร้างคำขอแล้ว ไปที่ \'ข้อเสนอแนะ\' เพื่อหาผู้สมัคร</string>
+
+    <string name="header_supervisor_pending">รอการอนุมัติ (หัวหน้างาน)</string>
+    <string name="header_in_process">กำลังดำเนินการ</string>
+    <string name="header_my_searches">การค้นหาที่ใช้งานอยู่ของฉัน</string>
+    <string name="header_history">ประวัติ</string>
+    <string name="msg_no_recent_activity">ไม่มีกิจกรรมล่าสุด</string>
+
+    <string name="header_search_candidates">หาผู้สมัครสำหรับกะของคุณ</string>
+    <string name="desc_search_candidates">เลือกหนึ่งในกะที่คุณเสนอเพื่อดูว่าใครสามารถแลกเปลี่ยนกับคุณได้บ้าง</string>
+    <string name="msg_no_active_offers">คุณไม่มีข้อเสนอที่ใช้งานอยู่</string>
+    <string name="desc_create_offer">สร้างข้อเสนอใน \'กะของฉัน\' ก่อน</string>
+    <string name="label_offering_shift">เสนอกะของ:</string>
+    <string name="btn_see_candidates">ดูผู้สมัครที่เข้ากันได้</string>
+    <string name="badge_active">ใช้งานอยู่</string>
+
+    <string name="card_compatible_candidates">ผู้สมัครที่เข้ากันได้</string>
+    <string name="filter_date">วันที่</string>
+    <string name="filter_person">บุคคล</string>
+    <string name="filter_shift">กะ</string>
+    <string name="msg_no_candidates_found">ไม่พบเพื่อนร่วมงานที่ว่างด้วยตัวกรองเหล่านี้</string>
+    <string name="btn_preview">ดูตัวอย่าง</string>
+    <string name="btn_choose">เลือก</string>
+
+    <string name="dialog_simulation_title">จำลองการแลกเปลี่ยน</string>
+    <string name="label_around_date">ประมาณ %1$s</string>
+    <string name="label_me">ฉัน</string>
+
+    <string name="label_current_turn">กะปัจจุบัน: %1$s</string>
+    <string name="msg_no_shift_today">คุณไม่มีกะในวันนี้</string>
+    <string name="btn_search_swap">ค้นหาการแลกเปลี่ยน</string>
+
+    <string name="dialog_open_request_title">ขอแลกเปลี่ยนแบบเปิด</string>
+    <string name="label_offering_turn_date">คุณกำลังเสนอกะของ:</string>
+    <string name="label_swap_preference">ความต้องการแลกเปลี่ยน:</string>
+    <string name="chip_flexible">ยืดหยุ่น</string>
+    <string name="chip_strict">เข้มงวด</string>
+    <string name="desc_flexible">จะค้นหาเพื่อนร่วมงานที่เข้ากันได้ทุกคน</string>
+    <string name="desc_strict">จะให้ความสำคัญกับผู้ที่ติดค้างกะคุณ</string>
+    <string name="btn_publish_request">เผยแพร่คำขอ</string>
+
+    <string name="status_pending_supervisor">รอการอนุมัติจากหัวหน้างาน</string>
+    <string name="status_proposal_received">คุณได้รับข้อเสนอแลกเปลี่ยน!</string>
+    <string name="status_waiting_partner">รอการตอบกลับจาก %1$s</string>
+    <string name="status_approved">อนุมัติการแลกเปลี่ยน</string>
+    <string name="label_origin">ต้นทาง</string>
+    <string name="label_destination">ปลายทาง</string>
+    <string name="label_searching_candidate">กำลังค้นหาผู้สมัคร...</string>
+    <string name="label_offering">คุณเสนอ: %1$s</string>
+    <string name="label_suggestion_hint">ไปที่แท็บ \'ข้อเสนอแนะ\' เพื่อเสนอการแลกเปลี่ยน</string>
+
+    <string name="btn_approve">อนุมัติ</string>
+    <string name="btn_reject">ปฏิเสธ</string>
+    <string name="btn_accept">ยอมรับการแลกเปลี่ยน</string>
+    <string name="btn_close">ปิด</string>
+    <string name="btn_delete_history">ล้างประวัติ</string>
+    <string name="btn_view_simulation">ดูการจำลอง</string>
+
+    <string name="title_alert">ประกาศ</string>
+    <string name="btn_understood">รับทราบ</string>
+    <string name="title_profile_saved">บันทึกโปรไฟล์แล้ว</string>
+    <string name="msg_profile_saved">รายละเอียดบัญชีของคุณได้รับการอัปเดตเรียบร้อยแล้ว</string>
+    <string name="logo_desc">โลโก้ Turnoshospi</string>
+
+    <string name="title_settings">การตั้งค่า</string>
+    <string name="title_customize_colors">ปรับแต่งสีกะ</string>
+    <string name="btn_restore_colors">คืนค่าสีเริ่มต้น</string>
+    <string name="title_manage_account">จัดการบัญชี</string>
+    <string name="btn_delete_account">ลบบัญชีของฉัน</string>
+    <string name="msg_delete_account_warning">การดำเนินการนี้เป็นการถาวรและไม่สามารถย้อนกลับได้ ข้อมูลทั้งหมดของคุณที่เกี่ยวข้องกับแอปจะถูกลบ</string>
+    <string name="title_are_you_sure">คุณแน่ใจหรือไม่?</string>
+    <string name="msg_delete_account_confirmation">การดำเนินการนี้ไม่สามารถย้อนกลับได้ บัญชีของคุณและข้อมูลทั้งหมดจะถูกลบ คุณต้องการดำเนินการต่อหรือไม่?</string>
+    <string name="btn_delete_confirm">ลบ</string>
+    <string name="title_pick_color">เลือกสี</string>
+
+    <string name="btn_delete_plant">ลบวอร์ด</string>
+    <string name="msg_delete_plant_warning">การดำเนินการนี้เป็นการถาวรและไม่สามารถย้อนกลับได้ ข้อมูลวอร์ดทั้งหมดจะถูกลบและผู้ใช้ที่เกี่ยวข้องทั้งหมดจะถูกยกเลิกการเชื่อมโยง</string>
+    <string name="msg_delete_plant_confirmation">คุณกำลังจะลบวอร์ด "%1$s" การดำเนินการนี้ไม่สามารถย้อนกลับได้และจะส่งผลต่อผู้ใช้ที่เกี่ยวข้องทั้งหมด คุณต้องการดำเนินการต่อหรือไม่?</string>
+
+    <string name="notif_title_direct_chat">ข้อความส่วนตัว</string>
+    <string name="notif_title_group_chat">ข้อความกลุ่ม</string>
+    <string name="notif_title_shift_assignment">อัปเดตกะ</string>
+    <string name="notif_title_marketplace_add">ข้อเสนอแลกเปลี่ยนใหม่</string>
+    <string name="notif_title_shift_response">การตอบกลับข้อเสนอ</string>
+    <string name="notif_title_shift_proposal">ข้อเสนอแลกเปลี่ยน</string>
+    <string name="notif_title_shift_approved">อนุมัติการแลกเปลี่ยนแล้ว!</string>
+    <string name="notif_title_shift_rejected">ปฏิเสธการแลกเปลี่ยน</string>
+    <string name="notif_title_supervisor_action">คำขอถึงหัวหน้างาน</string>
+    <string name="notif_title_generic">การแจ้งเตือน</string>
+
+    <string name="plant_settings_label">การตั้งค่าวอร์ด</string>
+    <string name="import_shifts_label">นำเข้ากะ</string>
+    <string name="invite_colleagues_label">เชิญเพื่อนร่วมงาน</string>
+    <string name="vacation_days_label">วันหยุดพักผ่อน</string>
+    <string name="shift_change_label">การเปลี่ยนกะ</string>
+    <string name="shift_marketplace_label">ตลาดกะ</string>
+    <string name="statistics_label">สถิติ</string>
+
+    <string name="share_plant_message_template">สวัสดี! เข้าร่วมวอร์ด "%1$s" ใน Turnoshospi\n\nรหัสวอร์ด: %2$s\nรหัสเข้าถึง: %3$s\n\nดาวน์โหลดแอปและเข้าร่วมจากเมนูหลัก</string>
+    <string name="share_chooser_title">เชิญเพื่อนร่วมงานผ่าน:</string>
+
+    <string name="notif_unassigned_message">คุณถูกยกเลิกการมอบหมายจากกะวันที่ %1$s</string>
+    <string name="notif_assigned_message">กะของคุณสำหรับ %1$s ได้รับการอัปเดตโดยหัวหน้างาน</string>
+    <string name="notif_vacation_saved_message">วันหยุดพักผ่อนของคุณสำหรับ %1$s ได้รับการลงทะเบียนแล้ว</string>
+
+    <string name="dialog_vacation_title">เลือกวันหยุดพักผ่อน</string>
+    <string name="dialog_vacation_instruction">เลือกวันที่คุณจะลาพักผ่อน:</string>
+    <string name="label_no_days_selected">ไม่ได้เลือกวัน</string>
+    <string name="btn_add_day">เพิ่มวัน</string>
+    <string name="btn_confirm_days">ยืนยัน (%1$d วัน)</string>
+    <string name="msg_vacation_saved">บันทึกวันหยุดพักผ่อนแล้ว</string>
+    <string name="error_no_date_selected">ไม่ได้เลือกวันที่</string>
+    <string name="error_past_date_selection">คุณไม่สามารถเลือกวันที่ผ่านมาแล้วได้</string>
+    <string name="btn_add">เพิ่ม</string>
+
+    <string name="title_import_shifts">นำเข้ากะ</string>
+    <string name="subtitle_import_options">ตัวเลือกการนำเข้า</string>
+    <string name="btn_download_template">ดาวน์โหลดเทมเพลต</string>
+    <string name="btn_import">นำเข้ากะ</string>
+    <string name="btn_importing">กำลังนำเข้า...</string>
+    <string name="status_processing">กำลังประมวลผลไฟล์...</string>
+    <string name="msg_import_success">นำเข้ากะเรียบร้อยแล้ว</string>
+    <string name="error_plant_not_loaded">ข้อผิดพลาด: ข้อมูลวอร์ดไม่โหลด</string>
+    <string name="error_csv_empty">ไฟล์ว่างเปล่า</string>
+    <string name="error_csv_format">ข้อผิดพลาดในแถว %1$d: รูปแบบไม่ถูกต้อง คอลัมน์หายไป</string>
+    <string name="error_csv_date">ข้อผิดพลาดในแถว %1$d: วันที่ไม่ถูกต้อง (%2$s) ใช้ YYYY-MM-DD</string>
+    <string name="error_csv_shift">ข้อผิดพลาดในแถว %1$d: กะ \'%2$s\' ไม่มีอยู่ในวอร์ดนี้</string>
+    <string name="error_csv_role">ข้อผิดพลาดในแถว %1$d: ไม่รู้จักบทบาท \'%2$s\' ใช้ \'Nurse\', \'Assistant\' หรือ \'CNA\'</string>
+    <string name="error_csv_staff_not_found">ข้อผิดพลาดในแถว %1$d: \'%2$s\' ไม่ได้ลงทะเบียนในเจ้าหน้าที่วอร์ด</string>
+    <string name="error_db_save">ข้อผิดพลาดในการบันทึกลงฐานข้อมูล: %1$s</string>
+    <string name="error_file_read">ข้อผิดพลาดในการอ่านไฟล์: %1$s</string>
+    <string name="msg_template_saved">บันทึกเทมเพลตไปยังดาวน์โหลดแล้ว</string>
+    <string name="error_template_save">ข้อผิดพลาดในการบันทึก: %1$s</string>
+
+    <string name="error_name_required">จำเป็นต้องระบุชื่อ</string>
+    <string name="error_generic">ข้อผิดพลาด</string>
+
+    <string name="statistics_user_title">สถิติสำหรับ %1$s</string>
+    <string name="msg_no_staff_stats">ไม่มีการบันทึกชั่วโมงสำหรับเจ้าหน้าที่คนใดในเดือนนี้</string>
+    <string name="header_total_hours_general">ชั่วโมงเจ้าหน้าที่รวม (ทั่วไป)</string>
+    <string name="format_shifts_count">%1$d กะ</string>
+    <string name="desc_view_stats">ดูสถิติสำหรับ %1$s</string>
+    <string name="header_stats_breakdown">รายละเอียดสถิติ</string>
+    <string name="msg_no_user_stats">ไม่มีการบันทึกชั่วโมงในเดือนนี้สำหรับ %1$s</string>
+    <string name="label_total_worked">ชั่วโมงทำงานรวม</string>
+    <string name="format_shifts_done">ทำไปแล้ว %1$d กะ</string>
+    <string name="header_shift_breakdown">รายละเอียดตามกะ</string>
+</resources>
