@@ -2,479 +2,477 @@
     <string name="app_name">ShiftGrid</string>
 
     <string-array name="days_of_week_short">
-        <item>M</item> <item>T</item> <item>W</item> <item>T</item> <item>F</item> <item>S</item> <item>S</item> </string-array>
+        <item>پیر</item> <item>منگل</item> <item>بدھ</item> <item>جمعرات</item> <item>جمعہ</item> <item>ہفتہ</item> <item>اتوار</item> </string-array>
 
-    <string name="back_desc">Back</string>
-    <string name="close_label">Close</string>
-    <string name="cancel_label">Cancel</string>
-    <string name="cancel">Cancel</string>
-    <string name="save">Save</string>
-    <string name="saving_label">Saving…</string>
-    <string name="edit">Edit</string>
-    <string name="delete">Delete</string>
-    <string name="send_desc">Send</string>
-    <string name="loading_text">Loading...</string>
-    <string name="menu_info">Information</string>
-    <string name="menu_info_desc">Help, support, and app details.</string>
+    <string name="back_desc">واپس</string>
+    <string name="close_label">بند کریں</string>
+    <string name="cancel_label">منسوخ کریں</string>
+    <string name="cancel">منسوخ کریں</string>
+    <string name="save">محفوظ کریں</string>
+    <string name="saving_label">محفوظ ہو رہا ہے…</string>
+    <string name="edit">ترمیم کریں</string>
+    <string name="delete">حذف کریں</string>
+    <string name="send_desc">بھیجیں</string>
+    <string name="loading_text">لوڈ ہو رہا ہے...</string>
+    <string name="menu_info">معلومات</string>
+    <string name="menu_info_desc">مدد، معاونت، اور ایپ کی تفصیلات۔</string>
 
-    <string name="previous_month_desc">Previous month</string>
-    <string name="next_month_desc">Next month</string>
-    <string name="desc_prev_month">Previous month</string>
-    <string name="desc_next_month">Next month</string>
-    <string name="select_date_prompt">Select a date</string>
-    <string name="select_day">Select a day</string>
-    <string name="plant_calendar_title">Shift Calendar</string>
-    <string name="agenda_title">Daily Agenda: %1$s</string>
+    <string name="previous_month_desc">پچھلا مہینہ</string>
+    <string name="next_month_desc">اگلا مہینہ</string>
+    <string name="desc_prev_month">پچھلا مہینہ</string>
+    <string name="desc_next_month">اگلا مہینہ</string>
+    <string name="select_date_prompt">تاریخ منتخب کریں</string>
+    <string name="select_day">دن منتخب کریں</string>
+    <string name="plant_calendar_title">شفٹ کیلنڈر</string>
+    <string name="agenda_title">روزانہ کا ایجنڈا: %1$s</string>
 
-    <string name="shift_detail_title">Shift: %1$s</string>
-    <string name="nurses_list_prefix">Nurses: %1$s</string>
-    <string name="auxiliaries_list_prefix">Assistants: %1$s</string>
-    <string name="colleagues_header">Colleagues:</string>
-    <string name="no_colleagues_found">No colleagues found.</string>
-    <string name="no_shifts_assigned">No shifts assigned.</string>
+    <string name="shift_detail_title">شفٹ: %1$s</string>
+    <string name="nurses_list_prefix">نرسیں: %1$s</string>
+    <string name="auxiliaries_list_prefix">معاونین: %1$s</string>
+    <string name="colleagues_header">ساتھی:</string>
+    <string name="no_colleagues_found">کوئی ساتھی نہیں ملا۔</string>
+    <string name="no_shifts_assigned">کوئی شفٹ تفویض نہیں کی گئی۔</string>
 
-    <string name="legend_free">Off</string>
-    <string name="legend_morning">Morning</string>
-    <string name="legend_morning_half">Half Morning</string>
-    <string name="legend_afternoon">Afternoon</string>
-    <string name="legend_afternoon_half">Half Afternoon</string>
-    <string name="legend_night">Night</string>
-    <string name="legend_exit_night">Post-night</string>
-    <string name="legend_holiday">Vacation</string>
+    <string name="legend_free">چھٹی</string>
+    <string name="legend_morning">صبح</string>
+    <string name="legend_morning_half">نصف صبح</string>
+    <string name="legend_afternoon">دوپہر</string>
+    <string name="legend_afternoon_half">نصف دوپہر</string>
+    <string name="legend_night">رات</string>
+    <string name="legend_exit_night">رات کے بعد</string>
+    <string name="legend_holiday">چھٹیاں</string>
 
-    <string name="shift_morning">Morning</string>
-    <string name="shift_afternoon">Afternoon</string>
-    <string name="shift_night">Night</string>
-    <string name="shift_saliente">Post-night</string>
-    <string name="shift_morning_half">Half Morning</string>
-    <string name="shift_afternoon_half">Half Afternoon</string>
-    <string name="shift_holiday">Vacation</string>
-    <string name="shift_free">Off</string>
-    <string name="shift_day">Day</string>
+    <string name="shift_morning">صبح</string>
+    <string name="shift_afternoon">دوپہر</string>
+    <string name="shift_night">رات</string>
+    <string name="shift_saliente">رات کے بعد</string>
+    <string name="shift_morning_half">نصف صبح</string>
+    <string name="shift_afternoon_half">نصف دوپہر</string>
+    <string name="shift_holiday">چھٹیاں</string>
+    <string name="shift_free">چھٹی</string>
+    <string name="shift_day">دن</string>
 
-    <string name="role_supervisor_male">Supervisor</string>
-    <string name="role_supervisor_female">Supervisor</string>
-    <string name="role_nurse_male">Nurse</string>
-    <string name="role_nurse_female">Nurse</string>
-    <string name="role_aux_male">Assistant/CNA</string>
-    <string name="role_aux_female">Assistant/CNA</string>
-    <string name="role_nurse_generic">Nurse</string>
-    <string name="role_aux_generic">Assistant/CNA</string>
-    <string name="role_nurse">Nurse</string>
-    <string name="role_auxiliary">Assistant</string>
-    <string name="gender_male">Male</string>
-    <string name="gender_female">Female</string>
-    <string name="default_role">No role</string>
-    <string name="default_user">User</string>
-    <string name="default_user_alias">User</string>
+    <string name="role_supervisor_male">سپروائزر</string>
+    <string name="role_supervisor_female">سپروائزر</string>
+    <string name="role_nurse_male">نرس</string>
+    <string name="role_nurse_female">نرس</string>
+    <string name="role_aux_male">اسسٹنٹ/CNA</string>
+    <string name="role_aux_female">اسسٹنٹ/CNA</string>
+    <string name="role_nurse_generic">نرس</string>
+    <string name="role_aux_generic">اسسٹنٹ/CNA</string>
+    <string name="role_nurse">نرس</string>
+    <string name="role_auxiliary">اسسٹنٹ</string>
+    <string name="gender_male">مرد</string>
+    <string name="gender_female">عورت</string>
+    <string name="default_role">کوئی کردار نہیں</string>
+    <string name="default_user">صارف</string>
+    <string name="default_user_alias">صارف</string>
 
-    <string name="login_screen_title">Log In</string>
-    <string name="login_button">Log In</string>
-    <string name="create_account_title">Create Account</string>
-    <string name="create_account_action">Create Account</string>
-    <string name="register_button">Save Profile</string>
-    <string name="forgot_password">Forgot your password?</string>
-    <string name="reset_email_sent">We have sent a recovery link</string>
-    <string name="back_to_login_action">Back to Log In</string>
-    <string name="sign_out">Log Out</string>
-    <string name="loading_profile">Loading your profile data…</string>
-    <string name="profile_summary_title">Your Profile</string>
-    <string name="edit_profile">Edit Profile</string>
-    <string name="email_label">Email</string>
-    <string name="password_label">Password</string>
-    <string name="password_hide_desc">Hide password</string>
-    <string name="password_show_desc">Show password</string>
-    <string name="confirm_password">Confirm Password</string>
-    <string name="first_name_label">First Name</string>
-    <string name="last_name_label">Last Name</string>
-    <string name="role_dropdown_label">Position</string>
-    <string name="gender_select_label">Gender</string>
-    <string name="profile_email_label">Email: %1$s</string>
-    <string name="profile_name_label">Name: %1$s</string>
-    <string name="profile_role_label">Position: %1$s</string>
+    <string name="login_screen_title">لاگ ان</string>
+    <string name="login_button">لاگ ان</string>
+    <string name="create_account_title">اکاؤنٹ بنائیں</string>
+    <string name="create_account_action">اکاؤنٹ بنائیں</string>
+    <string name="register_button">پروفائل محفوظ کریں</string>
+    <string name="forgot_password">کیا آپ پاس ورڈ بھول گئے؟</string>
+    <string name="reset_email_sent">ہم نے بازیابی کا لنک بھیج دیا ہے</string>
+    <string name="back_to_login_action">لاگ ان پر واپس جائیں</string>
+    <string name="sign_out">لاگ آؤٹ</string>
+    <string name="loading_profile">آپ کے پروفائل کا ڈیٹا لوڈ ہو رہا ہے…</string>
+    <string name="profile_summary_title">آپ کا پروفائل</string>
+    <string name="edit_profile">پروفائل میں ترمیم کریں</string>
+    <string name="email_label">ای میل</string>
+    <string name="password_label">پاس ورڈ</string>
+    <string name="password_hide_desc">پاس ورڈ چھپائیں</string>
+    <string name="password_show_desc">پاس ورڈ دکھائیں</string>
+    <string name="confirm_password">پاس ورڈ کی تصدیق کریں</string>
+    <string name="first_name_label">پہلا نام</string>
+    <string name="last_name_label">آخری نام</string>
+    <string name="role_dropdown_label">عہدہ</string>
+    <string name="gender_select_label">صنف</string>
+    <string name="profile_email_label">ای میل: %1$s</string>
+    <string name="profile_name_label">نام: %1$s</string>
+    <string name="profile_role_label">عہدہ: %1$s</string>
 
-    <string name="main_menu_welcome_male">Welcome, %1$s</string>
-    <string name="main_menu_welcome_female">Welcome, %1$s</string>
-    <string name="main_menu_subtitle">Select an option to start organizing your wards.</string>
-    <string name="side_menu_title">Menu</string>
-    <string name="menu_create_plant">Create New Ward</string>
-    <string name="menu_create_plant_desc">Configure a ward from scratch.</string>
-    <string name="menu_my_plants">My Ward</string>
-    <string name="menu_my_plants_desc">View and edit your existing wards.</string>
-    <string name="menu_settings">Settings</string>
-    <string name="menu_settings_desc">Account settings and preferences.</string>
-    <string name="cd_menu">Menu</string>
-    <string name="cd_notifications">Notifications</string>
-    <string name="cd_chats">Chats</string>
+    <string name="main_menu_welcome_male">خوش آمدید، %1$s</string>
+    <string name="main_menu_welcome_female">خوش آمدید، %1$s</string>
+    <string name="main_menu_subtitle">اپنے وارڈز کو منظم کرنے کے لیے ایک آپشن منتخب کریں۔</string>
+    <string name="side_menu_title">مینو</string>
+    <string name="menu_create_plant">نیا وارڈ بنائیں</string>
+    <string name="menu_create_plant_desc">شروع سے ایک وارڈ کنفیگر کریں۔</string>
+    <string name="menu_my_plants">میرا وارڈ</string>
+    <string name="menu_my_plants_desc">اپنے موجودہ وارڈز دیکھیں اور ان میں ترمیم کریں۔</string>
+    <string name="menu_settings">ترتیبات</string>
+    <string name="menu_settings_desc">اکاؤنٹ کی ترتیبات اور ترجیحات۔</string>
+    <string name="cd_menu">مینو</string>
+    <string name="cd_notifications">اطلاعات</string>
+    <string name="cd_chats">چیٹس</string>
 
-    <string name="plant_creation_title">Create New Ward</string>
-    <string name="plant_general_data_title">General Ward Data</string>
-    <string name="plant_name_label">Ward Name</string>
-    <string name="unit_type_label">Unit Type</string>
-    <string name="hospital_name_label">Hospital Name</string>
-    <string name="create_plant_action">Create Ward</string>
-    <string name="shift_configuration_title">Shift Configuration</string>
-    <string name="shift_duration_label">Shift Duration</string>
-    <string name="shift_duration_placeholder">Select a duration</string>
-    <string name="shift_duration_8h">8 hours</string>
-    <string name="shift_duration_12h">12 hours</string>
-    <string name="shift_timing_instruction">Define the schedule for each shift based on the selected duration.</string>
-    <string name="shift_half_day_question">Are half-day shifts allowed?</string>
-    <string name="shift_start_label">Start</string>
-    <string name="shift_end_label">End</string>
-    <string name="plant_staff_title">Ward Staff</string>
-    <string name="staff_scope_question">Admin Staff</string>
-    <string name="staff_scope_nurses_only">Nurses Only</string>
-    <string name="staff_scope_with_aux">Nurses and Nursing Assistants</string>
-    <string name="staff_requirements_title">Minimum Staff Requirements</string>
-    <string name="staff_minimum_label">Minimum number of staff per shift</string>
-    <string name="plant_created_title">Ward Created</string>
-    <string name="plant_created_message">Your ward has been configured with the basic structure and is ready for the next steps.</string>
-    <string name="plant_credentials_title">Ward Access</string>
-    <string name="plant_id_label">Ward ID</string>
-    <string name="plant_access_password_label">Access Password</string>
-    <string name="plant_share_hint">Share these details with your team so they can access and manage the ward.</string>
-    <string name="back_to_menu">Back to Main Menu</string>
+    <string name="plant_creation_title">نیا وارڈ بنائیں</string>
+    <string name="plant_general_data_title">عام وارڈ ڈیٹا</string>
+    <string name="plant_name_label">وارڈ کا نام</string>
+    <string name="unit_type_label">یونٹ کی قسم</string>
+    <string name="hospital_name_label">ہسپتال کا نام</string>
+    <string name="create_plant_action">وارڈ بنائیں</string>
+    <string name="shift_configuration_title">شفٹ کنفیگریشن</string>
+    <string name="shift_duration_label">شفٹ کا دورانیہ</string>
+    <string name="shift_duration_placeholder">دورانیہ منتخب کریں</string>
+    <string name="shift_duration_8h">8 گھنٹے</string>
+    <string name="shift_duration_12h">12 گھنٹے</string>
+    <string name="shift_timing_instruction">منتخب کردہ دورانیے کی بنیاد پر ہر شفٹ کا شیڈول طے کریں۔</string>
+    <string name="shift_half_day_question">کیا نصف دن کی شفٹوں کی اجازت ہے؟</string>
+    <string name="shift_start_label">شروع</string>
+    <string name="shift_end_label">ختم</string>
+    <string name="plant_staff_title">وارڈ کا عملہ</string>
+    <string name="staff_scope_question">انتظامی عملہ</string>
+    <string name="staff_scope_nurses_only">صرف نرسیں</string>
+    <string name="staff_scope_with_aux">نرسیں اور نرسنگ اسسٹنٹس</string>
+    <string name="staff_requirements_title">کم از کم عملے کی ضروریات</string>
+    <string name="staff_minimum_label">فی شفٹ عملے کی کم از کم تعداد</string>
+    <string name="plant_created_title">وارڈ بن گیا</string>
+    <string name="plant_created_message">آپ کا وارڈ بنیادی ڈھانچے کے ساتھ ترتیب دیا گیا ہے اور اگلے مراحل کے لیے تیار ہے۔</string>
+    <string name="plant_credentials_title">وارڈ تک رسائی</string>
+    <string name="plant_id_label">وارڈ آئی ڈی</string>
+    <string name="plant_access_password_label">رسائی کا پاس ورڈ</string>
+    <string name="plant_share_hint">اپنی ٹیم کے ساتھ ان تفصیلات کا اشتراک کریں تاکہ وہ وارڈ تک رسائی حاصل کر سکیں اور انتظام کر سکیں۔</string>
+    <string name="back_to_menu">مین مینو پر واپس جائیں</string>
 
-    <string name="refresh_plant_action">Update Data</string>
+    <string name="refresh_plant_action">ڈیٹا اپ ڈیٹ کریں</string>
     <string name="plant_location_label">%1$s • %2$s</string>
-    <string name="plant_hospital_only_label">Hospital: %1$s</string>
-    <string name="plant_shift_summary">Shifts for %1$s</string>
-    <string name="plant_half_day_allowed">Allows half-day shifts</string>
-    <string name="plant_half_day_not_allowed">Does not allow half-day shifts</string>
-    <string name="plant_shift_times_title">Configured Schedules</string>
+    <string name="plant_hospital_only_label">ہسپتال: %1$s</string>
+    <string name="plant_shift_summary">%1$s کے لیے شفٹیں</string>
+    <string name="plant_half_day_allowed">نصف دن کی شفٹوں کی اجازت دیتا ہے</string>
+    <string name="plant_half_day_not_allowed">نصف دن کی شفٹوں کی اجازت نہیں دیتا</string>
+    <string name="plant_shift_times_title">کنفیگر شدہ شیڈول</string>
     <string name="plant_shift_item">%1$s: %2$s - %3$s</string>
-    <string name="plant_staff_requirements_title">Minimum Requirements</string>
-    <string name="plant_staff_requirement_item">%1$s: %2$d people</string>
-    <string name="plant_registered_users_label">Registered Users: %1$d</string>
-    <string name="open_plant_detail_action">View My Ward</string>
-    <string name="plant_detail_missing_data">Select a date and ensure a ward is loaded to view shifts.</string>
-    <string name="plant_shifts_for_date">Shifts for %1$s</string>
+    <string name="plant_staff_requirements_title">کم از کم تقاضے</string>
+    <string name="plant_staff_requirement_item">%1$s: %2$d افراد</string>
+    <string name="plant_registered_users_label">رجسٹرڈ صارفین: %1$d</string>
+    <string name="open_plant_detail_action">میرا وارڈ دیکھیں</string>
+    <string name="plant_detail_missing_data">شفٹیں دیکھنے کے لیے تاریخ منتخب کریں اور یقینی بنائیں کہ وارڈ لوڈ ہے۔</string>
+    <string name="plant_shifts_for_date">%1$s کے لیے شفٹیں</string>
 
-    <string name="plant_role_options_title">Options available for %1$s</string>
-    <string name="plant_role_option_assign">Assign Staff</string>
-    <string name="plant_role_option_add_staff">Add Staff</string>
-    <string name="plant_role_option_check_half_day">Configure Half Days</string>
-    <string name="plant_role_option_view_shifts">View Shifts</string>
-    <string name="plant_role_option_half_day_request">Request Half Day</string>
-    <string name="nurse_label">Nurse %1$d</string>
-    <string name="nurse_half_day_label">Nurse Half Day</string>
-    <string name="aux_label">Assistant %1$d</string>
-    <string name="aux_half_day_label">Assistant Half Day</string>
-    <string name="staff_unassigned_option">Unassigned</string>
-    <string name="half_day_readonly_label">Half Day: %1$s</string>
-    <string name="save_assignments_action">Save Organization</string>
-    <string name="edit_assignments_action">Edit Organization</string>
-    <string name="plant_add_staff_option">Add Ward Staff</string>
-    <string name="plant_staff_list_option">Staff List</string>
-    <string name="plant_self_assign_action">Select Myself</string>
-    <string name="staff_dialog_title">Add Staff</string>
-    <string name="staff_dialog_name_label">Full Name</string>
-    <string name="staff_dialog_role_label">Role</string>
-    <string name="staff_dialog_save_action">Save Staff</string>
-    <string name="staff_list_dialog_title">Staff of %1$s</string>
-    <string name="staff_list_dialog_empty">There is no staff registered for this ward yet.</string>
-    <string name="edit_staff_member">Edit Staff</string>
-    <string name="edit_shifts">Edit Shifts</string>
-    <string name="mode_assignment">Assignment Mode</string>
-    <string name="save_and_exit">Save and Exit</string>
+    <string name="plant_role_options_title">%1$s کے لیے دستیاب اختیارات</string>
+    <string name="plant_role_option_assign">عملہ تفویض کریں</string>
+    <string name="plant_role_option_add_staff">عملہ شامل کریں</string>
+    <string name="plant_role_option_check_half_day">نصف دن کنفیگر کریں</string>
+    <string name="plant_role_option_view_shifts">شفٹیں دیکھیں</string>
+    <string name="plant_role_option_half_day_request">نصف دن کی درخواست کریں</string>
+    <string name="nurse_label">نرس %1$d</string>
+    <string name="nurse_half_day_label">نرس نصف دن</string>
+    <string name="aux_label">اسسٹنٹ %1$d</string>
+    <string name="aux_half_day_label">اسسٹنٹ نصف دن</string>
+    <string name="staff_unassigned_option">غیر تفویض شدہ</string>
+    <string name="half_day_readonly_label">نصف دن: %1$s</string>
+    <string name="save_assignments_action">تنظیم محفوظ کریں</string>
+    <string name="edit_assignments_action">تنظیم میں ترمیم کریں</string>
+    <string name="plant_add_staff_option">وارڈ عملہ شامل کریں</string>
+    <string name="plant_staff_list_option">عملے کی فہرست</string>
+    <string name="plant_self_assign_action">میرا انتخاب کریں</string>
+    <string name="staff_dialog_title">عملہ شامل کریں</string>
+    <string name="staff_dialog_name_label">پورا نام</string>
+    <string name="staff_dialog_role_label">کردار</string>
+    <string name="staff_dialog_save_action">عملہ محفوظ کریں</string>
+    <string name="staff_list_dialog_title">%1$s کا عملہ</string>
+    <string name="staff_list_dialog_empty">اس وارڈ کے لیے ابھی تک کوئی عملہ رجسٹر نہیں ہوا ہے۔</string>
+    <string name="edit_staff_member">عملے میں ترمیم کریں</string>
+    <string name="edit_shifts">شفٹوں میں ترمیم کریں</string>
+    <string name="mode_assignment">تفویض کا موڈ</string>
+    <string name="save_and_exit">محفوظ کریں اور نکلیں</string>
 
-    <string name="my_plant_empty_title">You are not in a ward yet</string>
-    <string name="my_plant_empty_message">Enter the Ward ID and the invitation code shared by your supervisor to join.</string>
-    <string name="invitation_code_label">Invitation Code</string>
-    <string name="join_plant_action">Join Ward</string>
-    <string name="join_plant_success">You joined the ward successfully.</string>
-    <string name="join_plant_success_detail">You have successfully joined the ward.</string>
-    <string name="loading_my_plant">Searching for your ward…</string>
-    <string name="plant_staff_link_title">Choose your profile in %1$s</string>
-    <string name="plant_staff_link_message">Select the staff record that corresponds to you to link your account to this ward.</string>
-    <string name="plant_staff_link_field_label">Ward Staff</string>
-    <string name="plant_staff_link_confirm">Link</string>
-    <string name="plant_staff_lookup_message">Searching for your ward profile…</string>
-    <string name="plant_staff_linked_label">Linked as %1$s (%2$s)</string>
-    <string name="plant_staff_link_prompt">Link your account to a ward profile to keep data synchronized.</string>
-    <string name="staff_identity_title">Your Profile in the Ward</string>
-    <string name="staff_identity_label">Select your name from the list</string>
-    <string name="staff_identity_hint">The supervisor manages this staff list.</string>
-    <string name="staff_identity_missing">Ask the supervisor to add the staff so you can be assigned.</string>
+    <string name="my_plant_empty_title">آپ ابھی تک کسی وارڈ میں نہیں ہیں</string>
+    <string name="my_plant_empty_message">شامل ہونے کے لیے وارڈ آئی ڈی اور اپنے سپروائزر کا شیئر کردہ دعوتی کوڈ درج کریں۔</string>
+    <string name="invitation_code_label">دعوتی کوڈ</string>
+    <string name="join_plant_action">وارڈ میں شامل ہوں</string>
+    <string name="join_plant_success">آپ کامیابی کے ساتھ وارڈ میں شامل ہو گئے۔</string>
+    <string name="join_plant_success_detail">آپ کامیابی کے ساتھ وارڈ میں شامل ہو چکے ہیں۔</string>
+    <string name="loading_my_plant">آپ کا وارڈ تلاش کیا جا رہا ہے…</string>
+    <string name="plant_staff_link_title">%1$s میں اپنا پروفائل منتخب کریں</string>
+    <string name="plant_staff_link_message">اپنے اکاؤنٹ کو اس وارڈ سے منسلک کرنے کے لیے عملے کا ریکارڈ منتخب کریں جو آپ سے مطابقت رکھتا ہو۔</string>
+    <string name="plant_staff_link_field_label">وارڈ کا عملہ</string>
+    <string name="plant_staff_link_confirm">لنک</string>
+    <string name="plant_staff_lookup_message">آپ کے وارڈ پروفائل کی تلاش…</string>
+    <string name="plant_staff_linked_label">%1$s (%2$s) کے طور پر منسلک</string>
+    <string name="plant_staff_link_prompt">ڈیٹا کو ہم آہنگ رکھنے کے لیے اپنے اکاؤنٹ کو وارڈ پروفائل سے منسلک کریں۔</string>
+    <string name="staff_identity_title">وارڈ میں آپ کا پروفائل</string>
+    <string name="staff_identity_label">فہرست سے اپنا نام منتخب کریں</string>
+    <string name="staff_identity_hint">سپروائزر عملے کی اس فہرست کا انتظام کرتا ہے۔</string>
+    <string name="staff_identity_missing">اپنے آپ کو تفویض کروانے کے لیے سپروائزر سے عملہ شامل کرنے کو کہیں۔</string>
 
-    <string name="notes_title">Notes</string>
-    <string name="add_note">Add Note</string>
-    <string name="write_here">Write here...</string>
-    <string name="no_notes_hint">No notes. Tap + to create one.</string>
-    <string name="chat_screen_title">My Chats</string>
-    <string name="new_chat_desc">New Chat</string>
-    <string name="no_recent_chats">You have no recent chats.</string>
-    <string name="start_chat_hint">Tap + to start.</string>
-    <string name="delete_chat_action">Delete chat</string>
-    <string name="start_new_chat_title">Start New Chat</string>
-    <string name="no_users_found">No other registered users found in this ward.</string>
-    <string name="message_placeholder">Message...</string>
-    <string name="group_chat_title">Ward Chat</string>
-    <string name="write_message_placeholder">Type a message...</string>
-    <string name="notification_group_msg_template">New message from %1$s in the ward chat.</string>
+    <string name="notes_title">نوٹس</string>
+    <string name="add_note">نوٹ شامل کریں</string>
+    <string name="write_here">یہاں لکھیں...</string>
+    <string name="no_notes_hint">کوئی نوٹ نہیں۔ بنانے کے لیے + پر ٹیپ کریں۔</string>
+    <string name="chat_screen_title">میری چیٹس</string>
+    <string name="new_chat_desc">نئی چیٹ</string>
+    <string name="no_recent_chats">آپ کے پاس کوئی حالیہ چیٹ نہیں ہے۔</string>
+    <string name="start_chat_hint">شروع کرنے کے لیے + پر ٹیپ کریں۔</string>
+    <string name="delete_chat_action">چیٹ حذف کریں</string>
+    <string name="start_new_chat_title">نئی چیٹ شروع کریں</string>
+    <string name="no_users_found">اس وارڈ میں کوئی اور رجسٹرڈ صارف نہیں ملا۔</string>
+    <string name="message_placeholder">پیغام...</string>
+    <string name="group_chat_title">وارڈ چیٹ</string>
+    <string name="write_message_placeholder">پیغام لکھیں...</string>
+    <string name="notification_group_msg_template">وارڈ چیٹ میں %1$s کی طرف سے نیا پیغام۔</string>
 
-    <string name="notif_channel_name">Shift Alerts</string>
-    <string name="notif_channel_desc">Notifications with sound and visual alert</string>
-    <string name="notification_save_error">Error saving notification:</string>
-    <string name="error_save_notification">Error saving notification: %1$s</string>
+    <string name="notif_channel_name">شفٹ الرٹس</string>
+    <string name="notif_channel_desc">آواز اور بصری انتباہ کے ساتھ اطلاعات</string>
+    <string name="notification_save_error">اطلاع محفوظ کرنے میں خرابی:</string>
+    <string name="error_save_notification">اطلاع محفوظ کرنے میں خرابی: %1$s</string>
 
-    <string name="password_mismatch_error">Passwords do not match</string>
-    <string name="auth_weak_password">Password is too weak; it must be at least 6 characters</string>
-    <string name="auth_user_collision">An account is already registered with this email</string>
-    <string name="auth_invalid_credentials">Email or password are invalid</string>
-    <string name="auth_invalid_user">This account does not exist or was disabled</string>
-    <string name="auth_operation_not_allowed">Enable Email/Password provider in Firebase console</string>
-    <string name="auth_network_error">No server connection. Check your internet connection</string>
-    <string name="auth_generic_error">Authentication error:</string>
-    <string name="auth_unknown_error">Could not complete operation. Try again</string>
+    <string name="password_mismatch_error">پاس ورڈ مماثل نہیں ہیں</string>
+    <string name="auth_weak_password">پاس ورڈ بہت کمزور ہے؛ اس میں کم از کم 6 حروف ہونے چاہئیں</string>
+    <string name="auth_user_collision">اس ای میل کے ساتھ پہلے ہی ایک اکاؤنٹ رجسٹرڈ ہے</string>
+    <string name="auth_invalid_credentials">ای میل یا پاس ورڈ غلط ہیں</string>
+    <string name="auth_invalid_user">یہ اکاؤنٹ موجود نہیں ہے یا غیر فعال کر دیا گیا تھا</string>
+    <string name="auth_operation_not_allowed">فائر بیس کنسول میں ای میل/پاس ورڈ فراہم کنندہ کو فعال کریں</string>
+    <string name="auth_network_error">سرور کنکشن نہیں ہے۔ اپنا انٹرنیٹ کنکشن چیک کریں</string>
+    <string name="auth_generic_error">تصدیق کی خرابی:</string>
+    <string name="auth_unknown_error">آپریشن مکمل نہیں ہو سکا۔ دوبارہ کوشش کریں</string>
 
-    <string name="auth_login_failed">Could not log in with that email</string>
-    <string name="auth_create_failed">Could not create account</string>
-    <string name="auth_reset_email_failed">Could not send recovery email</string>
+    <string name="auth_login_failed">اس ای میل کے ساتھ لاگ ان نہیں ہو سکا</string>
+    <string name="auth_create_failed">اکاؤنٹ نہیں بنایا جا سکا</string>
+    <string name="auth_reset_email_failed">بازیابی ای میل نہیں بھیجی جا سکی</string>
 
-    <string name="login_error_generic">Could not log in with that email</string>
-    <string name="create_account_error">Could not create account</string>
-    <string name="reset_email_error">Could not send recovery email</string>
-    <string name="error_login_required">You must log in to continue</string>
+    <string name="login_error_generic">اس ای میل کے ساتھ لاگ ان نہیں ہو سکا</string>
+    <string name="create_account_error">اکاؤنٹ نہیں بنایا جا سکا</string>
+    <string name="reset_email_error">بازیابی ای میل نہیں بھیجی جا سکی</string>
+    <string name="error_login_required">جاری رکھنے کے لیے آپ کو لاگ ان کرنا ہوگا</string>
 
-    <string name="error_save_profile">Could not save profile in real time</string>
-    <string name="profile_save_error">Could not save profile in real time</string>
+    <string name="error_save_profile">ریئل ٹائم میں پروفائل محفوظ نہیں کیا جا سکا</string>
+    <string name="profile_save_error">ریئل ٹائم میں پروفائل محفوظ نہیں کیا جا سکا</string>
 
-    <string name="error_db_rules">Check Realtime Database rules and write permissions</string>
-    <string name="database_rules_error">Check Realtime Database rules and write permissions</string>
+    <string name="error_db_rules">ریئل ٹائم ڈیٹا بیس کے قوانین اور لکھنے کی اجازتیں چیک کریں</string>
+    <string name="database_rules_error">ریئل ٹائم ڈیٹا بیس کے قوانین اور لکھنے کی اجازتیں چیک کریں</string>
 
-    <string name="error_delete_plant">Could not delete the ward. Try again.</string>
-    <string name="delete_plant_error">Could not delete the ward. Try again.</string>
+    <string name="error_delete_plant">وارڈ کو حذف نہیں کیا جا سکا۔ دوبارہ کوشش کریں۔</string>
+    <string name="delete_plant_error">وارڈ کو حذف نہیں کیا جا سکا۔ دوبارہ کوشش کریں۔</string>
 
-    <string name="plant_required_fields_error">Complete the general ward data.</string>
-    <string name="plant_save_error">Could not save the ward. Check your connection and try again.</string>
-    <string name="plant_auth_error">Authentication error when loading ward</string>
-    <string name="staff_dialog_error">Complete the name to continue.</string>
-    <string name="staff_dialog_save_error">Could not save staff. Try again.</string>
+    <string name="plant_required_fields_error">وارڈ کا عمومی ڈیٹا مکمل کریں۔</string>
+    <string name="plant_save_error">وارڈ کو محفوظ نہیں کیا جا سکا۔ اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔</string>
+    <string name="plant_auth_error">وارڈ لوڈ کرتے وقت تصدیق کی خرابی</string>
+    <string name="staff_dialog_error">جاری رکھنے کے لیے نام مکمل کریں۔</string>
+    <string name="staff_dialog_save_error">عملہ محفوظ نہیں کیا جا سکا۔ دوبارہ کوشش کریں۔</string>
 
-    <string name="join_plant_error">Error joining the ward</string>
-    <string name="join_plant_not_found">Ward not found</string>
-    <string name="invalid_invitation_code">Invalid invitation code</string>
-    <string name="plant_load_error">Error loading the ward</string>
-    <string name="title_notifications">Notifications</string>
-    <string name="msg_no_notifications">You have no notifications</string>
-    <string name="desc_back">Back</string>
-    <string name="desc_delete">Delete</string>
-    <string name="desc_delete_all">Delete All</string>
-    <string name="title_offline_roster">My Offline Roster</string>
-    <string name="btn_save">Save</string>
-    <string name="btn_cancel">Cancel</string>
-    <string name="dialog_edit_shift_title">Edit Shift - %s</string>
-    <string name="tab_my_shifts">My Shifts</string>
-    <string name="tab_management">Management</string>
-    <string name="tab_suggestions">Suggestions</string>
-    <string name="title_candidate_search">Candidate Search</string>
-    <string name="title_change_management">Shift Management</string>
+    <string name="join_plant_error">وارڈ میں شامل ہونے میں خرابی</string>
+    <string name="join_plant_not_found">وارڈ نہیں ملا</string>
+    <string name="invalid_invitation_code">غلط دعوتی کوڈ</string>
+    <string name="plant_load_error">وارڈ لوڈ کرنے میں خرابی</string>
+    <string name="title_notifications">اطلاعات</string>
+    <string name="msg_no_notifications">آپ کے پاس کوئی اطلاعات نہیں ہیں</string>
+    <string name="desc_back">واپس</string>
+    <string name="desc_delete">حذف کریں</string>
+    <string name="desc_delete_all">سب حذف کریں</string>
+    <string name="title_offline_roster">میرا آف لائن روسٹر</string>
+    <string name="btn_save">محفوظ کریں</string>
+    <string name="btn_cancel">منسوخ کریں</string>
+    <string name="dialog_edit_shift_title">شفٹ میں ترمیم کریں - %s</string>
+    <string name="tab_my_shifts">میری شفٹیں</string>
+    <string name="tab_management">انتظامیہ</string>
+    <string name="tab_suggestions">تجاویز</string>
+    <string name="title_candidate_search">امیدوار کی تلاش</string>
+    <string name="title_change_management">شفٹ مینجمنٹ</string>
 
-    <string name="msg_request_sent">Request sent. Waiting for colleague acceptance.</string>
-    <string name="msg_request_deleted">Request deleted</string>
-    <string name="msg_swap_approved">Change executed and approved.</string>
-    <string name="msg_supervisor_rejected">Supervisor rejected the change.</string>
-    <string name="msg_partner_accepted">Your colleague accepted. Waiting for Supervisor.</string>
-    <string name="msg_partner_rejected">Colleague rejected the change.</string>
-    <string name="msg_request_created">Request created. Go to \'Suggestions\' to find candidates.</string>
+    <string name="msg_request_sent">درخواست بھیج دی گئی۔ ساتھی کی منظوری کا انتظار ہے۔</string>
+    <string name="msg_request_deleted">درخواست حذف کر دی گئی</string>
+    <string name="msg_swap_approved">تبادلہ مکمل اور منظور ہو گیا۔</string>
+    <string name="msg_supervisor_rejected">سپروائزر نے تبدیلی مسترد کر دی۔</string>
+    <string name="msg_partner_accepted">آپ کے ساتھی نے قبول کر لیا۔ سپروائزر کا انتظار ہے۔</string>
+    <string name="msg_partner_rejected">ساتھی نے تبدیلی مسترد کر دی۔</string>
+    <string name="msg_request_created">درخواست بنائی گئی۔ امیدواروں کو تلاش کرنے کے لیے \'تجاویز\' پر جائیں۔</string>
 
-    <string name="header_supervisor_pending">Pending Approval (Supervisor)</string>
-    <string name="header_in_process">In Process</string>
-    <string name="header_my_searches">My Active Searches</string>
-    <string name="header_history">History</string>
-    <string name="msg_no_recent_activity">No recent activity.</string>
+    <string name="header_supervisor_pending">منظوری زیر التوا (سپروائزر)</string>
+    <string name="header_in_process">عمل جاری ہے</string>
+    <string name="header_my_searches">میری فعال تلاشیں</string>
+    <string name="header_history">تاریخ</string>
+    <string name="msg_no_recent_activity">کوئی حالیہ سرگرمی نہیں ہے۔</string>
 
-    <string name="header_search_candidates">Find candidates for your shifts</string>
-    <string name="desc_search_candidates">Select one of your offered shifts to see who can swap with you.</string>
-    <string name="msg_no_active_offers">You have no active offers.</string>
-    <string name="desc_create_offer">Create one in \'My Shifts\' first.</string>
-    <string name="label_offering_shift">Offering shift of:</string>
-    <string name="btn_see_candidates">SEE COMPATIBLE CANDIDATES</string>
-    <string name="badge_active">ACTIVE</string>
+    <string name="header_search_candidates">اپنی شفٹوں کے لیے امیدوار تلاش کریں</string>
+    <string name="desc_search_candidates">یہ دیکھنے کے لیے کہ کون آپ کے ساتھ شفٹ تبدیل کر سکتا ہے، اپنی پیش کردہ شفٹوں میں سے ایک منتخب کریں۔</string>
+    <string name="msg_no_active_offers">آپ کے پاس کوئی فعال پیشکش نہیں ہے۔</string>
+    <string name="desc_create_offer">پہلے \'میری شفٹیں\' میں ایک بنائیں۔</string>
+    <string name="label_offering_shift">شفٹ پیش کی جا رہی ہے:</string>
+    <string name="btn_see_candidates">موزوں امیدوار دیکھیں</string>
+    <string name="badge_active">فعال</string>
 
-    <string name="card_compatible_candidates">Compatible Candidates</string>
-    <string name="filter_date">Date</string>
-    <string name="filter_person">Person</string>
-    <string name="filter_shift">Shift</string>
-    <string name="msg_no_candidates_found">No available colleagues found with these filters.</string>
-    <string name="btn_preview">Preview</string>
-    <string name="btn_choose">Choose</string>
+    <string name="card_compatible_candidates">موزوں امیدوار</string>
+    <string name="filter_date">تاریخ</string>
+    <string name="filter_person">شخص</string>
+    <string name="filter_shift">شفٹ</string>
+    <string name="msg_no_candidates_found">ان فلٹرز کے ساتھ کوئی ساتھی دستیاب نہیں ملا۔</string>
+    <string name="btn_preview">پیش نظارہ</string>
+    <string name="btn_choose">منتخب کریں</string>
 
-    <string name="dialog_simulation_title">Swap Simulation</string>
-    <string name="label_around_date">Around %1$s</string>
-    <string name="label_me">Me</string>
+    <string name="dialog_simulation_title">تبادلے کی سیمولیشن</string>
+    <string name="label_around_date">%1$s کے آس پاس</string>
+    <string name="label_me">میں</string>
 
-    <string name="label_current_turn">Current shift: %1$s</string>
-    <string name="msg_no_shift_today">You have no shift this day.</string>
-    <string name="btn_search_swap">SEARCH SWAP</string>
+    <string name="label_current_turn">موجودہ شفٹ: %1$s</string>
+    <string name="msg_no_shift_today">آج آپ کی کوئی شفٹ نہیں ہے۔</string>
+    <string name="btn_search_swap">تبادلہ تلاش کریں</string>
 
-    <string name="dialog_open_request_title">Request Open Swap</string>
-    <string name="label_offering_turn_date">You are offering your shift of:</string>
-    <string name="label_swap_preference">Swap Preference:</string>
-    <string name="chip_flexible">Flexible</string>
-    <string name="chip_strict">Strict</string>
-    <string name="desc_flexible">Any compatible colleague will be sought.</string>
-    <string name="desc_strict">Priority will be given to those who owe you shifts.</string>
-    <string name="btn_publish_request">PUBLISH REQUEST</string>
+    <string name="dialog_open_request_title">اوپن سویپ کی درخواست کریں</string>
+    <string name="label_offering_turn_date">آپ اپنی شفٹ پیش کر رہے ہیں:</string>
+    <string name="label_swap_preference">تبادلے کی ترجیح:</string>
+    <string name="chip_flexible">لچکدار</string>
+    <string name="chip_strict">سخت</string>
+    <string name="desc_flexible">کسی بھی موزوں ساتھی کو تلاش کیا جائے گا۔</string>
+    <string name="desc_strict">ترجیح انہیں دی جائے گی جو آپ کے شفٹوں کے مقروض ہیں۔</string>
+    <string name="btn_publish_request">درخواست شائع کریں</string>
 
-    <string name="status_pending_supervisor">AWAITING SUPERVISOR APPROVAL</string>
-    <string name="status_proposal_received">YOU HAVE BEEN PROPOSED A SWAP!</string>
-    <string name="status_waiting_partner">WAITING FOR %1$s RESPONSE</string>
-    <string name="status_approved">SWAP APPROVED</string>
-    <string name="label_origin">Origin</string>
-    <string name="label_destination">Destination</string>
-    <string name="label_searching_candidate">Searching candidate...</string>
-    <string name="label_offering">You offer: %1$s</string>
-    <string name="label_suggestion_hint">Go to \'Suggestions\' tab to propose a swap.</string>
-    <string name="btn_approve">Approve</string>
-    <string name="btn_reject">Reject</string>
-    <string name="btn_accept">Accept Swap</string>
-    <string name="btn_close">Close</string>
-    <string name="btn_delete_history">Clear History</string>
-    <string name="btn_view_simulation">View Simulation</string>
-    <string name="title_shift_marketplace">Shift Marketplace</string>
-    <string name="header_balances">My Balances with Colleagues</string>
-    <string name="balance_owe_you">Owes you %1$d favors</string>
-    <string name="balance_you_owe">You owe %1$d favors</string>
-    <string name="desc_expand">Expand</string>
-    <string name="header_favor_history">Favor History:</string>
-    <string name="msg_no_history">No history available.</string>
-    <string name="msg_you_covered">You covered their shift</string>
-    <string name="msg_covered_you">Covered your shift</string>
-    <string name="header_available_shifts">Available Shifts (Compatible with you)</string>
-    <string name="desc_available_shifts">Only shifts you can legally perform are shown.</string>
-    <string name="msg_no_shifts_available">No shifts available for you.</string>
-    <string name="msg_hidden_shifts">(%1$d incompatible shifts hidden)</string>
-    <string name="label_requests">Request: %1$s</string>
-    <string name="balance_neutral">Neutral balance (0)</string>
-    <string name="label_date_simple">Date: %1$s</string>
-    <string name="btn_cover_shift">COVER SHIFT</string>
-    <string name="btn_preview_eye">👁 Preview</string>
-    <string name="msg_shift_accepted">Shift accepted!</string>
-    <string name="error_loading_schedule">Error loading schedule</string>
-    <string name="notif_shift_covered">%1$s accepted to cover your shift. Check your balance!</string>
+    <string name="status_pending_supervisor">سپروائزر کی منظوری کا انتظار ہے</string>
+    <string name="status_proposal_received">آپ کو تبادلے کی پیشکش کی گئی ہے!</string>
+    <string name="status_waiting_partner">%1$s کے جواب کا انتظار ہے</string>
+    <string name="status_approved">تبادلہ منظور</string>
+    <string name="label_origin">اصل</string>
+    <string name="label_destination">منزل</string>
+    <string name="label_searching_candidate">امیدوار کی تلاش...</string>
+    <string name="label_offering">آپ پیش کرتے ہیں: %1$s</string>
+    <string name="label_suggestion_hint">تبادلہ تجویز کرنے کے لیے \'تجاویز\' ٹیب پر جائیں۔</string>
+    <string name="btn_approve">منظور کریں</string>
+    <string name="btn_reject">مسترد کریں</string>
+    <string name="btn_accept">تبادلہ قبول کریں</string>
+    <string name="btn_close">بند کریں</string>
+    <string name="btn_delete_history">تاریخ صاف کریں</string>
+    <string name="btn_view_simulation">سیمولیشن دیکھیں</string>
+    <string name="title_shift_marketplace">شفٹ مارکیٹ پلیس</string>
+    <string name="header_balances">ساتھیوں کے ساتھ میرا بیلنس</string>
+    <string name="balance_owe_you">آپ کا %1$d احسانات کا مقروض ہے</string>
+    <string name="balance_you_owe">آپ پر %1$d احسانات واجب ہیں</string>
+    <string name="desc_expand">پھیلائیں</string>
+    <string name="header_favor_history">احسانات کی تاریخ:</string>
+    <string name="msg_no_history">کوئی تاریخ دستیاب نہیں ہے۔</string>
+    <string name="msg_you_covered">آپ نے ان کی شفٹ کور کی</string>
+    <string name="msg_covered_you">آپ کی شفٹ کور کی</string>
+    <string name="header_available_shifts">دستیاب شفٹیں (آپ کے ساتھ موزوں)</string>
+    <string name="desc_available_shifts">صرف وہ شفٹیں دکھائی گئی ہیں جو آپ قانونی طور پر کر سکتے ہیں۔</string>
+    <string name="msg_no_shifts_available">آپ کے لیے کوئی شفٹ دستیاب نہیں ہے۔</string>
+    <string name="msg_hidden_shifts">(%1$d ناموزوں شفٹیں چھپی ہوئی ہیں)</string>
+    <string name="label_requests">درخواست: %1$s</string>
+    <string name="balance_neutral">غیر جانبدار بیلنس (0)</string>
+    <string name="label_date_simple">تاریخ: %1$s</string>
+    <string name="btn_cover_shift">شفٹ کور کریں</string>
+    <string name="btn_preview_eye">👁 پیش نظارہ</string>
+    <string name="msg_shift_accepted">شفٹ قبول کر لی گئی!</string>
+    <string name="error_loading_schedule">شیڈول لوڈ کرنے میں خرابی</string>
+    <string name="notif_shift_covered">%1$s نے آپ کی شفٹ کور کرنے کی رضامندی دی ہے۔ اپنا بیلنس چیک کریں!</string>
 
-    <string name="menu_plant_settings">Plant Settings</string>
-    <string name="menu_import_shifts">Import Shifts</string>
-    <string name="menu_invite_colleagues">Invite Colleagues</string>
-    <string name="menu_vacation_days">Vacation Days</string>
-    <string name="menu_group_chat">Group Chat</string>
-    <string name="menu_shift_change">Shift Change</string>
-    <string name="menu_shift_marketplace">Shift Marketplace</string>
-    <string name="menu_statistics">Statistics</string>
-    <string name="error_name_required">Name is required</string>
-    <string name="error_generic">Error</string>
-    <string name="invite_message_template">Hello! Join the ward \"%1$s\" in TurnosHospi.\n\nWard ID: %2$s\nAccess Code: %3$s\n\nDownload the app and join from the main menu.</string>
-    <string name="invite_chooser_title">Invite colleagues via:</string>
-    <string name="notif_unassigned">You have been unassigned from the shift on %1$s.</string>
-    <string name="notif_assigned">Your shift for %1$s has been updated by the supervisor.</string>
-    <string name="msg_no_date_selected">No date selected.</string>
-    <string name="notif_vacation_saved">Your vacation day on %1$s has been registered.</string>
-    <string name="error_save_vacation">Error saving vacations: %1$s</string>
-    <string name="error_past_dates">You cannot select past dates.</string>
-    <string name="title_select_vacation">Select Vacation Days</string>
-    <string name="desc_select_vacation">Select the days you will be on vacation:</string>
-    <string name="msg_no_days_selected">No days selected.</string>
-    <string name="btn_confirm_count">Confirm (%1$d days)</string>
-    <string name="title_import_options">Import Options</string>
+    <string name="menu_plant_settings">وارڈ کی ترتیبات</string>
+    <string name="menu_import_shifts">شفٹیں درآمد کریں</string>
+    <string name="menu_invite_colleagues">ساتھیوں کو مدعو کریں</string>
+    <string name="menu_vacation_days">چھٹی کے دن</string>
+    <string name="menu_group_chat">گروپ چیٹ</string>
+    <string name="menu_shift_change">شفٹ کی تبدیلی</string>
+    <string name="menu_shift_marketplace">شفٹ مارکیٹ پلیس</string>
+    <string name="menu_statistics">اعداد و شمار</string>
+    <string name="error_name_required">نام درکار ہے</string>
+    <string name="error_generic">خرابی</string>
+    <string name="invite_message_template">ہیلو! TurnosHospi میں وارڈ "%1$s" میں شامل ہوں۔\n\nوارڈ آئی ڈی: %2$s\nرسائی کوڈ: %3$s\n\nایپ ڈاؤن لوڈ کریں اور مین مینو سے شامل ہوں۔</string>
+    <string name="invite_chooser_title">ساتھیوں کو بذریعہ مدعو کریں:</string>
+    <string name="notif_unassigned">آپ کو %1$s کی شفٹ سے ہٹا دیا گیا ہے۔</string>
+    <string name="notif_assigned">سپروائزر نے آپ کی %1$s کی شفٹ اپ ڈیٹ کر دی ہے۔</string>
+    <string name="msg_no_date_selected">کوئی تاریخ منتخب نہیں کی گئی۔</string>
+    <string name="notif_vacation_saved">%1$s کے لیے آپ کا چھٹی کا دن رجسٹر ہو گیا ہے۔</string>
+    <string name="error_save_vacation">چھٹیاں محفوظ کرنے میں خرابی: %1$s</string>
+    <string name="error_past_dates">آپ ماضی کی تاریخیں منتخب نہیں کر سکتے۔</string>
+    <string name="title_select_vacation">چھٹی کے دن منتخب کریں</string>
+    <string name="desc_select_vacation">وہ دن منتخب کریں جب آپ چھٹی پر ہوں گے:</string>
+    <string name="msg_no_days_selected">کوئی دن منتخب نہیں کیے گئے۔</string>
+    <string name="btn_confirm_count">تصدیق کریں (%1$d دن)</string>
+    <string name="title_import_options">درآمد کے اختیارات</string>
 
-    <string name="error_empty_file">The file is empty.</string>
-    <string name="error_row_format">Error in row %1$d: Incorrect format. Missing columns.</string>
-    <string name="error_date_invalid">Error in row %1$d: Invalid date (%2$s). Use YYYY-MM-DD.</string>
-    <string name="error_shift_not_found">Error in row %1$d: Shift \'%2$s\' does not exist in this ward.</string>
-    <string name="error_role_unknown">Error in row %1$d: Unknown role \'%2$s\'. Use \'Nurse\', \'Assistant\' or \'CNA\'.</string>
-    <string name="error_user_not_found">Error in row %1$d: \'%2$s\' is not registered in the ward staff.</string>
-    <string name="msg_import_complete">Import completed successfully.</string>
-    <string name="error_db_save">Error saving to database: %1$s</string>
-    <string name="error_read_file">Error reading file: %1$s</string>
-    <string name="msg_template_saved">Template saved to Downloads</string>
-    <string name="error_save_generic">Error saving: %1$s</string>
-    <string name="desc_prev">Previous</string>
-    <string name="desc_next">Next</string>
-    <string name="plant_settings_label">Ward Settings</string>
-    <string name="import_shifts_label">Import Shifts</string>
-    <string name="invite_colleagues_label">Invite Colleagues</string>
-    <string name="vacation_days_label">Vacation Days</string>
-    <string name="shift_change_label">Shift Changes</string>
-    <string name="shift_marketplace_label">Shift Marketplace</string>
-    <string name="statistics_label">Statistics</string>
+    <string name="error_empty_file">فائل خالی ہے۔</string>
+    <string name="error_row_format">قطار %1$d میں خرابی: غلط فارمیٹ۔ کالمز غائب ہیں۔</string>
+    <string name="error_date_invalid">قطار %1$d میں خرابی: غلط تاریخ (%2$s)۔ YYYY-MM-DD فارمیٹ استعمال کریں۔</string>
+    <string name="error_shift_not_found">قطار %1$d میں خرابی: شفٹ \'%2$s\' اس وارڈ میں موجود نہیں ہے۔</string>
+    <string name="error_role_unknown">قطار %1$d میں خرابی: نامعلوم کردار \'%2$s\'۔ \'Nurse\'، \'Assistant\' یا \'CNA\' استعمال کریں۔</string>
+    <string name="error_user_not_found">قطار %1$d میں خرابی: \'%2$s\' وارڈ عملے میں رجسٹرڈ نہیں ہے۔</string>
+    <string name="msg_import_complete">درآمد کامیابی سے مکمل ہو گئی۔</string>
+    <string name="error_db_save">ڈیٹا بیس میں محفوظ کرنے میں خرابی: %1$s</string>
+    <string name="error_read_file">فائل پڑھنے میں خرابی: %1$s</string>
+    <string name="msg_template_saved">ٹیمپلیٹ ڈاؤن لوڈز میں محفوظ کر لیا گیا</string>
+    <string name="error_save_generic">محفوظ کرنے میں خرابی: %1$s</string>
+    <string name="desc_prev">پچھلا</string>
+    <string name="desc_next">اگلا</string>
+    <string name="plant_settings_label">وارڈ کی ترتیبات</string>
+    <string name="import_shifts_label">شفٹیں درآمد کریں</string>
+    <string name="invite_colleagues_label">ساتھیوں کو مدعو کریں</string>
+    <string name="vacation_days_label">چھٹی کے دن</string>
+    <string name="shift_change_label">شفٹ کی تبدیلیاں</string>
+    <string name="shift_marketplace_label">شفٹ مارکیٹ پلیس</string>
+    <string name="statistics_label">اعداد و شمار</string>
 
-    <string name="share_plant_message_template">Hello! Join the ward "%1$s" in Turnoshospi.\n\nWard ID: %2$s\nAccess Code: %3$s\n\nDownload the app and join from the main menu.</string>
-    <string name="share_chooser_title">Invite colleagues via:</string>
+    <string name="share_plant_message_template">ہیلو! Turnoshospi میں وارڈ "%1$s" میں شامل ہوں۔\n\nوارڈ آئی ڈی: %2$s\nرسائی کوڈ: %3$s\n\nایپ ڈاؤن لوڈ کریں اور مین مینو سے شامل ہوں۔</string>
+    <string name="share_chooser_title">ساتھیوں کو بذریعہ مدعو کریں:</string>
 
-    <string name="notif_unassigned_message">You have been unassigned from the shift on %1$s.</string>
-    <string name="notif_assigned_message">Your shift for %1$s has been updated by the supervisor.</string>
-    <string name="notif_vacation_saved_message">Your vacation day for %1$s has been registered.</string>
+    <string name="notif_unassigned_message">آپ کو %1$s کی شفٹ سے ہٹا دیا گیا ہے۔</string>
+    <string name="notif_assigned_message">سپروائزر نے آپ کی %1$s کی شفٹ اپ ڈیٹ کر دی ہے۔</string>
+    <string name="notif_vacation_saved_message">%1$s کے لیے آپ کا چھٹی کا دن رجسٹر ہو گیا ہے۔</string>
 
-    <string name="dialog_vacation_title">Select Vacation Days</string>
-    <string name="dialog_vacation_instruction">Select the days you will be on vacation:</string>
-    <string name="label_no_days_selected">No days selected.</string>
-    <string name="btn_add_day">Add Day</string>
-    <string name="btn_confirm_days">Confirm (%1$d days)</string>
-    <string name="msg_vacation_saved">Vacation days saved.</string>
-    <string name="error_no_date_selected">No date selected.</string>
-    <string name="error_past_date_selection">You cannot select past dates.</string>
-    <string name="btn_add">Add</string>
+    <string name="dialog_vacation_title">چھٹی کے دن منتخب کریں</string>
+    <string name="dialog_vacation_instruction">وہ دن منتخب کریں جب آپ چھٹی پر ہوں گے:</string>
+    <string name="label_no_days_selected">کوئی دن منتخب نہیں کیے گئے۔</string>
+    <string name="btn_add_day">دن شامل کریں</string>
+    <string name="btn_confirm_days">تصدیق کریں (%1$d دن)</string>
+    <string name="msg_vacation_saved">چھٹی کے دن محفوظ کر لیے گئے۔</string>
+    <string name="error_no_date_selected">کوئی تاریخ منتخب نہیں کی گئی۔</string>
+    <string name="error_past_date_selection">آپ ماضی کی تاریخیں منتخب نہیں کر سکتے۔</string>
+    <string name="btn_add">شامل کریں</string>
 
-    <string name="title_import_shifts">Import Shifts</string>
-    <string name="subtitle_import_options">Import Options</string>
-    <string name="btn_download_template">Download Template</string>
-    <string name="btn_import">Import Shifts</string>
-    <string name="btn_importing">Importing...</string>
-    <string name="status_processing">Processing file...</string>
-    <string name="msg_import_success">Shifts imported successfully</string>
-    <string name="error_plant_not_loaded">Error: Ward information not loaded.</string>
-    <string name="error_csv_empty">The file is empty.</string>
-    <string name="error_csv_format">Error in row %1$d: Incorrect format. Missing columns.</string>
-    <string name="error_csv_date">Error in row %1$d: Invalid date (%2$s). Use YYYY-MM-DD.</string>
-    <string name="error_csv_shift">Error in row %1$d: Shift \'%2$s\' does not exist in this ward.</string>
-    <string name="error_csv_role">Error in row %1$d: Role \'%2$s\' unknown. Use \'Enfermero\', \'Auxiliar\' or \'TCAE\'.</string>
-    <string name="error_csv_staff_not_found">Error in row %1$d: \'%2$s\' is not registered in the ward staff.</string>
-    <string name="error_file_read">Error reading file: %1$s</string>
-    <string name="error_template_save">Error saving: %1$s</string>
-    <string name="statistics_user_title">Statistics for %1$s</string>
-    <string name="msg_no_staff_stats">No hours recorded for any staff this month.</string>
-    <string name="header_total_hours_general">Total Staff Hours (General)</string>
-    <string name="format_shifts_count">%1$d shifts</string>
-    <string name="desc_view_stats">View statistics for %1$s</string>
-    <string name="header_stats_breakdown">Statistics Breakdown</string>
-    <string name="msg_no_user_stats">No hours recorded this month for %1$s.</string>
-    <string name="label_total_worked">Total Hours Worked</string>
-    <string name="format_shifts_done">%1$d shifts completed</string>
-    <string name="header_shift_breakdown">Shift Breakdown</string>
-    <string name="title_alert">Notice</string>
-    <string name="btn_understood">Understood</string>
-    <string name="title_profile_saved">Profile Saved</string>
-    <string name="msg_profile_saved">Your account details have been successfully updated.</string>
-    <string name="logo_desc">Turnoshospi Logo</string>
+    <string name="title_import_shifts">شفٹیں درآمد کریں</string>
+    <string name="subtitle_import_options">درآمد کے اختیارات</string>
+    <string name="btn_download_template">ٹیمپلیٹ ڈاؤن لوڈ کریں</string>
+    <string name="btn_import">شفٹیں درآمد کریں</string>
+    <string name="btn_importing">درآمد ہو رہا ہے...</string>
+    <string name="status_processing">فائل پروسیس ہو رہی ہے...</string>
+    <string name="msg_import_success">شفٹیں کامیابی سے درآمد کر لی گئیں</string>
+    <string name="error_plant_not_loaded">خرابی: وارڈ کی معلومات لوڈ نہیں ہوئیں۔</string>
+    <string name="error_csv_empty">فائل خالی ہے۔</string>
+    <string name="error_csv_format">قطار %1$d میں خرابی: غلط فارمیٹ۔ کالمز غائب ہیں۔</string>
+    <string name="error_csv_date">قطار %1$d میں خرابی: غلط تاریخ (%2$s)۔ YYYY-MM-DD فارمیٹ استعمال کریں۔</string>
+    <string name="error_csv_shift">قطار %1$d میں خرابی: شفٹ \'%2$s\' اس وارڈ میں موجود نہیں ہے۔</string>
+    <string name="error_csv_role">قطار %1$d میں خرابی: کردار \'%2$s\' نامعلوم۔ \'Enfermero\'، \'Auxiliar\' یا \'TCAE\' استعمال کریں۔</string>
+    <string name="error_csv_staff_not_found">قطار %1$d میں خرابی: \'%2$s\' وارڈ عملے میں رجسٹرڈ نہیں ہے۔</string>
+    <string name="error_file_read">فائل پڑھنے میں خرابی: %1$s</string>
+    <string name="error_template_save">محفوظ کرنے میں خرابی: %1$s</string>
+    <string name="statistics_user_title">%1$s کے لیے اعداد و شمار</string>
+    <string name="msg_no_staff_stats">اس ماہ کسی بھی عملے کے گھنٹے ریکارڈ نہیں ہوئے۔</string>
+    <string name="header_total_hours_general">کل عملے کے گھنٹے (عمومی)</string>
+    <string name="format_shifts_count">%1$d شفٹیں</string>
+    <string name="desc_view_stats">%1$s کے اعداد و شمار دیکھیں</string>
+    <string name="header_stats_breakdown">اعداد و شمار کی تفصیل</string>
+    <string name="msg_no_user_stats">%1$s کے لیے اس ماہ کوئی گھنٹے ریکارڈ نہیں ہوئے۔</string>
+    <string name="label_total_worked">کل کام کے گھنٹے</string>
+    <string name="format_shifts_done">%1$d شفٹیں مکمل</string>
+    <string name="header_shift_breakdown">شفٹ کی تفصیل</string>
+    <string name="title_alert">نوٹس</string>
+    <string name="btn_understood">سمجھ گیا</string>
+    <string name="title_profile_saved">پروفائل محفوظ ہو گیا</string>
+    <string name="msg_profile_saved">آپ کے اکاؤنٹ کی تفصیلات کامیابی سے اپ ڈیٹ ہو گئیں۔</string>
+    <string name="logo_desc">Turnoshospi لوگو</string>
 
-    <string name="title_settings">Settings</string>
-    <string name="title_customize_colors">Customize Shift Colors</string>
-    <string name="btn_restore_colors">Restore Default Colors</string>
-    <string name="title_manage_account">Manage Account</string>
-    <string name="btn_delete_account">Delete My Account</string>
-    <string name="msg_delete_account_warning">This action is permanent and cannot be undone. All your data associated with the app will be deleted.</string>
-    <string name="title_are_you_sure">Are you sure?</string>
-    <string name="msg_delete_account_confirmation">This action is irreversible. Your account and all your data will be deleted. Do you want to continue?</string>
-    <string name="btn_delete_confirm">Delete</string>
-    <string name="title_pick_color">Pick a Color</string>
+    <string name="title_settings">ترتیبات</string>
+    <string name="title_customize_colors">شفٹ کے رنگوں کو حسب ضرورت بنائیں</string>
+    <string name="btn_restore_colors">پہلے سے طے شدہ رنگ بحال کریں</string>
+    <string name="title_manage_account">اکاؤنٹ کا انتظام کریں</string>
+    <string name="btn_delete_account">میرا اکاؤنٹ حذف کریں</string>
+    <string name="msg_delete_account_warning">یہ عمل مستقل ہے اور اسے واپس نہیں کیا جا سکتا۔ ایپ سے منسلک آپ کا تمام ڈیٹا حذف کر دیا جائے گا۔</string>
+    <string name="title_are_you_sure">کیا آپ کو یقین ہے؟</string>
+    <string name="msg_delete_account_confirmation">یہ عمل ناقابل واپسی ہے۔ آپ کا اکاؤنٹ اور آپ کا تمام ڈیٹا حذف کر دیا جائے گا۔ کیا آپ جاری رکھنا چاہتے ہیں؟</string>
+    <string name="btn_delete_confirm">حذف کریں</string>
+    <string name="title_pick_color">رنگ منتخب کریں</string>
 
-    <string name="btn_delete_plant">Delete Ward</string>
-    <string name="msg_delete_plant_warning">This action is permanent and cannot be undone. All ward data will be deleted and all associated users will be unlinked.</string>
-    <string name="msg_delete_plant_confirmation">You are about to delete the ward "%1$s". This action is irreversible and will affect all associated users. Do you want to continue?</string>
+    <string name="btn_delete_plant">وارڈ حذف کریں</string>
+    <string name="msg_delete_plant_warning">یہ عمل مستقل ہے اور اسے واپس نہیں کیا جا سکتا۔ تمام وارڈ ڈیٹا حذف کر دیا جائے گا اور تمام منسلک صارفین کو منقطع کر دیا جائے گا۔</string>
+    <string name="msg_delete_plant_confirmation">آپ وارڈ "%1$s" کو حذف کرنے والے ہیں۔ یہ عمل ناقابل واپسی ہے اور تمام منسلک صارفین کو متاثر کرے گا۔ کیا آپ جاری رکھنا چاہتے ہیں؟</string>
 
-    <string name="notif_title_direct_chat">Direct Message</string>
-    <string name="notif_title_group_chat">Group Message</string>
-    <string name="notif_title_shift_assignment">Shift Update</string>
-    <string name="notif_title_marketplace_add">New Swap Offer</string>
-    <string name="notif_title_shift_response">Response to Proposal</string>
-    <string name="notif_title_shift_proposal">Swap Proposal</string>
-    <string name="notif_title_shift_approved">Swap Approved!</string>
-    <string name="notif_title_shift_rejected">Swap Rejected</string>
-    <string name="notif_title_supervisor_action">Request for Supervisor</string>
-    <string name="notif_title_generic">Notification</string>
-
-
+    <string name="notif_title_direct_chat">براہ راست پیغام</string>
+    <string name="notif_title_group_chat">گروپ پیغام</string>
+    <string name="notif_title_shift_assignment">شفٹ اپ ڈیٹ</string>
+    <string name="notif_title_marketplace_add">نئی تبادلے کی پیشکش</string>
+    <string name="notif_title_shift_response">تجویز کا جواب</string>
+    <string name="notif_title_shift_proposal">تبادلے کی تجویز</string>
+    <string name="notif_title_shift_approved">تبادلہ منظور!</string>
+    <string name="notif_title_shift_rejected">تبادلہ مسترد</string>
+    <string name="notif_title_supervisor_action">سپروائزر کے لیے درخواست</string>
+    <string name="notif_title_generic">اطلاع</string>
 </resources>
