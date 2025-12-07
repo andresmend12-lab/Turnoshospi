@@ -445,4 +445,65 @@
     <string name="label_total_worked">काम किए गए कुल घंटे</string>
     <string name="format_shifts_done">%1$d शिफ्ट पूरी की गईं</string>
     <string name="header_shift_breakdown">शिफ्ट विवरण</string>
+    <string name="title_alert">Notice</string>
+    
+    <string name="btn_understood">Understood</string>
+    
+    <string name="title_profile_saved">Profile Saved</string>
+    
+    <string name="msg_profile_saved">Your account details have been successfully updated.</string>
+    
+    <string name="logo_desc">Turnoshospi Logo</string>
+
+    
+    <string name="title_settings">Settings</string>
+    
+    <string name="title_customize_colors">Customize Shift Colors</string>
+    
+    <string name="btn_restore_colors">Restore Default Colors</string>
+    
+    <string name="title_manage_account">Manage Account</string>
+    
+    <string name="btn_delete_account">Delete My Account</string>
+    
+    <string name="msg_delete_account_warning">This action is permanent and cannot be undone. All your data associated with the app will be deleted.</string>
+    
+    <string name="title_are_you_sure">Are you sure?</string>
+    
+    <string name="msg_delete_account_confirmation">This action is irreversible. Your account and all your data will be deleted. Do you want to continue?</string>
+    
+    <string name="btn_delete_confirm">Delete</string>
+    
+    <string name="title_pick_color">Pick a Color</string>
+
+    
+    <string name="btn_delete_plant">Delete Ward</string>
+    
+    <string name="msg_delete_plant_warning">This action is permanent and cannot be undone. All ward data will be deleted and all associated users will be unlinked.</string>
+    
+    <string name="msg_delete_plant_confirmation">You are about to delete the ward "%1$s". This action is irreversible and will affect all associated users. Do you want to continue?</string>
+
+    
+    <string name="notif_title_direct_chat">Direct Message</string>
+    
+    <string name="notif_title_group_chat">Group Message</string>
+    
+    <string name="notif_title_shift_assignment">Shift Update</string>
+    
+    <string name="notif_title_marketplace_add">New Swap Offer</string>
+    
+    <string name="notif_title_shift_response">Response to Proposal</string>
+    
+    <string name="notif_title_shift_proposal">Swap Proposal</string>
+    
+    <string name="notif_title_shift_approved">Swap Approved!</string>
+    
+    <string name="notif_title_shift_rejected">Swap Rejected</string>
+    
+    <string name="notif_title_supervisor_action">Request for Supervisor</string>
+    
+    <string name="notif_title_generic">Notification</string>
+
+
+
 </resources>
