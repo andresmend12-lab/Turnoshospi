@@ -405,9 +405,9 @@
     <string name="error_csv_empty">文件为空。</string>
     <string name="error_csv_format">第 %1$d 行错误: 格式错误。缺少列。</string>
     <string name="error_csv_date">第 %1$d 行错误: 日期无效 (%2$s)。请使用 YYYY-MM-DD。</string>
-    <string name="error_csv_shift">第 %1$d 行错误: 班次 \'%2$s' 在此病区不存在。</string>
-    <string name="error_csv_role">第 %1$d 行错误: 角色 \'%2$s' 未知。</string>
-    <string name="error_csv_staff_not_found">第 %1$d 行错误: \'%2$s' 不是注册人员。</string>
+    <string name="error_csv_shift">第 %1$d 行错误: 班次 \'%2$s\' 在此病区不存在。</string>
+    <string name="error_csv_role">第 %1$d 行错误: 角色 \'%2$s\' 未知。</string>
+    <string name="error_csv_staff_not_found">第 %1$d 行错误: \'%2$s\' 不是注册人员。</string>
     <string name="error_db_save">数据库错误: %1$s</string>
     <string name="error_file_read">读取错误: %1$s</string>
     <string name="msg_template_saved">模板已保存到下载文件夹</string>

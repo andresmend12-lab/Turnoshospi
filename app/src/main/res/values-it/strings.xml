@@ -279,7 +279,7 @@
     <string name="msg_supervisor_rejected">Il caposala ha rifiutato.</string>
     <string name="msg_partner_accepted">Il collega ha accettato. In attesa del Caposala.</string>
     <string name="msg_partner_rejected">Il collega ha rifiutato.</string>
-    <string name="msg_request_created">Richiesta creata. Vai su \'Suggerimenti'.</string>
+    <string name="msg_request_created">Richiesta creata. Vai su \'Suggerimenti\'.</string>
 
     <string name="header_supervisor_pending">In attesa approvazione (Caposala)</string>
     <string name="header_in_process">In Corso</string>
@@ -290,7 +290,7 @@
     <string name="header_search_candidates">Trova candidati</string>
     <string name="desc_search_candidates">Seleziona un turno offerto per cercare candidati.</string>
     <string name="msg_no_active_offers">Nessuna offerta attiva.</string>
-    <string name="desc_create_offer">Creane una in \'I miei Turni'.</string>
+    <string name="desc_create_offer">Creane una in \'I miei Turni\'.</string>
     <string name="label_offering_shift">Offri il turno del:</string>
     <string name="btn_see_candidates">VEDI CANDIDATI</string>
     <string name="badge_active">ATTIVA</string>
@@ -405,9 +405,9 @@
     <string name="error_csv_empty">File vuoto.</string>
     <string name="error_csv_format">Errore riga %1$d: Formato errato.</string>
     <string name="error_csv_date">Errore riga %1$d: Data invalida (%2$s).</string>
-    <string name="error_csv_shift">Errore riga %1$d: Turno \'%2$s' inesistente.</string>
-    <string name="error_csv_role">Errore riga %1$d: Ruolo \'%2$s' sconosciuto.</string>
-    <string name="error_csv_staff_not_found">Errore riga %1$d: \'%2$s' non trovato.</string>
+    <string name="error_csv_shift">Errore riga %1$d: Turno \'%2$s\' inesistente.</string>
+    <string name="error_csv_role">Errore riga %1$d: Ruolo \'%2$s\' sconosciuto.</string>
+    <string name="error_csv_staff_not_found">Errore riga %1$d: \'%2$s\' non trovato.</string>
     <string name="error_db_save">Errore DB: %1$s</string>
     <string name="error_file_read">Errore lettura: %1$s</string>
     <string name="msg_template_saved">Modello salvato in Download</string>

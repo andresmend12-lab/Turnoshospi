@@ -405,9 +405,9 @@
     <string name="error_csv_empty">Κενό αρχείο.</string>
     <string name="error_csv_format">Σφάλμα γραμμής %1$d: Λάθος μορφή.</string>
     <string name="error_csv_date">Σφάλμα γραμμής %1$d: Άκυρη ημερομηνία (%2$s).</string>
-    <string name="error_csv_shift">Σφάλμα γραμμής %1$d: Άγνωστη βάρδια '%2$s'.</string>
-    <string name="error_csv_role">Σφάλμα γραμμής %1$d: Άγνωστος ρόλος '%2$s'.</string>
-    <string name="error_csv_staff_not_found">Σφάλμα γραμμής %1$d: Το άτομο '%2$s' δεν βρέθηκε.</string>
+    <string name="error_csv_shift">Σφάλμα γραμμής %1$d: Άγνωστη βάρδια \'%2$s\'.</string>
+    <string name="error_csv_role">Σφάλμα γραμμής %1$d: Άγνωστος ρόλος \'%2$s\'.</string>
+    <string name="error_csv_staff_not_found">Σφάλμα γραμμής %1$d: Το άτομο \'%2$s\' δεν βρέθηκε.</string>
     <string name="error_db_save">Σφάλμα βάσης: %1$s</string>
     <string name="error_file_read">Σφάλμα ανάγνωσης: %1$s</string>
     <string name="msg_template_saved">Πρότυπο αποθηκεύτηκε</string>

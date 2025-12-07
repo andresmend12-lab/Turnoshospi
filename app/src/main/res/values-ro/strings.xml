@@ -279,7 +279,7 @@
     <string name="msg_supervisor_rejected">Șeful a refuzat.</string>
     <string name="msg_partner_accepted">Colegul a acceptat. Așteaptă Șeful.</string>
     <string name="msg_partner_rejected">Colegul a refuzat.</string>
-    <string name="msg_request_created">Cerere creată. Vezi \'Sugestii'.</string>
+    <string name="msg_request_created">Cerere creată. Vezi \'Sugestii\'.</string>
 
     <string name="header_supervisor_pending">În așteptare (Șef)</string>
     <string name="header_in_process">În curs</string>
@@ -290,7 +290,7 @@
     <string name="header_search_candidates">Găsește candidați</string>
     <string name="desc_search_candidates">Selectează o tură pentru schimb.</string>
     <string name="msg_no_active_offers">Fără oferte active.</string>
-    <string name="desc_create_offer">Creează una în \'Turele Mele'.</string>
+    <string name="desc_create_offer">Creează una în \'Turele Mele\'.</string>
     <string name="label_offering_shift">Oferi tura din:</string>
     <string name="btn_see_candidates">VEZI CANDIDAȚI</string>
     <string name="badge_active">ACTIVĂ</string>
@@ -405,9 +405,9 @@
     <string name="error_csv_empty">Fișier gol.</string>
     <string name="error_csv_format">Eroare rând %1$d: Format greșit.</string>
     <string name="error_csv_date">Eroare rând %1$d: Dată invalidă (%2$s).</string>
-    <string name="error_csv_shift">Eroare rând %1$d: Tura \'%2$s' inexistentă.</string>
-    <string name="error_csv_role">Eroare rând %1$d: Rol \'%2$s' necunoscut.</string>
-    <string name="error_csv_staff_not_found">Eroare rând %1$d: \'%2$s' nu există.</string>
+    <string name="error_csv_shift">Eroare rând %1$d: Tura \'%2$s\' inexistentă.</string>
+    <string name="error_csv_role">Eroare rând %1$d: Rol \'%2$s\' necunoscut.</string>
+    <string name="error_csv_staff_not_found">Eroare rând %1$d: \'%2$s\' nu există.</string>
     <string name="error_db_save">Eroare DB: %1$s</string>
     <string name="error_file_read">Eroare citire: %1$s</string>
     <string name="msg_template_saved">Model salvat în Descărcări</string>

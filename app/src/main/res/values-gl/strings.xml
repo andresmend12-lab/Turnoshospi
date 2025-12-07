@@ -290,7 +290,7 @@
     <string name="header_search_candidates">Busca candidatos</string>
     <string name="desc_search_candidates">Selecciona unha quenda para cambiar.</string>
     <string name="msg_no_active_offers">Non tes ofertas.</string>
-    <string name="desc_create_offer">Crea unha en \'As miñas Quendas'.</string>
+    <string name="desc_create_offer">Crea unha en \'As miñas Quendas\'.</string>
     <string name="label_offering_shift">Ofreces a quenda do:</string>
     <string name="btn_see_candidates">VER CANDIDATOS</string>
     <string name="badge_active">ACTIVA</string>
@@ -405,9 +405,9 @@
     <string name="error_csv_empty">Ficheiro baleiro.</string>
     <string name="error_csv_format">Erro na liña %1$d: Formato incorrecto.</string>
     <string name="error_csv_date">Erro na liña %1$d: Data inválida (%2$s).</string>
-    <string name="error_csv_shift">Erro na liña %1$d: A quenda \'%2$s' non existe.</string>
-    <string name="error_csv_role">Erro na liña %1$d: Rol \'%2$s' descoñecido.</string>
-    <string name="error_csv_staff_not_found">Erro na liña %1$d: \'%2$s' non atopado.</string>
+    <string name="error_csv_shift">Erro na liña %1$d: A quenda \'%2$s\' non existe.</string>
+    <string name="error_csv_role">Erro na liña %1$d: Rol \'%2$s\' descoñecido.</string>
+    <string name="error_csv_staff_not_found">Erro na liña %1$d: \'%2$s\' non atopado.</string>
     <string name="error_db_save">Erro DB: %1$s</string>
     <string name="error_file_read">Erro lectura: %1$s</string>
     <string name="msg_template_saved">Modelo gardado</string>
