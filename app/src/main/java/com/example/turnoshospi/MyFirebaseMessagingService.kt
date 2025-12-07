@@ -22,28 +22,34 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         Log.d("FCM", "Refreshed token: $token")
-        // Nota: MainActivity ya se encarga de guardar el token si hay usuario logueado.
+        // Note: MainActivity handles saving the token if a user is logged in.
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
-        Log.d("FCM", "Mensaje recibido de: ${remoteMessage.from}")
+        Log.d("FCM", "Message received from: ${remoteMessage.from}")
 
-        // 1. Extraer datos (Prioridad a DATA para manejar la navegación)
+        // 1. Extract data (Priority to DATA to handle navigation)
         val data = remoteMessage.data
         if (data.isNotEmpty()) {
-            Log.d("FCM", "Payload de datos: $data")
+            Log.d("FCM", "Data payload: $data")
         }
 
-        // Si la Cloud Function envía 'notification' y la app está en foreground, firebase llena esto.
-        // Si envía solo 'data', construimos nosotros el título/cuerpo.
-        val title = remoteMessage.notification?.title ?: data["title"] ?: "Turnos Hospi"
-        val body = remoteMessage.notification?.body ?: data["body"] ?: "Tienes un nuevo mensaje"
+        // If Cloud Function sends 'notification' and app is in foreground, firebase fills this.
+        // If it sends only 'data', we build the title/body ourselves.
+        // We use strings.xml resources for fallbacks
+        val title = remoteMessage.notification?.title
+            ?: data["title"]
+            ?: getString(R.string.app_name)
 
-        // Datos de navegación
-        val screenDest = data["screen"] // Debe ser "DirectChat", "ShiftChangeScreen", etc.
+        val body = remoteMessage.notification?.body
+            ?: data["body"]
+            ?: getString(R.string.menu_info) // Generic fallback: "Information"
+
+        // Navigation data
+        val screenDest = data["screen"] // Must be "DirectChat", "ShiftChangeScreen", etc.
         val plantId = data["plantId"]
-        val argument = data["argument"] // ID del otro usuario, requestId, etc.
+        val argument = data["argument"] // other user ID, requestId, etc.
 
         sendNotification(title, body, screenDest, plantId, argument)
     }
@@ -57,7 +63,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     ) {
         val intent = Intent(this, MainActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            // Pasar datos exactos para que MainActivity los capture en onNewIntent o onCreate
+            // Pass exact data so MainActivity can capture it in onNewIntent or onCreate
             if (screen != null) putExtra("nav_screen", screen)
             if (plantId != null) putExtra("nav_plant_id", plantId)
             if (arg != null) putExtra("nav_argument", arg)
@@ -65,21 +71,24 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         val pendingIntent = PendingIntent.getActivity(
             this,
-            Random.nextInt(), // RequestCode único para que no se sobrescriban extras si hay varias notif
+            Random.nextInt(), // Unique RequestCode so extras are not overwritten if multiple notifs exist
             intent,
             PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
         )
 
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        // Crear el canal si no existe (aunque MainActivity ya lo crea, es bueno por seguridad)
+        // Create channel if it doesn't exist (using translatable texts)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channelName = getString(R.string.notif_channel_name)
+            val channelDesc = getString(R.string.notif_channel_desc)
+
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Avisos de Turnos",
+                channelName,
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Notificaciones de chats y cambios de turno"
+                description = channelDesc
                 enableVibration(true)
                 setShowBadge(true)
             }
@@ -87,7 +96,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         }
 
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher) // Asegúrate que este icono sea blanco y transparente (regla de Android)
+            .setSmallIcon(R.mipmap.ic_launcher) // Ensure this icon is white/transparent (Android rule)
             .setContentTitle(title)
             .setContentText(messageBody)
             .setAutoCancel(true)

@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -22,16 +23,16 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// Modelo de datos para la notificación interna
+// Data model for internal notification
 data class AppNotification(
     val id: String = "",
     val title: String = "",
     val message: String = "",
     val timestamp: Long = 0,
     val read: Boolean = false,
-    val screen: String? = null,   // Pantalla destino (ej: "ShiftChangeScreen")
-    val plantId: String? = null,  // ID de la planta para el contexto
-    val argument: String? = null  // Argumento extra (ej: requestId, otherUserId)
+    val screen: String? = null,   // Destination screen (e.g., "ShiftChangeScreen")
+    val plantId: String? = null,  // Plant ID for context
+    val argument: String? = null  // Extra argument (e.g., requestId, otherUserId)
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,16 +49,30 @@ fun NotificationsScreen(
         containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
-                title = { Text("Notificaciones", color = Color.White, fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        text = stringResource(R.string.title_notifications),
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver", tint = Color.White)
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.desc_back),
+                            tint = Color.White
+                        )
                     }
                 },
                 actions = {
                     if (notifications.isNotEmpty()) {
                         IconButton(onClick = onDeleteAll) {
-                            Icon(Icons.Default.Delete, "Borrar todo", tint = Color.White)
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = stringResource(R.string.desc_delete_all),
+                                tint = Color.White
+                            )
                         }
                     }
                 },
@@ -71,9 +86,17 @@ fun NotificationsScreen(
                     modifier = Modifier.align(Alignment.Center),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Icon(Icons.Default.Notifications, null, tint = Color.Gray, modifier = Modifier.size(64.dp))
+                    Icon(
+                        imageVector = Icons.Default.Notifications,
+                        contentDescription = null,
+                        tint = Color.Gray,
+                        modifier = Modifier.size(64.dp)
+                    )
                     Spacer(Modifier.height(16.dp))
-                    Text("No tienes notificaciones", color = Color.Gray)
+                    Text(
+                        text = stringResource(R.string.msg_no_notifications),
+                        color = Color.Gray
+                    )
                 }
             } else {
                 LazyColumn(
@@ -84,11 +107,11 @@ fun NotificationsScreen(
                         NotificationItem(
                             notification = notif,
                             onClick = {
-                                // Marcar como leída
+                                // Mark as read
                                 if (!notif.read) {
                                     onMarkAsRead(notif.id)
                                 }
-                                // Navegar
+                                // Navigate
                                 if (notif.screen != null) {
                                     onNavigateToScreen(notif.screen, notif.plantId, notif.argument)
                                 }
@@ -125,7 +148,7 @@ fun NotificationItem(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Indicador de no leído
+            // Unread indicator
             if (!notification.read) {
                 Box(
                     modifier = Modifier
@@ -157,7 +180,12 @@ fun NotificationItem(
             }
 
             IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, "Borrar", tint = Color(0xFFEF5350), modifier = Modifier.size(20.dp))
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = stringResource(R.string.desc_delete),
+                    tint = Color(0xFFEF5350),
+                    modifier = Modifier.size(20.dp)
+                )
             }
         }
     }

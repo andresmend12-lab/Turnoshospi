@@ -13,9 +13,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.Composable // [NUEVO] Import necesario
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.tooling.preview.Preview // [NUEVO] Import necesario
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
@@ -69,6 +69,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         FirebaseApp.initializeApp(this)
         auth = FirebaseAuth.getInstance()
+        // Asegúrate de que la URL sea la correcta de tu proyecto
         realtimeDatabase = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
         currentUserState.value = auth.currentUser
 
@@ -194,8 +195,8 @@ class MainActivity : ComponentActivity() {
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channelId = "turnoshospi_sound_v2"
-            val name = "Avisos de Turnos"
-            val descriptionText = "Notificaciones con sonido y alerta visual"
+            val name = getString(R.string.notif_channel_name) // "Avisos de Turnos"
+            val descriptionText = getString(R.string.notif_channel_desc) // "Notificaciones con sonido y alerta visual"
             val importance = NotificationManager.IMPORTANCE_HIGH
 
             val channel = NotificationChannel(channelId, name, importance).apply {
@@ -261,7 +262,7 @@ class MainActivity : ComponentActivity() {
                     onResult(true)
                 } else {
                     val errorMessage = task.exception?.let { formatAuthError(it) }
-                        ?: "No se pudo iniciar sesión con ese correo"
+                        ?: getString(R.string.login_error_generic) // "No se pudo iniciar sesión con ese correo"
                     authErrorMessage.value = errorMessage
                     onResult(false)
                 }
@@ -287,7 +288,7 @@ class MainActivity : ComponentActivity() {
                     }
                 } else {
                     val errorMessage = task.exception?.let { formatAuthError(it) }
-                        ?: "No se pudo crear la cuenta"
+                        ?: getString(R.string.create_account_error) // "No se pudo crear la cuenta"
                     authErrorMessage.value = errorMessage
                     onResult(false)
                 }
@@ -302,7 +303,7 @@ class MainActivity : ComponentActivity() {
                     onResult(true)
                 } else {
                     val errorMessage = task.exception?.let { formatAuthError(it) }
-                        ?: "No se pudo enviar el correo de recuperación"
+                        ?: getString(R.string.reset_email_error) // "No se pudo enviar el correo de recuperación"
                     authErrorMessage.value = errorMessage
                     onResult(false)
                 }
@@ -331,7 +332,7 @@ class MainActivity : ComponentActivity() {
 
     private fun saveUserProfile(profile: UserProfile, onResult: (Boolean) -> Unit) {
         val user = auth.currentUser ?: run {
-            authErrorMessage.value = "Debes iniciar sesión para continuar"
+            authErrorMessage.value = getString(R.string.error_login_required) // "Debes iniciar sesión para continuar"
             onResult(false)
             return
         }
@@ -340,7 +341,7 @@ class MainActivity : ComponentActivity() {
 
         saveRealtimeUser(user.uid, profile.copy(email = resolvedEmail)) { success ->
             if (!success && authErrorMessage.value == null) {
-                authErrorMessage.value = "No se pudo guardar el perfil en tiempo real"
+                authErrorMessage.value = getString(R.string.profile_save_error) // "No se pudo guardar el perfil en tiempo real"
             }
             onResult(success)
         }
@@ -374,9 +375,9 @@ class MainActivity : ComponentActivity() {
                     .addOnSuccessListener { onResult(true) }
                     .addOnFailureListener {
                         val message = if (it is DatabaseException) {
-                            "Revisa las reglas de Realtime Database y los permisos de escritura"
+                            getString(R.string.database_rules_error) // "Revisa las reglas de Realtime Database..."
                         } else {
-                            "No se pudo guardar el perfil en tiempo real"
+                            getString(R.string.profile_save_error) // "No se pudo guardar el perfil en tiempo real"
                         }
                         authErrorMessage.value = message
                         onResult(false)
@@ -384,9 +385,9 @@ class MainActivity : ComponentActivity() {
             }
             .addOnFailureListener {
                 val message = if (it is DatabaseException) {
-                    "Revisa las reglas de Realtime Database y los permisos de escritura"
+                    getString(R.string.database_rules_error)
                 } else {
-                    "No se pudo guardar el perfil en tiempo real"
+                    getString(R.string.profile_save_error)
                 }
                 authErrorMessage.value = message
                 onResult(false)
@@ -510,11 +511,11 @@ class MainActivity : ComponentActivity() {
                     .updateChildren(updates)
                     .addOnSuccessListener {
                         onResult(true, null)
-                        val joinMessage = getString(R.string.join_plant_success)
+                        val joinMessage = getString(R.string.join_plant_success_detail) // "Te has unido a la planta con éxito."
                         saveNotification(
                             user.uid,
                             "PLANT_JOINED",
-                            "Te has unido a la planta con éxito. $joinMessage",
+                            joinMessage,
                             AppScreen.MyPlant.name,
                             cleanPlantId,
                             {}
@@ -690,8 +691,9 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    collectNames("nurses", "Enfermero/a")
-                    collectNames("auxiliaries", "Auxiliar")
+                    // Usamos recursos para los roles visibles
+                    collectNames("nurses", getString(R.string.role_nurse)) // "Enfermero/a"
+                    collectNames("auxiliaries", getString(R.string.role_auxiliary)) // "Auxiliar"
 
                     onResult(colleagues.distinctBy { it.name })
                 }
@@ -755,7 +757,7 @@ class MainActivity : ComponentActivity() {
     private fun deletePlant(plantId: String) {
         realtimeDatabase.getReference("plants").child(plantId).removeValue()
             .addOnFailureListener {
-                authErrorMessage.value = "No se pudo borrar la planta. Inténtalo de nuevo."
+                authErrorMessage.value = getString(R.string.delete_plant_error) // "No se pudo borrar la planta..."
             }
     }
 
@@ -787,7 +789,8 @@ class MainActivity : ComponentActivity() {
         notificationRef.setValue(notification)
             .addOnSuccessListener { onResult(true) }
             .addOnFailureListener {
-                authErrorMessage.value = "Error al guardar notificación: ${it.message}"
+                // Esto es un log interno de error, podríamos dejarlo así o usar un recurso genérico
+                authErrorMessage.value = "${getString(R.string.notification_save_error)} ${it.message}"
                 onResult(false)
             }
     }
@@ -861,21 +864,28 @@ class MainActivity : ComponentActivity() {
 
     private fun formatAuthError(exception: Exception): String {
         return when (exception) {
-            is FirebaseAuthWeakPasswordException -> "La contraseña es demasiado débil; debe tener al menos 6 caracteres"
-            is FirebaseAuthUserCollisionException -> "Ya existe una cuenta registrada con este correo"
-            is FirebaseAuthInvalidCredentialsException -> "El correo o la contraseña no son válidos"
-            is FirebaseAuthInvalidUserException -> "Esta cuenta no existe o fue deshabilitada"
+            is FirebaseAuthWeakPasswordException -> getString(R.string.auth_weak_password)
+            is FirebaseAuthUserCollisionException -> getString(R.string.auth_user_collision)
+            is FirebaseAuthInvalidCredentialsException -> getString(R.string.auth_invalid_credentials)
+            is FirebaseAuthInvalidUserException -> getString(R.string.auth_invalid_user)
             is FirebaseAuthException -> when (exception.errorCode) {
-                "ERROR_OPERATION_NOT_ALLOWED" -> "Habilita el proveedor de Email/Contraseña en la consola de Firebase"
-                else -> "Error de autenticación: ${exception.localizedMessage ?: "intenta de nuevo"}"
+                "ERROR_OPERATION_NOT_ALLOWED" -> getString(R.string.auth_operation_not_allowed)
+                else -> "${getString(R.string.auth_generic_error)} ${exception.localizedMessage ?: ""}"
             }
-            is FirebaseNetworkException -> "No hay conexión con el servidor. Revisa tu conexión a internet"
-            else -> "No se pudo completar la operación. Inténtalo de nuevo"
+            is FirebaseNetworkException -> getString(R.string.auth_network_error)
+            else -> getString(R.string.auth_unknown_error)
         }
     }
 }
 
 // --- MODELOS ---
+
+// Enum para las pantallas de la app (necesario para el Deep Linking)
+enum class AppScreen {
+    Login, Register, ForgotPassword, CreateProfile,
+    Home, MyPlant, EditPlant, Shifts, Colleagues, Notifications,
+    ChatList, DirectChat
+}
 
 data class UserShift(
     val shiftName: String,
@@ -902,6 +912,49 @@ data class UserNotification(
     val timestamp: Long = System.currentTimeMillis(),
     val isRead: Boolean = false
 )
+
+data class Plant(
+    val id: String = "",
+    val name: String = "",
+    val unitType: String = "",
+    val hospitalName: String = "",
+    val shiftDuration: String = "",
+    val allowHalfDay: Boolean = false,
+    val staffScope: String = "",
+    val shiftTimes: Map<String, ShiftTime> = emptyMap(),
+    val staffRequirements: Map<String, Int> = emptyMap(),
+    val createdAt: Long = 0L,
+    val accessPassword: String = "",
+    val personal_de_planta: Map<String, RegisteredUser> = emptyMap()
+)
+
+data class ShiftTime(
+    val start: String = "",
+    val end: String = ""
+)
+
+data class RegisteredUser(
+    val id: String = "",
+    val name: String = "",
+    val role: String = "",
+    val email: String = "",
+    val profileType: String = ""
+)
+
+data class PlantMembership(
+    val plantId: String = "",
+    val userId: String = "",
+    val staffId: String? = null,
+    val staffName: String? = null,
+    val staffRole: String? = null
+)
+
+data class Colleague(
+    val name: String,
+    val role: String
+)
+
+// --- EXTENSIONES ---
 
 fun DataSnapshot.toUserProfile(fallbackEmail: String): UserProfile? {
     if (!exists()) return null
@@ -975,8 +1028,8 @@ fun MainActivityPreview() {
             user = null,
             errorMessage = null,
             onErrorDismiss = {},
-            pendingNavigation = null, // [NUEVO]
-            onNavigationHandled = {}, // [NUEVO]
+            pendingNavigation = null,
+            onNavigationHandled = {},
             onLogin = { _, _, _ -> },
             onCreateAccount = { _, _, _ -> },
             onForgotPassword = { _, _ -> },

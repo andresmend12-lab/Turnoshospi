@@ -6,8 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -24,9 +24,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -36,10 +36,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.unit.dp
-import com.example.turnoshospi.R
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
+import com.example.turnoshospi.R
 
 @Composable
 fun LoginCard(
@@ -79,7 +79,7 @@ fun LoginCard(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Iniciar sesión",
+                text = stringResource(R.string.login_screen_title), // "Iniciar sesión"
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
@@ -91,7 +91,7 @@ fun LoginCard(
                     onEmailChange(it)
                     resetSent = false
                 },
-                label = { Text("Correo electrónico") },
+                label = { Text(stringResource(R.string.email_label)) }, // "Correo electrónico"
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 colors = TextFieldDefaults.colors(
@@ -111,7 +111,7 @@ fun LoginCard(
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Contraseña") },
+                label = { Text(stringResource(R.string.password_label)) }, // "Contraseña"
                 // Cambia la transformación visual según el estado
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 singleLine = true,
@@ -124,7 +124,10 @@ fun LoginCard(
                         Icons.Filled.VisibilityOff
 
                     // Descripción para accesibilidad
-                    val description = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña"
+                    val description = if (passwordVisible)
+                        stringResource(R.string.password_hide_desc) // "Ocultar contraseña"
+                    else
+                        stringResource(R.string.password_show_desc) // "Mostrar contraseña"
 
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(imageVector = image, contentDescription = description, tint = Color.White)
@@ -171,14 +174,14 @@ fun LoginCard(
                         color = Color.White
                     )
                 }
-                Text(text = stringResource(id = R.string.login_button))
+                Text(text = stringResource(id = R.string.login_button)) // "Iniciar sesión"
             }
 
             TextButton(
                 onClick = onCreateAccount,
                 colors = ButtonDefaults.textButtonColors(contentColor = Color(0xCCFFFFFF))
             ) {
-                Text(text = stringResource(id = R.string.create_account_title))
+                Text(text = stringResource(id = R.string.create_account_title)) // "Crear cuenta"
             }
 
             TextButton(
@@ -189,12 +192,12 @@ fun LoginCard(
                 enabled = email.isNotBlank(),
                 colors = ButtonDefaults.textButtonColors(contentColor = Color(0xCCFFFFFF))
             ) {
-                Text(text = stringResource(id = R.string.forgot_password))
+                Text(text = stringResource(id = R.string.forgot_password)) // "¿Olvidaste tu contraseña?"
             }
 
             if (resetSent) {
                 Text(
-                    text = stringResource(id = R.string.reset_email_sent),
+                    text = stringResource(id = R.string.reset_email_sent), // "Hemos enviado un enlace..."
                     color = Color(0xCCFFFFFF),
                     style = MaterialTheme.typography.bodySmall
                 )

@@ -36,8 +36,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource // Importante
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.turnoshospi.R // Importante
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -71,6 +73,14 @@ fun GroupChatScreen(
     var textInput by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
 
+    // --- RECURSOS DE TEXTO (Capturados aquí para usarlos en lambdas) ---
+    val defaultUserAlias = stringResource(R.string.default_user_alias) // "Usuario"
+    val notificationTemplate = stringResource(R.string.notification_group_msg_template) // "Nuevo mensaje de %1$s..."
+    val placeholderText = stringResource(R.string.write_message_placeholder) // "Escribe un mensaje..."
+    val backDesc = stringResource(R.string.back_desc)
+    val sendDesc = stringResource(R.string.send_desc)
+    val titleText = stringResource(R.string.group_chat_title)
+
     LaunchedEffect(plantId) {
         val childEventListener = object : ChildEventListener {
             override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
@@ -97,10 +107,10 @@ fun GroupChatScreen(
         containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
-                title = { Text("Chat de Planta", color = Color.White) },
+                title = { Text(titleText, color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, backDesc, tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -135,7 +145,7 @@ fun GroupChatScreen(
                 OutlinedTextField(
                     value = textInput,
                     onValueChange = { textInput = it },
-                    placeholder = { Text("Escribe un mensaje...", color = Color.Gray) },
+                    placeholder = { Text(placeholderText, color = Color.Gray) },
                     modifier = Modifier.weight(1f),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = Color.White,
@@ -152,7 +162,10 @@ fun GroupChatScreen(
                     onClick = {
                         if (textInput.isNotBlank()) {
                             val msgId = chatRef.push().key ?: return@IconButton
-                            val name = "${currentUser?.firstName} ${currentUser?.lastName}".trim().ifBlank { "Usuario" }
+
+                            // Usamos el alias por defecto cargado desde strings.xml si está vacío
+                            val name = "${currentUser?.firstName} ${currentUser?.lastName}".trim().ifBlank { defaultUserAlias }
+
                             val newMsg = ChatMessage(
                                 id = msgId,
                                 senderId = currentUserId,
@@ -163,11 +176,15 @@ fun GroupChatScreen(
                             chatRef.child(msgId).setValue(newMsg)
                             textInput = ""
 
-                            // NEW: Notificación de Chat de Grupo (placeholder para fan-out)
+                            // Construimos el mensaje de notificación usando el template
+                            // String.format reemplaza %1$s con el nombre del usuario
+                            val notificationMessage = String.format(notificationTemplate, newMsg.senderName)
+
+                            // NEW: Notificación de Chat de Grupo
                             onSaveNotification(
                                 "GROUP_CHAT_FANOUT_ID",
                                 "CHAT_GROUP",
-                                "Nuevo mensaje de ${newMsg.senderName} en el chat de planta.",
+                                notificationMessage,
                                 AppScreen.GroupChat.name,
                                 plantId,
                                 {}
@@ -176,7 +193,7 @@ fun GroupChatScreen(
                     },
                     modifier = Modifier.padding(start = 8.dp)
                 ) {
-                    Icon(Icons.AutoMirrored.Filled.Send, "Enviar", tint = Color(0xFF54C7EC))
+                    Icon(Icons.AutoMirrored.Filled.Send, sendDesc, tint = Color(0xFF54C7EC))
                 }
             }
         }

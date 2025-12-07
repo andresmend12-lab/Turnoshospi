@@ -89,7 +89,6 @@ fun MainMenuScreen(
     unreadChatCount: Int = 0,
     unreadNotificationsCount: Int,
     onOpenNotifications: () -> Unit
-    // Eliminado: onOpenOfflinePlant ya no es necesario
 ) {
     var isMenuOpen by remember { mutableStateOf(false) }
     var userShifts by remember { mutableStateOf<Map<String, UserShift>>(emptyMap()) }
@@ -121,6 +120,8 @@ fun MainMenuScreen(
     val welcomeStringId = remember(profile?.gender) {
         if (profile?.gender == "female") R.string.main_menu_welcome_female else R.string.main_menu_welcome_male
     }
+
+    // NOTA: "Supervis" es un valor interno de la DB, no un texto de UI, se puede dejar así o mover a constantes
     val showCreatePlant = profile?.role?.contains("Supervis") == true
     val isSupervisor = showCreatePlant
 
@@ -145,7 +146,11 @@ fun MainMenuScreen(
                     modifier = Modifier.align(Alignment.CenterStart),
                     onClick = { isMenuOpen = true }
                 ) {
-                    Icon(Icons.Default.Menu, contentDescription = "Menú", tint = Color.White)
+                    Icon(
+                        Icons.Default.Menu,
+                        contentDescription = stringResource(R.string.cd_menu), // "Menú"
+                        tint = Color.White
+                    )
                 }
 
                 Crossfade(targetState = displayName, animationSpec = tween(durationMillis = 600)) { name ->
@@ -172,7 +177,11 @@ fun MainMenuScreen(
                             }
                         }
                     ) {
-                        Icon(Icons.Default.Notifications, contentDescription = "Notificaciones", tint = Color.White)
+                        Icon(
+                            Icons.Default.Notifications,
+                            contentDescription = stringResource(R.string.cd_notifications), // "Notificaciones"
+                            tint = Color.White
+                        )
                     }
                 }
             }
@@ -187,9 +196,6 @@ fun MainMenuScreen(
                 colors = CardDefaults.cardColors(containerColor = Color(0x11FFFFFF)),
                 border = BorderStroke(1.dp, Color(0x22FFFFFF))
             ) {
-                // AQUÍ ESTÁ LA LÓGICA PRINCIPAL:
-                // Si NO hay planta, mostramos el CustomCalendarOffline.
-                // Si SÍ hay planta, mostramos el CustomCalendar normal (conectado a DB).
                 if (userPlant == null) {
                     CustomCalendarOffline(shiftColors = shiftColors)
                 } else {
@@ -264,15 +270,26 @@ fun MainMenuScreen(
                 ) {
                     DrawerHeader(displayName, welcomeStringId)
                     if (showCreatePlant) {
-                        DrawerMenuItem(stringResource(R.string.menu_create_plant), stringResource(R.string.menu_create_plant_desc)) { isMenuOpen = false; onCreatePlant() }
+                        DrawerMenuItem(
+                            stringResource(R.string.menu_create_plant),
+                            stringResource(R.string.menu_create_plant_desc)
+                        ) { isMenuOpen = false; onCreatePlant() }
                     }
 
-                    // ELIMINADO: El botón "Mi Planilla" u "Offline" ya no está aquí porque
-                    // ahora el calendario offline aparece automáticamente en la pantalla principal.
+                    DrawerMenuItem(
+                        stringResource(R.string.menu_my_plants),
+                        stringResource(R.string.menu_my_plants_desc)
+                    ) { isMenuOpen = false; onOpenPlant() }
 
-                    DrawerMenuItem(stringResource(R.string.menu_my_plants), stringResource(R.string.menu_my_plants_desc)) { isMenuOpen = false; onOpenPlant() }
-                    DrawerMenuItem(stringResource(R.string.edit_profile), stringResource(R.string.edit_profile)) { isMenuOpen = false; onEditProfile() }
-                    DrawerMenuItem(stringResource(R.string.menu_settings), stringResource(R.string.menu_settings_desc)) { isMenuOpen = false; onOpenSettings() }
+                    DrawerMenuItem(
+                        stringResource(R.string.edit_profile),
+                        stringResource(R.string.edit_profile) // Puede que quieras usar menu_edit_profile_desc si existe
+                    ) { isMenuOpen = false; onEditProfile() }
+
+                    DrawerMenuItem(
+                        stringResource(R.string.menu_settings),
+                        stringResource(R.string.menu_settings_desc)
+                    ) { isMenuOpen = false; onOpenSettings() }
 
                     Spacer(modifier = Modifier.weight(1f))
 
@@ -298,7 +315,10 @@ fun MainMenuScreen(
                 shape = CircleShape
             ) {
                 BadgedBox(badge = { if (unreadChatCount > 0) Badge(containerColor = Color.Red) { Text("$unreadChatCount") } }) {
-                    Icon(Icons.Default.Chat, contentDescription = "Chats")
+                    Icon(
+                        Icons.Default.Chat,
+                        contentDescription = stringResource(R.string.cd_chats) // "Chats"
+                    )
                 }
             }
         }
@@ -311,7 +331,11 @@ fun DrawerHeader(displayName: String, welcomeStringId: Int) {
         modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        Image(painterResource(R.mipmap.ic_logo_hospi_foreground), stringResource(R.string.app_name), modifier = Modifier.size(48.dp))
+        Image(
+            painterResource(R.mipmap.ic_logo_hospi_foreground),
+            stringResource(R.string.app_name),
+            modifier = Modifier.size(48.dp)
+        )
         Crossfade(targetState = displayName) {
             Text(stringResource(welcomeStringId, it), style = MaterialTheme.typography.bodySmall, color = Color(0xCCFFFFFF))
         }

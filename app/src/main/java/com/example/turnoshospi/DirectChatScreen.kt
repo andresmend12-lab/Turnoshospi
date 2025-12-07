@@ -14,8 +14,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource // Importante
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.turnoshospi.R // Importante: Tu paquete de recursos
 import com.google.firebase.database.*
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -40,10 +42,8 @@ fun DirectChatScreen(
     var textState by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
 
-    // --- CORRECCIÓN CLAVE ---
     // Reseteamos el contador a 0 no solo al entrar (Unit), sino también cada vez
     // que la lista de mensajes cambie (messages.size).
-    // Esto asegura que si recibes un mensaje mientras tienes el chat abierto, se marque como leído.
     LaunchedEffect(chatId, messages.size) {
         if (currentUserId.isNotBlank()) {
             database.getReference("user_direct_chats/$currentUserId/$chatId/unreadCount").setValue(0)
@@ -73,7 +73,11 @@ fun DirectChatScreen(
                 title = { Text(otherUserName, color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver", tint = Color.White)
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            stringResource(R.string.back_desc), // Texto extraído
+                            tint = Color.White
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF0F172A))
@@ -90,7 +94,12 @@ fun DirectChatScreen(
                 OutlinedTextField(
                     value = textState,
                     onValueChange = { textState = it },
-                    placeholder = { Text("Mensaje...", color = Color.Gray) },
+                    placeholder = {
+                        Text(
+                            stringResource(R.string.message_placeholder), // Texto extraído
+                            color = Color.Gray
+                        )
+                    },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(24.dp),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -101,12 +110,16 @@ fun DirectChatScreen(
                 IconButton(onClick = {
                     if (textState.isNotBlank()) {
                         val key = messagesRef.push().key ?: return@IconButton
-                        // Enviamos el mensaje. La Cloud Function detectará esto e incrementará el contador del OTRO usuario.
+                        // Enviamos el mensaje.
                         messagesRef.child(key).setValue(DirectMessage(key, currentUserId, textState.trim()))
                         textState = ""
                     }
                 }) {
-                    Icon(Icons.AutoMirrored.Filled.Send, "Enviar", tint = Color(0xFF54C7EC))
+                    Icon(
+                        Icons.AutoMirrored.Filled.Send,
+                        stringResource(R.string.send_desc), // Texto extraído
+                        tint = Color(0xFF54C7EC)
+                    )
                 }
             }
         }

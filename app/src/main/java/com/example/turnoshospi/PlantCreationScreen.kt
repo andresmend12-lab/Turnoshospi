@@ -36,6 +36,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -88,6 +89,14 @@ data class Plant(
 
 data class ShiftTime(val start: String = "", val end: String = "")
 
+// Placeholder for UserProfile, assumed to be used from another file
+data class UserProfile(
+    val firstName: String = "",
+    val lastName: String = "",
+    val email: String = "",
+    val role: String = ""
+)
+
 private enum class StaffScope {
     NursesOnly,
     NursesAndAux
@@ -103,7 +112,7 @@ fun PlantCreationScreen(
 ) {
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
-    val context = LocalContext.current
+    val context = LocalContext.current // Kept for Firebase error handling
     val database = remember {
         FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
     }
@@ -146,6 +155,10 @@ fun PlantCreationScreen(
     var allowHalfDay by remember { mutableStateOf(false) }
     var staffScope by remember { mutableStateOf(StaffScope.NursesOnly) }
 
+    // String Resources for Error Handling
+    val requiredFieldsError = stringResource(id = R.string.plant_required_fields_error)
+    val saveError = stringResource(id = R.string.plant_save_error)
+
     Scaffold(
         containerColor = Color(0xFF0B1220),
         topBar = {
@@ -166,7 +179,7 @@ fun PlantCreationScreen(
                         )
                     }
                 },
-                colors = androidx.compose.material3.TopAppBarDefaults.centerAlignedTopAppBarColors(
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color.Transparent,
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White
@@ -349,7 +362,8 @@ fun PlantCreationScreen(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
                         if (plantName.isBlank() || unitType.isBlank() || hospitalName.isBlank()) {
-                            errorMessage = context.getString(R.string.plant_required_fields_error)
+                            // Use the pre-loaded string resource
+                            errorMessage = requiredFieldsError
                             return@Button
                         }
 
@@ -436,8 +450,8 @@ fun PlantCreationScreen(
                                 }
                                 .addOnFailureListener { exception ->
                                     isSaving = false
-                                    errorMessage = exception.message
-                                        ?: context.getString(R.string.plant_save_error)
+                                    // Use the pre-loaded string resource if the exception message is null
+                                    errorMessage = exception.message ?: saveError
                                 }
                         }
                     },
@@ -458,6 +472,8 @@ fun PlantCreationScreen(
         }
     }
 }
+
+// ... (Rest of the composables: PlantCreatedScreen, CardSection, PlantTextField, ShiftTimeRow, StaffScopeOption)
 
 @Composable
 fun PlantCreatedScreen(credentials: PlantCredentials?, onBackToMenu: () -> Unit) {
