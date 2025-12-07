@@ -278,7 +278,7 @@
     <string name="msg_supervisor_rejected">Надзорник је одбио замену.</string>
     <string name="msg_partner_accepted">Ваш колега је прихватио. Чека се надзорник.</string>
     <string name="msg_partner_rejected">Колега је одбио замену.</string>
-    <string name="msg_request_created">Захтев направљен. Идите на 'Предлози' да пронађете кандидате.</string>
+    <string name="msg_request_created">Захтев направљен. Идите на \'Предлози\' да пронађете кандидате.</string>
 
     <string name="header_supervisor_pending">Чека одобрење (Надзорник)</string>
     <string name="header_in_process">У процесу</string>
@@ -289,7 +289,7 @@
     <string name="header_search_candidates">Пронађи кандидате за своје смене</string>
     <string name="desc_search_candidates">Изаберите једну од својих понуђених смена да видите ко може да се мења са вама.</string>
     <string name="msg_no_active_offers">Немате активних понуда.</string>
-    <string name="desc_create_offer">Прво направите једну у 'Моје смене'.</string>
+    <string name="desc_create_offer">Прво направите једну у \'Моје смене\'.</string>
     <string name="label_offering_shift">Нудите смену:</string>
     <string name="btn_see_candidates">ВИДИ КОМПАТИБИЛНЕ КАНДИДАТЕ</string>
     <string name="badge_active">АКТИВНО</string>
@@ -327,7 +327,7 @@
     <string name="label_destination">Одредиште</string>
     <string name="label_searching_candidate">Тражење кандидата...</string>
     <string name="label_offering">Нудите: %1$s</string>
-    <string name="label_suggestion_hint">Идите на картицу 'Предлози' да предложите замену.</string>
+    <string name="label_suggestion_hint">Идите на картицу \'Предлози\' да предложите замену.</string>
     <string name="btn_approve">Одобри</string>
     <string name="btn_reject">Одбиј</string>
     <string name="btn_accept">Прихвати замену</string>

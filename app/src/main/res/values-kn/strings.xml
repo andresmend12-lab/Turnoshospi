@@ -285,7 +285,7 @@
     <string name="msg_supervisor_rejected">ಸೂಪರ್‌ವೈಸರ್ ಬದಲಾವಣೆಯನ್ನು ನಿರಾಕರಿಸಿದ್ದಾರೆ.</string>
     <string name="msg_partner_accepted">ನಿಮ್ಮ ಸಹೋದ್ಯೋಗಿ ಒಪ್ಪಿದ್ದಾರೆ. ಸೂಪರ್‌ವೈಸರ್ ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು ನಿರೀಕ್ಷಿಸಲಾಗುತ್ತಿದೆ.</string>
     <string name="msg_partner_rejected">ಸಹೋದ್ಯೋಗಿ ಬದಲಾವಣೆಯನ್ನು ನಿರಾಕರಿಸಿದ್ದಾರೆ.</string>
-    <string name="msg_request_created">ವಿನಂತಿ ರಚಿಸಲಾಗಿದೆ. ಅಭ್ಯರ್ಥಿಗಳನ್ನು ಹುಡುಕಲು 'ಸಲಹೆಗಳು' ಟ್ಯಾಬ್‌ಗೆ ಹೋಗಿ.</string>
+    <string name="msg_request_created">ವಿನಂತಿ ರಚಿಸಲಾಗಿದೆ. ಅಭ್ಯರ್ಥಿಗಳನ್ನು ಹುಡುಕಲು \'ಸಲಹೆಗಳು\' ಟ್ಯಾಬ್‌ಗೆ ಹೋಗಿ.</string>
 
     <string name="header_supervisor_pending">ಅನುಮೋದನೆಗೆ ಬಾಕಿ (ಸೂಪರ್‌ವೈಸರ್)</string>
     <string name="header_in_process">ಪ್ರಕ್ರಿಯೆಯಲ್ಲಿದೆ</string>
@@ -296,7 +296,7 @@
     <string name="header_search_candidates">ನಿಮ್ಮ ಶಿಫ್ಟ್‌ಗಳಿಗೆ ಅಭ್ಯರ್ಥಿಗಳನ್ನು ಹುಡುಕಿ</string>
     <string name="desc_search_candidates">ನಿಮ್ಮ ನೀಡಿದ ಶಿಫ್ಟ್‌ಗಳಲ್ಲಿ ಒಂದನ್ನು ಆಯ್ಕೆ ಮಾಡಿ ಯಾರು ನಿಮ್ಮ ಜೊತೆ ಬದಲಾವಣೆ ಮಾಡಬಹುದು ಎಂದು ನೋಡಿ.</string>
     <string name="msg_no_active_offers">ನಿಮ್ಮ ಬಳಿ ಯಾವುದೇ ಸಕ್ರಿಯ ಆಫರ್‌ಗಳಿಲ್ಲ.</string>
-    <string name="desc_create_offer">'ನನ್ನ ಶಿಫ್ಟ್‌ಗಳು' ವಿಭಾಗದಲ್ಲಿ ಮೊದಲಾಗಿ ಆಫರ್ ರಚಿಸಿ.</string>
+    <string name="desc_create_offer">\'ನನ್ನ ಶಿಫ್ಟ್‌ಗಳು\' ವಿಭಾಗದಲ್ಲಿ ಮೊದಲಾಗಿ ಆಫರ್ ರಚಿಸಿ.</string>
     <string name="label_offering_shift">ನೀವು ನೀಡುತ್ತಿರುವ ಶಿಫ್ಟ್:</string>
     <string name="btn_see_candidates">ಹೊಂದಾಣಿಕೆಯ ಅಭ್ಯರ್ಥಿಗಳನ್ನು ನೋಡಿ</string>
     <string name="badge_active">ಸಕ್ರಿಯ</string>
@@ -334,7 +334,7 @@
     <string name="label_destination">ಗುರಿ</string>
     <string name="label_searching_candidate">ಅಭ್ಯರ್ಥಿಯನ್ನು ಹುಡುಕಲಾಗುತ್ತಿದೆ...</string>
     <string name="label_offering">ನೀವು ನೀಡುತ್ತಿರುವುದು: %1$s</string>
-    <string name="label_suggestion_hint">ಬದಲಾವಣೆ ಪ್ರಸ್ತಾಪಿಸಲು 'ಸಲಹೆಗಳು' ಟ್ಯಾಬ್‌ಗೆ ಹೋಗಿ.</string>
+    <string name="label_suggestion_hint">ಬದಲಾವಣೆ ಪ್ರಸ್ತಾಪಿಸಲು \'ಸಲಹೆಗಳು\' ಟ್ಯಾಬ್‌ಗೆ ಹೋಗಿ.</string>
     <string name="btn_approve">ಅನುಮೋದಿಸಿ</string>
     <string name="btn_reject">ನಿರಾಕರಿಸಿ</string>
     <string name="btn_accept">ಬದಲಾವಣೆಯನ್ನು ಸ್ವೀಕರಿಸಿ</string>
@@ -390,9 +390,9 @@
     <string name="error_empty_file">ಫೈಲ್ ಖಾಲಿಯಾಗಿದೆ.</string>
     <string name="error_row_format">%1$d ಸಾಲಿನಲ್ಲಿ ದೋಷ: ತಪ್ಪಾದ ಫಾರ್ಮ್ಯಾಟ್. ಕಾಲಮ್‌ಗಳು ಕಾಣೆಯಾಗಿವೆ.</string>
     <string name="error_date_invalid">%1$d ಸಾಲಿನಲ್ಲಿ ದೋಷ: ಅಮಾನ್ಯ ದಿನಾಂಕ (%2$s). YYYY-MM-DD ಬಳಸಿ.</string>
-    <string name="error_shift_not_found">%1$d ಸಾಲಿನಲ್ಲಿ ದೋಷ: '%2$s' ಶಿಫ್ಟ್ ಈ ವಾರ್ಡ್‌ನಲ್ಲಿ ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ.</string>
-    <string name="error_role_unknown">%1$d ಸಾಲಿನಲ್ಲಿ ದೋಷ: '%2$s' ಪಾತ್ರ ಅಜ್ಞಾತ. 'Nurse', 'Assistant' ಅಥವಾ 'CNA' ಬಳಸಿ.</string>
-    <string name="error_user_not_found">%1$d ಸಾಲಿನಲ್ಲಿ ದೋಷ: '%2$s' ವಾರ್ಡ್ ಸಿಬ್ಬಂದಿಯಲ್ಲಿ ನೋಂದಾಯಿಸಿಲ್ಲ.</string>
+    <string name="error_shift_not_found">%1$d ಸಾಲಿನಲ್ಲಿ ದೋಷ: \'%2$s\' ಶಿಫ್ಟ್ ಈ ವಾರ್ಡ್‌ನಲ್ಲಿ ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ.</string>
+    <string name="error_role_unknown">%1$d ಸಾಲಿನಲ್ಲಿ ದೋಷ: \'%2$s\' ಪಾತ್ರ ಅಜ್ಞಾತ. \'Nurse\', \'Assistant\' ಅಥವಾ \'CNA\' ಬಳಸಿ.</string>
+    <string name="error_user_not_found">%1$d ಸಾಲಿನಲ್ಲಿ ದೋಷ: \'%2$s\' ವಾರ್ಡ್ ಸಿಬ್ಬಂದಿಯಲ್ಲಿ ನೋಂದಾಯಿಸಿಲ್ಲ.</string>
     <string name="msg_import_complete">ಇಂಪೋರ್ಟ್ ಯಶಸ್ವಿಯಾಗಿ ಪೂರ್ಣಗೊಂಡಿದೆ.</string>
     <string name="error_db_save">ಡೇಟಾಬೇಸ್‌ಗೆ ಉಳಿಸುವಲ್ಲಿ ದೋಷ: %1$s</string>
     <string name="error_read_file">ಫೈಲ್ ಓದುವಲ್ಲಿ ದೋಷ: %1$s</string>
@@ -436,9 +436,9 @@
     <string name="error_csv_empty">ಫೈಲ್ ಖಾಲಿಯಾಗಿದೆ.</string>
     <string name="error_csv_format">%1$d ಸಾಲಿನಲ್ಲಿ ದೋಷ: ತಪ್ಪಾದ ಫಾರ್ಮ್ಯಾಟ್. ಕಾಲಮ್‌ಗಳು ಕಾಣೆಯಾಗಿವೆ.</string>
     <string name="error_csv_date">%1$d ಸಾಲಿನಲ್ಲಿ ದೋಷ: ಅಮಾನ್ಯ ದಿನಾಂಕ (%2$s). YYYY-MM-DD ಬಳಸಿ.</string>
-    <string name="error_csv_shift">%1$d ಸಾಲಿನಲ್ಲಿ ದೋಷ: '%2$s' ಶಿಫ್ಟ್ ಈ ವಾರ್ಡ್‌ನಲ್ಲಿ ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ.</string>
-    <string name="error_csv_role">%1$d ಸಾಲಿನಲ್ಲಿ ದೋಷ: '%2$s' ಪಾತ್ರ ಬೆಂಬಲಿತವಲ್ಲ. 'Enfermero', 'Auxiliar' ಅಥವಾ 'TCAE' ಬಳಸಿ.</string>
-    <string name="error_csv_staff_not_found">%1$d ಸಾಲಿನಲ್ಲಿ ದೋಷ: '%2$s' ವಾರ್ಡ್ ಸಿಬ್ಬಂದಿಯಲ್ಲಿ ನೋಂದಾಯಿಸಿಲ್ಲ.</string>
+    <string name="error_csv_shift">%1$d ಸಾಲಿನಲ್ಲಿ ದೋಷ: \'%2$s\' ಶಿಫ್ಟ್ ಈ ವಾರ್ಡ್‌ನಲ್ಲಿ ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ.</string>
+    <string name="error_csv_role">%1$d ಸಾಲಿನಲ್ಲಿ ದೋಷ: \'%2$s\' ಪಾತ್ರ ಬೆಂಬಲಿತವಲ್ಲ. \'Enfermero\', \'Auxiliar\' ಅಥವಾ \'TCAE\' ಬಳಸಿ.</string>
+    <string name="error_csv_staff_not_found">%1$d ಸಾಲಿನಲ್ಲಿ ದೋಷ: \'%2$s\' ವಾರ್ಡ್ ಸಿಬ್ಬಂದಿಯಲ್ಲಿ ನೋಂದಾಯಿಸಿಲ್ಲ.</string>
     <string name="error_file_read">ಫೈಲ್ ಓದುವಲ್ಲಿ ದೋಷ: %1$s</string>
     <string name="error_template_save">ಉಳಿಸುವಲ್ಲಿ ದೋಷ: %1$s</string>
     <string name="statistics_user_title">%1$s ಗಾಗಿ ಆಂಕಿಅಂಶಗಳು</string>

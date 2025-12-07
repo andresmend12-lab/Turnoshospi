@@ -285,7 +285,7 @@
     <string name="msg_supervisor_rejected">Nadzornik je odbio zamjenu.</string>
     <string name="msg_partner_accepted">Vaš kolega je prihvatio. Čeka se nadzornikova odluka.</string>
     <string name="msg_partner_rejected">Kolega je odbio zamjenu.</string>
-    <string name="msg_request_created">Zahtjev je stvoren. Idite na karticu 'Prijedlozi' kako biste pronašli kandidate.</string>
+    <string name="msg_request_created">Zahtjev je stvoren. Idite na karticu \'Prijedlozi\' kako biste pronašli kandidate.</string>
 
     <string name="header_supervisor_pending">Na čekanju (nadzornik)</string>
     <string name="header_in_process">U tijeku</string>
@@ -296,7 +296,7 @@
     <string name="header_search_candidates">Pronađite kandidate za svoje smjene</string>
     <string name="desc_search_candidates">Odaberite jednu od svojih ponuđenih smjena da biste vidjeli tko može zamijeniti s vama.</string>
     <string name="msg_no_active_offers">Nemate aktivnih ponuda.</string>
-    <string name="desc_create_offer">Najprije stvorite ponudu u 'Moje smjene'.</string>
+    <string name="desc_create_offer">Najprije stvorite ponudu u \'Moje smjene\'.</string>
     <string name="label_offering_shift">Nudite smjenu:</string>
     <string name="btn_see_candidates">PRIKAŽI ODGOVARAJUĆE KANDIDATE</string>
     <string name="badge_active">AKTIVNO</string>
@@ -334,7 +334,7 @@
     <string name="label_destination">Odredišna</string>
     <string name="label_searching_candidate">Pretraživanje kandidata...</string>
     <string name="label_offering">Nudite: %1$s</string>
-    <string name="label_suggestion_hint">Idite na karticu 'Prijedlozi' kako biste predložili zamjenu.</string>
+    <string name="label_suggestion_hint">Idite na karticu \'Prijedlozi\' kako biste predložili zamjenu.</string>
     <string name="btn_approve">Odobri</string>
     <string name="btn_reject">Odbij</string>
     <string name="btn_accept">Prihvati zamjenu</string>
@@ -390,9 +390,9 @@
     <string name="error_empty_file">Datoteka je prazna.</string>
     <string name="error_row_format">Pogreška u retku %1$d: Neispravan format. Nedostaju stupci.</string>
     <string name="error_date_invalid">Pogreška u retku %1$d: Neispravan datum (%2$s). Koristite YYYY-MM-DD.</string>
-    <string name="error_shift_not_found">Pogreška u retku %1$d: Smjena '%2$s' ne postoji u ovom odjelu.</string>
-    <string name="error_role_unknown">Pogreška u retku %1$d: Nepoznata uloga '%2$s'. Koristite 'Nurse', 'Assistant' ili 'CNA'.</string>
-    <string name="error_user_not_found">Pogreška u retku %1$d: '%2$s' nije registriran u osoblju odjela.</string>
+    <string name="error_shift_not_found">Pogreška u retku %1$d: Smjena \'%2$s\' ne postoji u ovom odjelu.</string>
+    <string name="error_role_unknown">Pogreška u retku %1$d: Nepoznata uloga \'%2$s\'. Koristite \'Nurse\', \'Assistant\' ili \'CNA\'.</string>
+    <string name="error_user_not_found">Pogreška u retku %1$d: \'%2$s\' nije registriran u osoblju odjela.</string>
     <string name="msg_import_complete">Uvoz je uspješno dovršen.</string>
     <string name="error_db_save">Pogreška pri spremanju u bazu podataka: %1$s</string>
     <string name="error_read_file">Pogreška pri čitanju datoteke: %1$s</string>
@@ -436,9 +436,9 @@
     <string name="error_csv_empty">Datoteka je prazna.</string>
     <string name="error_csv_format">Pogreška u retku %1$d: Neispravan format. Nedostaju stupci.</string>
     <string name="error_csv_date">Pogreška u retku %1$d: Neispravan datum (%2$s). Koristite YYYY-MM-DD.</string>
-    <string name="error_csv_shift">Pogreška u retku %1$d: Smjena '%2$s' ne postoji u ovom odjelu.</string>
-    <string name="error_csv_role">Pogreška u retku %1$d: Uloga '%2$s' nije podržana. Koristite 'Enfermero', 'Auxiliar' ili 'TCAE'.</string>
-    <string name="error_csv_staff_not_found">Pogreška u retku %1$d: '%2$s' nije registriran u osoblju odjela.</string>
+    <string name="error_csv_shift">Pogreška u retku %1$d: Smjena \'%2$s\' ne postoji u ovom odjelu.</string>
+    <string name="error_csv_role">Pogreška u retku %1$d: Uloga \'%2$s\' nije podržana. Koristite \'Enfermero\', \'Auxiliar\' ili \'TCAE\'.</string>
+    <string name="error_csv_staff_not_found">Pogreška u retku %1$d: \'%2$s\' nije registriran u osoblju odjela.</string>
     <string name="error_file_read">Pogreška pri čitanju datoteke: %1$s</string>
     <string name="error_template_save">Pogreška pri spremanju: %1$s</string>
     <string name="statistics_user_title">Statistika za %1$s</string>

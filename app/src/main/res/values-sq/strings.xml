@@ -180,7 +180,7 @@
     <string name="save_and_exit">Ruaj dhe dil</string>
 
     <string name="my_plant_empty_title">Nuk jeni ende në një repart</string>
-    <string name="my_plant_empty_message">Futni ID-në e repartit dhe kodin e ftesës të ndarë nga mbikëqyrësi juaj për t'u bashkuar.</string>
+    <string name="my_plant_empty_message">Futni ID-në e repartit dhe kodin e ftesës të ndarë nga mbikëqyrësi juaj për t\'u bashkuar.</string>
     <string name="invitation_code_label">Kodi i ftesës</string>
     <string name="join_plant_action">Bashkohu në repart</string>
     <string name="join_plant_success">U bashkuat me sukses në repart.</string>
@@ -316,7 +316,7 @@
     <string name="chip_flexible">Fleksibël</string>
     <string name="chip_strict">Strikt</string>
     <string name="desc_flexible">Do të kërkohet çdo koleg i përshtatshëm.</string>
-    <string name="desc_strict">Përparësi do t'u jepet atyre që ju detyrohen turne.</string>
+    <string name="desc_strict">Përparësi do t\'u jepet atyre që ju detyrohen turne.</string>
     <string name="btn_publish_request">PUBLIKO KËRKESËN</string>
 
     <string name="status_pending_supervisor">NË PRITJE TË MIRATIMIT NGA MBIKËQYRËSI</string>
@@ -344,7 +344,7 @@
     <string name="msg_you_covered">Ju mbuluat turnin e tyre</string>
     <string name="msg_covered_you">Mbuloi turnin tuaj</string>
     <string name="header_available_shifts">Turnet e disponueshme (Të përshtatshme me ju)</string>
-    <string name="desc_available_shifts">Shfaqen vetëm turnet që mund t'i kryeni ligjërisht.</string>
+    <string name="desc_available_shifts">Shfaqen vetëm turnet që mund t\'i kryeni ligjërisht.</string>
     <string name="msg_no_shifts_available">Nuk ka turne të disponueshme për ju.</string>
     <string name="msg_hidden_shifts">(%1$d turne të papërshtatshme të fshehura)</string>
     <string name="label_requests">Kërkesa: %1$s</string>

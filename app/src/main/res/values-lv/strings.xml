@@ -278,7 +278,7 @@
     <string name="msg_supervisor_rejected">Vadītājs noraidīja maiņu.</string>
     <string name="msg_partner_accepted">Jūsu kolēģis piekrita. Gaida vadītāju.</string>
     <string name="msg_partner_rejected">Kolēģis noraidīja maiņu.</string>
-    <string name="msg_request_created">Pieprasījums izveidots. Dodieties uz 'Ieteikumi', lai atrastu kandidātus.</string>
+    <string name="msg_request_created">Pieprasījums izveidots. Dodieties uz \'Ieteikumi\', lai atrastu kandidātus.</string>
 
     <string name="header_supervisor_pending">Gaida apstiprinājumu (Vadītājs)</string>
     <string name="header_in_process">Procesā</string>
@@ -289,7 +289,7 @@
     <string name="header_search_candidates">Atrast kandidātus jūsu maiņām</string>
     <string name="desc_search_candidates">Izvēlieties vienu no piedāvātajām maiņām, lai redzētu, kas var mainīties ar jums.</string>
     <string name="msg_no_active_offers">Jums nav aktīvu piedāvājumu.</string>
-    <string name="desc_create_offer">Vispirms izveidojiet to sadaļā 'Manas maiņas'.</string>
+    <string name="desc_create_offer">Vispirms izveidojiet to sadaļā \'Manas maiņas\'.</string>
     <string name="label_offering_shift">Piedāvā maiņu:</string>
     <string name="btn_see_candidates">SKATĪT SADERĪGUS KANDIDĀTUS</string>
     <string name="badge_active">AKTĪVS</string>
@@ -327,7 +327,7 @@
     <string name="label_destination">Galamērķis</string>
     <string name="label_searching_candidate">Meklē kandidātu...</string>
     <string name="label_offering">Jūs piedāvājat: %1$s</string>
-    <string name="label_suggestion_hint">Dodieties uz cilni 'Ieteikumi', lai ierosinātu maiņu.</string>
+    <string name="label_suggestion_hint">Dodieties uz cilni \'Ieteikumi\', lai ierosinātu maiņu.</string>
     <string name="btn_approve">Apstiprināt</string>
     <string name="btn_reject">Noraidīt</string>
     <string name="btn_accept">Pieņemt maiņu</string>
@@ -383,9 +383,9 @@
     <string name="error_empty_file">Fails ir tukšs.</string>
     <string name="error_row_format">Kļūda rindā %1$d: Nepareizs formāts. Trūkst kolonnu.</string>
     <string name="error_date_invalid">Kļūda rindā %1$d: Nederīgs datums (%2$s). Izmantojiet GGGG-MM-DD.</string>
-    <string name="error_shift_not_found">Kļūda rindā %1$d: Maiņa '%2$s' neeksistē šajā nodaļā.</string>
-    <string name="error_role_unknown">Kļūda rindā %1$d: Nezināma loma '%2$s'. Izmantojiet 'Māsa', 'Palīgs' vai 'TCAE'.</string>
-    <string name="error_user_not_found">Kļūda rindā %1$d: '%2$s' nav reģistrēts nodaļas personālā.</string>
+    <string name="error_shift_not_found">Kļūda rindā %1$d: Maiņa \'%2$s\' neeksistē šajā nodaļā.</string>
+    <string name="error_role_unknown">Kļūda rindā %1$d: Nezināma loma \'%2$s\'. Izmantojiet \'Māsa\', \'Palīgs\' vai \'TCAE\'.</string>
+    <string name="error_user_not_found">Kļūda rindā %1$d: \'%2$s\' nav reģistrēts nodaļas personālā.</string>
     <string name="msg_import_complete">Imports pabeigts veiksmīgi.</string>
     <string name="error_db_save">Kļūda saglabājot datubāzē: %1$s</string>
     <string name="error_read_file">Kļūda lasot failu: %1$s</string>
@@ -429,9 +429,9 @@
     <string name="error_csv_empty">Fails ir tukšs.</string>
     <string name="error_csv_format">Kļūda rindā %1$d: Nepareizs formāts. Trūkst kolonnu.</string>
     <string name="error_csv_date">Kļūda rindā %1$d: Nederīgs datums (%2$s). Izmantojiet GGGG-MM-DD.</string>
-    <string name="error_csv_shift">Kļūda rindā %1$d: Maiņa '%2$s' neeksistē šajā nodaļā.</string>
-    <string name="error_csv_role">Kļūda rindā %1$d: Loma '%2$s' nezināma. Izmantojiet 'Enfermero', 'Auxiliar' vai 'TCAE'.</string>
-    <string name="error_csv_staff_not_found">Kļūda rindā %1$d: '%2$s' nav reģistrēts nodaļas personālā.</string>
+    <string name="error_csv_shift">Kļūda rindā %1$d: Maiņa \'%2$s\' neeksistē šajā nodaļā.</string>
+    <string name="error_csv_role">Kļūda rindā %1$d: Loma \'%2$s\' nezināma. Izmantojiet \'Enfermero\', \'Auxiliar\' vai \'TCAE\'.</string>
+    <string name="error_csv_staff_not_found">Kļūda rindā %1$d: \'%2$s\' nav reģistrēts nodaļas personālā.</string>
     <string name="error_file_read">Kļūda lasot failu: %1$s</string>
     <string name="error_template_save">Kļūda saglabājot: %1$s</string>
     <string name="statistics_user_title">Statistika priekš %1$s</string>

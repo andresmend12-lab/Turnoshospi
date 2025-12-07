@@ -231,7 +231,7 @@
     <string name="auth_user_collision">Selle e-posti aadressiga konto on juba olemas</string>
     <string name="auth_invalid_credentials">E-post või parool on vigane</string>
     <string name="auth_invalid_user">Seda kontot ei ole olemas või see on keelatud</string>
-    <string name="auth_operation_not_allowed">Luba Firebase'i konsoolis E-mail/Password pakkuja</string>
+    <string name="auth_operation_not_allowed">Luba Firebase\'i konsoolis E-mail/Password pakkuja</string>
     <string name="auth_network_error">Serveriga pole ühendust. Kontrolli oma internetiühendust</string>
     <string name="auth_generic_error">Autentimisviga:</string>
     <string name="auth_unknown_error">Toimingut ei õnnestunud lõpule viia. Proovi uuesti</string>
@@ -248,8 +248,8 @@
     <string name="error_save_profile">Profiili ei õnnestunud reaalajas salvestada</string>
     <string name="profile_save_error">Profiili ei õnnestunud reaalajas salvestada</string>
 
-    <string name="error_db_rules">Kontrolli Realtime Database'i reegleid ja kirjutusõigusi</string>
-    <string name="database_rules_error">Kontrolli Realtime Database'i reegleid ja kirjutusõigusi</string>
+    <string name="error_db_rules">Kontrolli Realtime Database\'i reegleid ja kirjutusõigusi</string>
+    <string name="database_rules_error">Kontrolli Realtime Database\'i reegleid ja kirjutusõigusi</string>
 
     <string name="error_delete_plant">Osakonda ei õnnestunud kustutada. Proovi uuesti.</string>
     <string name="delete_plant_error">Osakonda ei õnnestunud kustutada. Proovi uuesti.</string>

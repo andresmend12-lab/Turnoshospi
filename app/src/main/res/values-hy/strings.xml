@@ -391,7 +391,7 @@
     <string name="error_row_format">Սխալ %1$d-րդ տողում․ սխալ ձևաչափ։ Սյունակներ կան բացակա։</string>
     <string name="error_date_invalid">Սխալ %1$d-րդ տողում․ սխալ ամսաթիվ (%2$s)։ Օգտագործեք YYYY-MM-DD։</string>
     <string name="error_shift_not_found">Սխալ %1$d-րդ տողում․ «%2$s» հերթապահությունը չկա այս բաժանմունքում։</string>
-    <string name="error_role_unknown">Սխալ %1$d-րդ տողում․ անհայտ դեր «%2$s»։ Օգտագործեք 'Nurse', 'Assistant' կամ 'CNA'։</string>
+    <string name="error_role_unknown">Սխալ %1$d-րդ տողում․ անհայտ դեր «%2$s»։ Օգտագործեք \'Nurse\', \'Assistant\' կամ \'CNA\'։</string>
     <string name="error_user_not_found">Սխալ %1$d-րդ տողում․ «%2$s»-ը գրանցված չէ բաժանմունքի անձնակազմում։</string>
     <string name="msg_import_complete">Ներմուծումը հաջողությամբ ավարտված է։</string>
     <string name="error_db_save">Սխալ՝ տվյալների բազայում պահպանելիս․ %1$s</string>
@@ -437,7 +437,7 @@
     <string name="error_csv_format">Սխալ %1$d-րդ տողում․ սխալ ձևաչափ։ Սյունակներ կան բացակա։</string>
     <string name="error_csv_date">Սխալ %1$d-րդ տողում․ սխալ ամսաթիվ (%2$s)։ Օգտագործեք YYYY-MM-DD։</string>
     <string name="error_csv_shift">Սխալ %1$d-րդ տողում․ «%2$s» հերթապահությունը չկա այս բաժանմունքում։</string>
-    <string name="error_csv_role">Սխալ %1$d-րդ տողում․ «%2$s» դերը չի աջակցվում։ Օգտագործեք 'Enfermero', 'Auxiliar' կամ 'TCAE'։</string>
+    <string name="error_csv_role">Սխալ %1$d-րդ տողում․ «%2$s» դերը չի աջակցվում։ Օգտագործեք \'Enfermero\', \'Auxiliar\' կամ \'TCAE\'։</string>
     <string name="error_csv_staff_not_found">Սխալ %1$d-րդ տողում․ «%2$s»-ը գրանցված չէ բաժանմունքի անձնակազմում։</string>
     <string name="error_file_read">Սխալ՝ ֆայլը կարդալիս․ %1$s</string>
     <string name="error_template_save">Սխալ՝ պահպանելիս․ %1$s</string>

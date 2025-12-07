@@ -75,7 +75,7 @@
     <string name="register_button">ਪ੍ਰੋਫਾਈਲ ਸੇਵ ਕਰੋ</string>
     <string name="forgot_password">ਪਾਸਵਰਡ ਭੁੱਲ ਗਏ?</string>
     <string name="reset_email_sent">ਅਸੀਂ ਇੱਕ ਰਿਕਵਰੀ ਲਿੰਕ ਭੇਜਿਆ ਹੈ</string>
-    <string name="back_to_login_action">ਲੌਗ ਇਨ 'ਤੇ ਵਾਪਸ ਜਾਓ</string>
+    <string name="back_to_login_action">ਲੌਗ ਇਨ \'ਤੇ ਵਾਪਸ ਜਾਓ</string>
     <string name="sign_out">ਲੌਗ ਆਉਟ</string>
     <string name="loading_profile">ਤੁਹਾਡਾ ਪ੍ਰੋਫਾਈਲ ਡਾਟਾ ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ…</string>
     <string name="profile_summary_title">ਤੁਹਾਡਾ ਪ੍ਰੋਫਾਈਲ</string>
@@ -118,7 +118,7 @@
     <string name="shift_duration_placeholder">ਮਿਆਦ ਚੁਣੋ</string>
     <string name="shift_duration_8h">8 ਘੰਟੇ</string>
     <string name="shift_duration_12h">12 ਘੰਟੇ</string>
-    <string name="shift_timing_instruction">ਚੁਣੀ ਗਈ ਮਿਆਦ ਦੇ ਆਧਾਰ 'ਤੇ ਹਰੇਕ ਸ਼ਿਫਟ ਦਾ ਸਮਾਂ ਤੈਅ ਕਰੋ।</string>
+    <string name="shift_timing_instruction">ਚੁਣੀ ਗਈ ਮਿਆਦ ਦੇ ਆਧਾਰ \'ਤੇ ਹਰੇਕ ਸ਼ਿਫਟ ਦਾ ਸਮਾਂ ਤੈਅ ਕਰੋ।</string>
     <string name="shift_half_day_question">ਕੀ ਅੱਧੇ ਦਿਨ ਦੀਆਂ ਸ਼ਿਫਟਾਂ ਦੀ ਇਜਾਜ਼ਤ ਹੈ?</string>
     <string name="shift_start_label">ਸ਼ੁਰੂ</string>
     <string name="shift_end_label">ਖਤਮ</string>
@@ -134,7 +134,7 @@
     <string name="plant_id_label">ਵਾਰਡ ID</string>
     <string name="plant_access_password_label">ਪਹੁੰਚ ਪਾਸਵਰਡ</string>
     <string name="plant_share_hint">ਇਹ ਵੇਰਵੇ ਆਪਣੀ ਟੀਮ ਨਾਲ ਸਾਂਝੇ ਕਰੋ ਤਾਂ ਜੋ ਉਹ ਵਾਰਡ ਤੱਕ ਪਹੁੰਚ ਕਰ ਸਕਣ।</string>
-    <string name="back_to_menu">ਮੇਨ ਮੇਨੂ 'ਤੇ ਵਾਪਸ ਜਾਓ</string>
+    <string name="back_to_menu">ਮੇਨ ਮੇਨੂ \'ਤੇ ਵਾਪਸ ਜਾਓ</string>
 
     <string name="refresh_plant_action">ਡਾਟਾ ਅਪਡੇਟ ਕਰੋ</string>
     <string name="plant_location_label">%1$s • %2$s</string>
@@ -201,11 +201,11 @@
     <string name="notes_title">ਨੋਟਸ</string>
     <string name="add_note">ਨੋਟ ਸ਼ਾਮਲ ਕਰੋ</string>
     <string name="write_here">ਇੱਥੇ ਲਿਖੋ...</string>
-    <string name="no_notes_hint">ਕੋਈ ਨੋਟ ਨਹੀਂ। ਬਣਾਉਣ ਲਈ + 'ਤੇ ਟੈਪ ਕਰੋ।</string>
+    <string name="no_notes_hint">ਕੋਈ ਨੋਟ ਨਹੀਂ। ਬਣਾਉਣ ਲਈ + \'ਤੇ ਟੈਪ ਕਰੋ।</string>
     <string name="chat_screen_title">ਮੇਰੀਆਂ ਚੈਟਾਂ</string>
     <string name="new_chat_desc">ਨਵੀਂ ਚੈਟ</string>
     <string name="no_recent_chats">ਤੁਹਾਡੇ ਕੋਲ ਕੋਈ ਹਾਲੀਆ ਚੈਟ ਨਹੀਂ ਹੈ।</string>
-    <string name="start_chat_hint">ਸ਼ੁਰੂ ਕਰਨ ਲਈ + 'ਤੇ ਟੈਪ ਕਰੋ।</string>
+    <string name="start_chat_hint">ਸ਼ੁਰੂ ਕਰਨ ਲਈ + \'ਤੇ ਟੈਪ ਕਰੋ।</string>
     <string name="delete_chat_action">ਚੈਟ ਹਟਾਓ</string>
     <string name="start_new_chat_title">ਨਵੀਂ ਚੈਟ ਸ਼ੁਰੂ ਕਰੋ</string>
     <string name="no_users_found">ਇਸ ਵਾਰਡ ਵਿੱਚ ਕੋਈ ਹੋਰ ਰਜਿਸਟਰਡ ਯੂਜ਼ਰ ਨਹੀਂ ਮਿਲਿਆ।</string>
@@ -278,7 +278,7 @@
     <string name="msg_supervisor_rejected">ਸੁਪਰਵਾਈਜ਼ਰ ਨੇ ਬਦਲਾਅ ਰੱਦ ਕਰ ਦਿੱਤਾ।</string>
     <string name="msg_partner_accepted">ਤੁਹਾਡੇ ਸਹਿਕਰਮੀ ਨੇ ਸਵੀਕਾਰ ਕਰ ਲਿਆ। ਸੁਪਰਵਾਈਜ਼ਰ ਦੀ ਉਡੀਕ ਕੀਤੀ ਜਾ ਰਹੀ ਹੈ।</string>
     <string name="msg_partner_rejected">ਸਹਿਕਰਮੀ ਨੇ ਬਦਲਾਅ ਰੱਦ ਕਰ ਦਿੱਤਾ।</string>
-    <string name="msg_request_created">ਬੇਨਤੀ ਬਣਾਈ ਗਈ। ਉਮੀਦਵਾਰ ਲੱਭਣ ਲਈ \'ਸੁਝਾਅ\' 'ਤੇ ਜਾਓ।</string>
+    <string name="msg_request_created">ਬੇਨਤੀ ਬਣਾਈ ਗਈ। ਉਮੀਦਵਾਰ ਲੱਭਣ ਲਈ \'ਸੁਝਾਅ\' \'ਤੇ ਜਾਓ।</string>
 
     <string name="header_supervisor_pending">ਮਨਜ਼ੂਰੀ ਲੰਬਿਤ (ਸੁਪਰਵਾਈਜ਼ਰ)</string>
     <string name="header_in_process">ਪ੍ਰਕਿਰਿਆ ਅਧੀਨ</string>
@@ -327,7 +327,7 @@
     <string name="label_destination">ਮੰਜ਼ਿਲ</string>
     <string name="label_searching_candidate">ਉਮੀਦਵਾਰ ਲੱਭਿਆ ਜਾ ਰਿਹਾ ਹੈ...</string>
     <string name="label_offering">ਤੁਸੀਂ ਪੇਸ਼ਕਸ਼ ਕਰਦੇ ਹੋ: %1$s</string>
-    <string name="label_suggestion_hint">ਸਵੈਪ ਪ੍ਰਸਤਾਵਿਤ ਕਰਨ ਲਈ \'ਸੁਝਾਅ\' ਟੈਬ 'ਤੇ ਜਾਓ।</string>
+    <string name="label_suggestion_hint">ਸਵੈਪ ਪ੍ਰਸਤਾਵਿਤ ਕਰਨ ਲਈ \'ਸੁਝਾਅ\' ਟੈਬ \'ਤੇ ਜਾਓ।</string>
     <string name="btn_approve">ਮਨਜ਼ੂਰ ਕਰੋ</string>
     <string name="btn_reject">ਰੱਦ ਕਰੋ</string>
     <string name="btn_accept">ਸਵੈਪ ਸਵੀਕਾਰ ਕਰੋ</string>
@@ -344,7 +344,7 @@
     <string name="msg_you_covered">ਤੁਸੀਂ ਉਨ੍ਹਾਂ ਦੀ ਸ਼ਿਫਟ ਕਵਰ ਕੀਤੀ</string>
     <string name="msg_covered_you">ਤੁਹਾਡੀ ਸ਼ਿਫਟ ਕਵਰ ਕੀਤੀ</string>
     <string name="header_available_shifts">ਉਪਲਬਧ ਸ਼ਿਫਟਾਂ (ਤੁਹਾਡੇ ਨਾਲ ਅਨੁਕੂਲ)</string>
-    <string name="desc_available_shifts">ਸਿਰਫ਼ ਉਹੀ ਸ਼ਿਫਟਾਂ ਦਿਖਾਈਆਂ ਗਈਆਂ ਹਨ ਜੋ ਤੁਸੀਂ ਕਾਨੂੰਨੀ ਤੌਰ 'ਤੇ ਕਰ ਸਕਦੇ ਹੋ।</string>
+    <string name="desc_available_shifts">ਸਿਰਫ਼ ਉਹੀ ਸ਼ਿਫਟਾਂ ਦਿਖਾਈਆਂ ਗਈਆਂ ਹਨ ਜੋ ਤੁਸੀਂ ਕਾਨੂੰਨੀ ਤੌਰ \'ਤੇ ਕਰ ਸਕਦੇ ਹੋ।</string>
     <string name="msg_no_shifts_available">ਤੁਹਾਡੇ ਲਈ ਕੋਈ ਸ਼ਿਫਟ ਉਪਲਬਧ ਨਹੀਂ ਹੈ।</string>
     <string name="msg_hidden_shifts">(%1$d ਅਸੰਗਤ ਸ਼ਿਫਟਾਂ ਛੁਪਾਈਆਂ ਗਈਆਂ)</string>
     <string name="label_requests">ਬੇਨਤੀ: %1$s</string>
@@ -371,11 +371,11 @@
     <string name="notif_unassigned">ਤੁਹਾਨੂੰ %1$s ਦੀ ਸ਼ਿਫਟ ਤੋਂ ਹਟਾ ਦਿੱਤਾ ਗਿਆ ਹੈ।</string>
     <string name="notif_assigned">%1$s ਲਈ ਤੁਹਾਡੀ ਸ਼ਿਫਟ ਸੁਪਰਵਾਈਜ਼ਰ ਦੁਆਰਾ ਅਪਡੇਟ ਕੀਤੀ ਗਈ ਹੈ।</string>
     <string name="msg_no_date_selected">ਕੋਈ ਮਿਤੀ ਨਹੀਂ ਚੁਣੀ ਗਈ।</string>
-    <string name="notif_vacation_saved">%1$s 'ਤੇ ਤੁਹਾਡੀ ਛੁੱਟੀ ਦਾ ਦਿਨ ਰਜਿਸਟਰ ਕੀਤਾ ਗਿਆ ਹੈ।</string>
+    <string name="notif_vacation_saved">%1$s \'ਤੇ ਤੁਹਾਡੀ ਛੁੱਟੀ ਦਾ ਦਿਨ ਰਜਿਸਟਰ ਕੀਤਾ ਗਿਆ ਹੈ।</string>
     <string name="error_save_vacation">ਛੁੱਟੀਆਂ ਸੇਵ ਕਰਨ ਵਿੱਚ ਗਲਤੀ: %1$s</string>
     <string name="error_past_dates">ਤੁਸੀਂ ਪਿਛਲੀਆਂ ਮਿਤੀਆਂ ਨਹੀਂ ਚੁਣ ਸਕਦੇ।</string>
     <string name="title_select_vacation">ਛੁੱਟੀਆਂ ਦੇ ਦਿਨ ਚੁਣੋ</string>
-    <string name="desc_select_vacation">ਉਹ ਦਿਨ ਚੁਣੋ ਜਦੋਂ ਤੁਸੀਂ ਛੁੱਟੀ 'ਤੇ ਹੋਵੋਗੇ:</string>
+    <string name="desc_select_vacation">ਉਹ ਦਿਨ ਚੁਣੋ ਜਦੋਂ ਤੁਸੀਂ ਛੁੱਟੀ \'ਤੇ ਹੋਵੋਗੇ:</string>
     <string name="msg_no_days_selected">ਕੋਈ ਦਿਨ ਨਹੀਂ ਚੁਣੇ ਗਏ।</string>
     <string name="btn_confirm_count">ਪੁਸ਼ਟੀ ਕਰੋ (%1$d ਦਿਨ)</string>
     <string name="title_import_options">ਆਯਾਤ ਵਿਕਲਪ</string>
@@ -409,7 +409,7 @@
     <string name="notif_vacation_saved_message">%1$s ਲਈ ਤੁਹਾਡੀ ਛੁੱਟੀ ਦਾ ਦਿਨ ਰਜਿਸਟਰ ਕੀਤਾ ਗਿਆ ਹੈ।</string>
 
     <string name="dialog_vacation_title">ਛੁੱਟੀਆਂ ਦੇ ਦਿਨ ਚੁਣੋ</string>
-    <string name="dialog_vacation_instruction">ਉਹ ਦਿਨ ਚੁਣੋ ਜਦੋਂ ਤੁਸੀਂ ਛੁੱਟੀ 'ਤੇ ਹੋਵੋਗੇ:</string>
+    <string name="dialog_vacation_instruction">ਉਹ ਦਿਨ ਚੁਣੋ ਜਦੋਂ ਤੁਸੀਂ ਛੁੱਟੀ \'ਤੇ ਹੋਵੋਗੇ:</string>
     <string name="label_no_days_selected">ਕੋਈ ਦਿਨ ਨਹੀਂ ਚੁਣੇ ਗਏ।</string>
     <string name="btn_add_day">ਦਿਨ ਸ਼ਾਮਲ ਕਰੋ</string>
     <string name="btn_confirm_days">ਪੁਸ਼ਟੀ ਕਰੋ (%1$d ਦਿਨ)</string>

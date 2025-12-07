@@ -285,7 +285,7 @@
     <string name="msg_supervisor_rejected">ຫົວໜ້າປະຕິເສດການປ່ຽນກະພຽງ.</string>
     <string name="msg_partner_accepted">ເພື່ອນຮ່ວມວຽກຂອງທ່ານຍອມຮັບແລ້ວ. ກຳລັງລໍຖ້າຫົວໜ້າອະນຸມັດ.</string>
     <string name="msg_partner_rejected">ເພື່ອນຮ່ວມວຽກປະຕິເສດການປ່ຽນກະພຽງ.</string>
-    <string name="msg_request_created">ສ້າງຄຳຮ້ອງຂໍແລ້ວ. ໄປທີ່ແຖບ 'ຄຳແນະນຳ' ເພື່ອຫາຜູ້ສະໝັກ.</string>
+    <string name="msg_request_created">ສ້າງຄຳຮ້ອງຂໍແລ້ວ. ໄປທີ່ແຖບ \'ຄຳແນະນຳ\' ເພື່ອຫາຜູ້ສະໝັກ.</string>
 
     <string name="header_supervisor_pending">ລໍຖ້າຫົວໜ້າອະນຸມັດ</string>
     <string name="header_in_process">ກຳລັງດຳເນີນ</string>
@@ -296,7 +296,7 @@
     <string name="header_search_candidates">ຄົ້ນຫາຜູ້ສະໝັກສຳລັບກະພຽງຂອງທ່ານ</string>
     <string name="desc_search_candidates">ເລືອກກະພຽງທີ່ທ່ານສະເໜີໜຶ່ງອັນເພື່ອເບິ່ງວ່າໃຜສາມາດປ່ຽນກັບທ່ານໄດ້.</string>
     <string name="msg_no_active_offers">ທ່ານຍັງບໍ່ມີການສະເໜີກະພຽງ.</string>
-    <string name="desc_create_offer">ສ້າງການສະເໜີໃນ 'ກະພຽງຂອງຂ້ອຍ' ກ່ອນ.</string>
+    <string name="desc_create_offer">ສ້າງການສະເໜີໃນ \'ກະພຽງຂອງຂ້ອຍ\' ກ່ອນ.</string>
     <string name="label_offering_shift">ກະພຽງທີ່ທ່ານສະເໜີ:</string>
     <string name="btn_see_candidates">ເບິ່ງຜູ້ສະໝັກທີ່ກົງກັນ</string>
     <string name="badge_active">ກຳລັງໃຊ້ງານ</string>
@@ -334,7 +334,7 @@
     <string name="label_destination">ປາຍທາງ</string>
     <string name="label_searching_candidate">ກຳລັງຄົ້ນຫາຜູ້ສະໝັກ...</string>
     <string name="label_offering">ທ່ານສະເໜີ: %1$s</string>
-    <string name="label_suggestion_hint">ໄປທີ່ແຖບ 'ຄຳແນະນຳ' ເພື່ອສະເໜີການປ່ຽນ.</string>
+    <string name="label_suggestion_hint">ໄປທີ່ແຖບ \'ຄຳແນະນຳ\' ເພື່ອສະເໜີການປ່ຽນ.</string>
     <string name="btn_approve">ອະນຸມັດ</string>
     <string name="btn_reject">ປະຕິເສດ</string>
     <string name="btn_accept">ຮັບການປ່ຽນ</string>
@@ -390,9 +390,9 @@
     <string name="error_empty_file">ໄຟລ໌ວ່າງເປົ່າ.</string>
     <string name="error_row_format">ຜິດພາດແຖວທີ %1$d: ຮູບແບບບໍ່ຖືກຕ້ອງ. ຂາດຖັນ.</string>
     <string name="error_date_invalid">ຜິດພາດແຖວທີ %1$d: ວັນທີ (%2$s) ບໍ່ຖືກຕ້ອງ. ໃຊ້ YYYY-MM-DD.</string>
-    <string name="error_shift_not_found">ຜິດພາດແຖວທີ %1$d: ບໍ່ມີກະພຽງ '%2$s' ໃນແຂນນີ້.</string>
-    <string name="error_role_unknown">ຜິດພາດແຖວທີ %1$d: ຫນ້າທີ່ '%2$s' ບໍ່ຮູ້ຈັກ. ໃຊ້ 'Nurse', 'Assistant' ຫຼື 'CNA'.</string>
-    <string name="error_user_not_found">ຜິດພາດແຖວທີ %1$d: '%2$s' ບໍ່ຢູ່ໃນລາຍຊື່ບຸກຄະລາກອນແຂນ.</string>
+    <string name="error_shift_not_found">ຜິດພາດແຖວທີ %1$d: ບໍ່ມີກະພຽງ \'%2$s\' ໃນແຂນນີ້.</string>
+    <string name="error_role_unknown">ຜິດພາດແຖວທີ %1$d: ຫນ້າທີ່ \'%2$s\' ບໍ່ຮູ້ຈັກ. ໃຊ້ \'Nurse\', \'Assistant\' ຫຼື \'CNA\'.</string>
+    <string name="error_user_not_found">ຜິດພາດແຖວທີ %1$d: \'%2$s\' ບໍ່ຢູ່ໃນລາຍຊື່ບຸກຄະລາກອນແຂນ.</string>
     <string name="msg_import_complete">ນຳເຂົ້າຂໍ້ມູນສຳເລັດແລ້ວ.</string>
     <string name="error_db_save">ຜິດພາດໃນການບັນທຶກໄປຖານຂໍ້ມູນ: %1$s</string>
     <string name="error_read_file">ຜິດພາດໃນການອ່ານໄຟລ໌: %1$s</string>
@@ -436,9 +436,9 @@
     <string name="error_csv_empty">ໄຟລ໌ວ່າງເປົ່າ.</string>
     <string name="error_csv_format">ຜິດພາດແຖວທີ %1$d: ຮູບແບບບໍ່ຖືກຕ້ອງ. ຂາດຖັນ.</string>
     <string name="error_csv_date">ຜິດພາດແຖວທີ %1$d: ວັນທີ (%2$s) ບໍ່ຖືກຕ້ອງ. ໃຊ້ YYYY-MM-DD.</string>
-    <string name="error_csv_shift">ຜິດພາດແຖວທີ %1$d: ບໍ່ມີກະພຽງ '%2$s' ໃນແຂນນີ້.</string>
-    <string name="error_csv_role">ຜິດພາດແຖວທີ %1$d: ຫນ້າທີ່ '%2$s' ບໍ່ຮອງຮັບ. ໃຊ້ 'Enfermero', 'Auxiliar' ຫຼື 'TCAE'.</string>
-    <string name="error_csv_staff_not_found">ຜິດພາດແຖວທີ %1$d: '%2$s' ບໍ່ຢູ່ໃນລາຍຊື່ບຸກຄະລາກອນ.</string>
+    <string name="error_csv_shift">ຜິດພາດແຖວທີ %1$d: ບໍ່ມີກະພຽງ \'%2$s\' ໃນແຂນນີ້.</string>
+    <string name="error_csv_role">ຜິດພາດແຖວທີ %1$d: ຫນ້າທີ່ \'%2$s\' ບໍ່ຮອງຮັບ. ໃຊ້ \'Enfermero\', \'Auxiliar\' ຫຼື \'TCAE\'.</string>
+    <string name="error_csv_staff_not_found">ຜິດພາດແຖວທີ %1$d: \'%2$s\' ບໍ່ຢູ່ໃນລາຍຊື່ບຸກຄະລາກອນ.</string>
     <string name="error_file_read">ຜິດພາດໃນການອ່ານໄຟລ໌: %1$s</string>
     <string name="error_template_save">ຜິດພາດໃນການບັນທຶກ: %1$s</string>
     <string name="statistics_user_title">ສະຖິຕິຂອງ %1$s</string>
