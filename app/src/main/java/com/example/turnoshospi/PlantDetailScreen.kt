@@ -413,6 +413,7 @@ fun PlantDetailScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Default.Person, contentDescription = null, tint = Color(0xFF54C7EC), modifier = Modifier.size(20.dp))
                                     Spacer(modifier = Modifier.width(12.dp))
+                                    Text(stringResource(id = R.string.plant_staff_list_option), color = Color.White)
                                 }
                             },
                             selected = false,
@@ -1064,6 +1065,9 @@ private fun processCsvImport(
         val staffNames = plant.personal_de_planta.values.map { it.name.trim().lowercase() }.toSet()
         val validShifts = plant.shiftTimes.keys
 
+        // USAR ETIQUETA LOCALIZADA EN VEZ DE "Sin asignar" HARCODEADO
+        val unassignedLabel = context.getString(R.string.staff_unassigned_option)
+
         for ((index, line) in lines.drop(1).withIndex()) {
             if (line.isBlank()) continue
             val rowNum = index + 2
@@ -1129,10 +1133,12 @@ private fun processCsvImport(
             val datePayload = shiftsMap.mapValues { (_, state) ->
                 mapOf(
                     "nurses" to state.nurseSlots.mapIndexed { i, slot ->
-                        slot.toFirebaseMap("Sin asignar", "enfermero${i + 1}")
+                        // USA LA ETIQUETA LOCALIZADA
+                        slot.toFirebaseMap(unassignedLabel, "enfermero${i + 1}")
                     },
                     "auxiliaries" to state.auxSlots.mapIndexed { i, slot ->
-                        slot.toFirebaseMap("Sin asignar", "auxiliar${i + 1}")
+                        // USA LA ETIQUETA LOCALIZADA
+                        slot.toFirebaseMap(unassignedLabel, "auxiliar${i + 1}")
                     }
                 )
             }
@@ -1359,7 +1365,9 @@ private fun ShiftAssignmentsSection(
             Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color(0x22000000)), border = BorderStroke(1.dp, Color(0x22FFFFFF))) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(stringResource(id = R.string.plant_shift_item, displayShiftName, timing.start.ifEmpty { "--" }, timing.end.ifEmpty { "--" }), color = Color.White, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Text(stringResource(id = R.string.plant_staff_requirement_item, displayShiftName, nurseReq), color = Color(0xCCFFFFFF), style = MaterialTheme.typography.bodySmall)
+
+                    // --- ELIMINADO EL TEXTO DE REQUERIMIENTOS ---
+                    // Text(stringResource(id = R.string.plant_staff_requirement_item, displayShiftName, nurseReq), color = Color(0xCCFFFFFF), style = MaterialTheme.typography.bodySmall)
 
                     state.nurseSlots.forEachIndexed { i, slot ->
                         val label = if (slot.hasHalfDay) stringResource(id = R.string.nurse_half_day_label) else stringResource(id = R.string.nurse_label, i + 1)
@@ -1411,11 +1419,25 @@ private fun SlotAssignment.toFirebaseMap(unassigned: String, base: String) = map
     "secondaryLabel" to if (hasHalfDay) "$base media jornada" else ""
 )
 
-private fun DataSnapshot.toSlotAssignment(unassigned: String): SlotAssignment {
+// CORRECCIÓN: Normalizar el valor de "Sin asignar" al leer desde Firebase
+private fun DataSnapshot.toSlotAssignment(unassignedLabel: String): SlotAssignment {
     val h = child("halfDay").value as? Boolean ?: false
     val p = (child("primary").value as? String).orEmpty()
     val s = (child("secondary").value as? String).orEmpty()
-    return SlotAssignment(if (p == unassigned) "" else p, if (s == unassigned) "" else s, h)
+
+    fun isUnassigned(value: String): Boolean {
+        // Detecta variantes de "sin asignar" para limpiarlas y que la UI muestre la traducción actual
+        return value.equals(unassignedLabel, ignoreCase = true) ||
+                value.equals("Sin asignar", ignoreCase = true) ||
+                value.equals("Unassigned", ignoreCase = true) ||
+                value.equals("null", ignoreCase = true)
+    }
+
+    return SlotAssignment(
+        primaryName = if (isUnassigned(p)) "" else p,
+        secondaryName = if (isUnassigned(s)) "" else s,
+        hasHalfDay = h
+    )
 }
 
 private fun String.normalizedRole() = trim().lowercase()
