@@ -64,39 +64,6 @@ data class PlantCredentials(
     val accessPassword: String
 )
 
-data class RegisteredUser(
-    val id: String = "",
-    val name: String = "",
-    val role: String = "",
-    val email: String = "",
-    val profileType: String = ""
-)
-
-data class Plant(
-    val id: String = "",
-    val name: String = "",
-    val unitType: String = "",
-    val hospitalName: String = "",
-    val shiftDuration: String = "",
-    val allowHalfDay: Boolean = false,
-    val staffScope: String = "",
-    val shiftTimes: Map<String, ShiftTime> = emptyMap(),
-    val staffRequirements: Map<String, Int> = emptyMap(),
-    val createdAt: Long = 0L,
-    val accessPassword: String = "",
-    val personal_de_planta: Map<String, RegisteredUser> = emptyMap()
-)
-
-data class ShiftTime(val start: String = "", val end: String = "")
-
-// Placeholder for UserProfile, assumed to be used from another file
-data class UserProfile(
-    val firstName: String = "",
-    val lastName: String = "",
-    val email: String = "",
-    val role: String = ""
-)
-
 private enum class StaffScope {
     NursesOnly,
     NursesAndAux

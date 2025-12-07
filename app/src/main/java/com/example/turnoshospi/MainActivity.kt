@@ -881,11 +881,7 @@ class MainActivity : ComponentActivity() {
 // --- MODELOS ---
 
 // Enum para las pantallas de la app (necesario para el Deep Linking)
-enum class AppScreen {
-    Login, Register, ForgotPassword, CreateProfile,
-    Home, MyPlant, EditPlant, Shifts, Colleagues, Notifications,
-    ChatList, DirectChat
-}
+
 
 data class UserShift(
     val shiftName: String,
@@ -941,18 +937,9 @@ data class RegisteredUser(
     val profileType: String = ""
 )
 
-data class PlantMembership(
-    val plantId: String = "",
-    val userId: String = "",
-    val staffId: String? = null,
-    val staffName: String? = null,
-    val staffRole: String? = null
-)
 
-data class Colleague(
-    val name: String,
-    val role: String
-)
+
+
 
 // --- EXTENSIONES ---
 

@@ -33,7 +33,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.turnoshospi.ui.theme.ShiftColors
@@ -45,7 +44,7 @@ fun OfflinePlantScreen(
     onBack: () -> Unit,
     shiftColors: ShiftColors
 ) {
-    // Local state for shifts (Note: Data will be lost upon closing the app if not using Room/DataStore)
+    // Estado local para los turnos (Nota: al cerrar la app se perderán si no usas Room/DataStore)
     var localShifts by remember { mutableStateOf<Map<String, UserShift>>(emptyMap()) }
     var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
     var showAddShiftDialog by remember { mutableStateOf(false) }
@@ -54,20 +53,10 @@ fun OfflinePlantScreen(
         containerColor = Color(0xFF0F172A),
         topBar = {
             CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.title_offline_roster),
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
+                title = { Text("Mi Turnario Offline", color = Color.White, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.desc_back),
-                            tint = Color.White
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás", tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
@@ -80,10 +69,9 @@ fun OfflinePlantScreen(
                 .padding(padding)
                 .background(Color(0xFF0F172A))
         ) {
-            // CustomCalendar must be defined elsewhere
             CustomCalendar(
                 shifts = localShifts,
-                plantId = "OFFLINE", // Fictitious ID to enable the legend
+                plantId = "OFFLINE", // ID ficticio para habilitar la leyenda
                 selectedDate = selectedDate,
                 selectedShift = selectedDate?.let { localShifts[it.toString()] },
                 colleagues = emptyList(),
@@ -103,11 +91,9 @@ fun OfflinePlantScreen(
                     onDismiss = { showAddShiftDialog = false },
                     onSave = { shiftName ->
                         val dateKey = selectedDate.toString()
-                        // Use resource string for comparison
-                        if (shiftName == stringResource(R.string.shift_free)) {
+                        if (shiftName == "Libre") {
                             localShifts = localShifts - dateKey
                         } else {
-                            // UserShift must be defined elsewhere
                             localShifts = localShifts + (dateKey to UserShift(shiftName, false))
                         }
                         showAddShiftDialog = false
@@ -118,9 +104,6 @@ fun OfflinePlantScreen(
     }
 }
 
-// Data class UserShift and CustomCalendar are assumed to be defined elsewhere
-// data class UserShift(val shiftName: String, val isRequested: Boolean)
-
 @Composable
 fun OfflineShiftDialog(
     date: LocalDate,
@@ -128,23 +111,12 @@ fun OfflineShiftDialog(
     onDismiss: () -> Unit,
     onSave: (String) -> Unit
 ) {
-    // Load options using string resources
-    val morning = stringResource(R.string.shift_morning)
-    val afternoon = stringResource(R.string.shift_afternoon)
-    val night = stringResource(R.string.shift_night)
-    val free = stringResource(R.string.shift_free)
-
-    val options = listOf(morning, afternoon, night, free)
-    val (selectedOption, onOptionSelected) = remember { mutableStateOf(currentShift?.shiftName ?: free) }
+    val options = listOf("Mañana", "Tarde", "Noche", "Libre")
+    val (selectedOption, onOptionSelected) = remember { mutableStateOf(currentShift?.shiftName ?: "Libre") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = stringResource(R.string.dialog_edit_shift_title, date), // Assuming string resource takes date argument
-                color = Color.White
-            )
-        },
+        title = { Text("Editar Turno - $date") },
         text = {
             Column {
                 options.forEach { text ->
@@ -171,12 +143,12 @@ fun OfflineShiftDialog(
                 onClick = { onSave(selectedOption) },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC))
             ) {
-                Text(stringResource(R.string.btn_save), color = Color.Black)
+                Text("Guardar", color = Color.Black)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.btn_cancel), color = Color.White)
+                Text("Cancelar", color = Color.White)
             }
         },
         containerColor = Color(0xFF1E293B),
