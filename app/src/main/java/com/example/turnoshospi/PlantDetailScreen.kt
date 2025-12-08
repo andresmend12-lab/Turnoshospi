@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Environment
 import android.widget.Toast
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -57,6 +56,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
@@ -1008,8 +1008,9 @@ fun ImportShiftsScreen(
                 ) {
                     Text(stringResource(R.string.subtitle_import_options), style = MaterialTheme.typography.titleMedium, color = Color.White)
 
+                    // Se ha cambiado para usar la nueva generación de plantilla dinámica
                     Button(
-                        onClick = { copyTemplateToDownloads(context) },
+                        onClick = { createAndDownloadMatrixTemplate(context) },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC), contentColor = Color.Black)
                     ) {
@@ -1043,6 +1044,7 @@ fun ImportShiftsScreen(
     }
 }
 
+// Nueva función que reemplaza la lógica anterior. Ahora procesa matriz: Nombres (filas) x Fechas (columnas)
 private fun processCsvImport(
     context: Context,
     uri: Uri,
@@ -1060,91 +1062,125 @@ private fun processCsvImport(
             return
         }
 
-        val updatesByDate = mutableMapOf<String, MutableMap<String, ShiftAssignmentState>>()
-        val database = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
-        val staffNames = plant.personal_de_planta.values.map { it.name.trim().lowercase() }.toSet()
-        val validShifts = plant.shiftTimes.keys
+        // 1. Analizar la cabecera para obtener las fechas
+        // Se asume que la celda [0,0] está vacía o contiene algo como "Nombre", y las fechas empiezan en la col 1
+        val header = lines[0].split(",").map { it.trim() }
+        val dateMap = mutableMapOf<Int, String>() // Índice de columna -> Fecha string
 
-        // USAR ETIQUETA LOCALIZADA EN VEZ DE "Sin asignar" HARCODEADO
-        val unassignedLabel = context.getString(R.string.staff_unassigned_option)
-
-        for ((index, line) in lines.drop(1).withIndex()) {
-            if (line.isBlank()) continue
-            val rowNum = index + 2
-            val cols = line.split(",").map { it.trim() }
-
-            if (cols.size < 4) {
-                onResult(false, context.getString(R.string.error_csv_format, rowNum))
-                return
-            }
-
-            val dateStr = cols[0]
-            val shiftName = cols[1]
-            val role = cols[2]
-            val primaryName = cols[3]
-            val isHalfDay = if (cols.size > 4) cols[4].equals("Sí", ignoreCase = true) || cols[4].equals("Si", ignoreCase = true) || cols[4].equals("True", ignoreCase = true) else false
-            val secondaryName = if (cols.size > 5) cols[5] else ""
-
-            try {
-                LocalDate.parse(dateStr)
-            } catch (e: Exception) {
-                onResult(false, context.getString(R.string.error_csv_date, rowNum, dateStr))
-                return
-            }
-
-            if (shiftName !in validShifts) {
-                onResult(false, context.getString(R.string.error_csv_shift, rowNum, shiftName))
-                return
-            }
-
-            val isNurse = role.contains("Enfermero", ignoreCase = true)
-            // CAMBIO AQUÍ: Soportar "TCAE" o "Auxiliar"
-            val isAux = role.contains("Auxiliar", ignoreCase = true) || role.contains("TCAE", ignoreCase = true)
-
-            if (!isNurse && !isAux) {
-                onResult(false, context.getString(R.string.error_csv_role, rowNum, role))
-                return
-            }
-
-            if (primaryName.isNotBlank() && primaryName.lowercase() !in staffNames) {
-                onResult(false, context.getString(R.string.error_csv_staff_not_found, rowNum, primaryName))
-                return
-            }
-            if (isHalfDay && secondaryName.isNotBlank() && secondaryName.lowercase() !in staffNames) {
-                onResult(false, context.getString(R.string.error_csv_staff_not_found, rowNum, secondaryName))
-                return
-            }
-
-            val dateAssignments = updatesByDate.getOrPut(dateStr) { mutableMapOf() }
-            val shiftState = dateAssignments.getOrPut(shiftName) {
-                ShiftAssignmentState(mutableListOf(), mutableListOf())
-            }
-
-            val slot = SlotAssignment(primaryName, secondaryName, isHalfDay)
-            if (isNurse) {
-                shiftState.nurseSlots.add(slot)
-            } else {
-                shiftState.auxSlots.add(slot)
+        for (i in 1 until header.size) {
+            val dateStr = header[i]
+            if (dateStr.isNotBlank()) {
+                try {
+                    // Validar formato fecha YYYY-MM-DD
+                    LocalDate.parse(dateStr)
+                    dateMap[i] = dateStr
+                } catch (e: Exception) {
+                    // Si una cabecera no es fecha válida, se ignora esa columna
+                }
             }
         }
 
+        if (dateMap.isEmpty()) {
+            onResult(false, "No se encontraron fechas válidas en la cabecera (formato YYYY-MM-DD).")
+            return
+        }
+
+        // Estructura temporal para acumular: Fecha -> Turno -> Listas de Staff
+        // Map<Fecha, Map<Turno, Pair<MutableList<Enfermeros>, MutableList<Auxiliares>>>>
+        val assignmentsBuffer = mutableMapOf<String, MutableMap<String, Pair<MutableList<String>, MutableList<String>>>>()
+
+        val plantStaff = plant.personal_de_planta.values
+        // val unassignedLabel = context.getString(R.string.staff_unassigned_option)
+
+        // 2. Recorrer las filas (Personal)
+        for ((index, line) in lines.drop(1).withIndex()) {
+            if (line.isBlank()) continue
+            val cols = line.split(",").map { it.trim() }
+            if (cols.isEmpty()) continue
+
+            val staffName = cols[0]
+            if (staffName.isBlank()) continue
+
+            // Buscar al empleado en la planta para saber su rol
+            val staffMember = plantStaff.find { it.name.equals(staffName, ignoreCase = true) }
+
+            // Si el empleado no existe en la app, lo saltamos silenciosamente o registramos error.
+            if (staffMember == null) {
+                // onResult(false, "El empleado '$staffName' (fila ${index + 2}) no existe en la planta.")
+                // return
+                continue
+            }
+
+            // Determinar si es Enfermero o Auxiliar
+            val nurseRoles = listOf("enfermero", "enfermera", "nurse", "supervisor", "supervisora")
+            // val auxRoles = listOf("auxiliar", "tcae", "aux")
+
+            val isNurse = staffMember.role.trim().lowercase().let { r -> nurseRoles.any { r.contains(it) } }
+
+            // 3. Recorrer las columnas de fechas para este empleado
+            for ((colIndex, dateKey) in dateMap) {
+                if (colIndex >= cols.size) break
+
+                val shiftValue = cols[colIndex]
+                if (shiftValue.isNotBlank()) {
+                    // Validar que el turno exista (Mañana, Tarde, Noche...)
+                    // Match insensible a mayúsculas con las keys de shiftTimes de la planta
+                    val matchedShiftKey = plant.shiftTimes.keys.find { it.equals(shiftValue, ignoreCase = true) }
+
+                    if (matchedShiftKey != null) {
+                        val dateMapAssignments = assignmentsBuffer.getOrPut(dateKey) { mutableMapOf() }
+                        val shiftLists = dateMapAssignments.getOrPut(matchedShiftKey) {
+                            Pair(mutableListOf(), mutableListOf())
+                        }
+
+                        if (isNurse) {
+                            shiftLists.first.add(staffMember.name)
+                        } else {
+                            shiftLists.second.add(staffMember.name)
+                        }
+                    }
+                }
+            }
+        }
+
+        // 4. Convertir el buffer a formato de actualización de Firebase
         val updates = mutableMapOf<String, Any>()
-        updatesByDate.forEach { (dateKey, shiftsMap) ->
-            val datePayload = shiftsMap.mapValues { (_, state) ->
+
+        assignmentsBuffer.forEach { (dateKey, shiftsMap) ->
+            val datePayload = shiftsMap.mapValues { (_, lists) ->
+                val (nursesNames, auxNames) = lists
+
                 mapOf(
-                    "nurses" to state.nurseSlots.mapIndexed { i, slot ->
-                        // USA LA ETIQUETA LOCALIZADA
-                        slot.toFirebaseMap(unassignedLabel, "enfermero${i + 1}")
+                    "nurses" to nursesNames.mapIndexed { i, name ->
+                        mapOf(
+                            "halfDay" to false,
+                            "primary" to name,
+                            "secondary" to "",
+                            "primaryLabel" to "enfermero${i + 1}",
+                            "secondaryLabel" to ""
+                        )
                     },
-                    "auxiliaries" to state.auxSlots.mapIndexed { i, slot ->
-                        // USA LA ETIQUETA LOCALIZADA
-                        slot.toFirebaseMap(unassignedLabel, "auxiliar${i + 1}")
+                    "auxiliaries" to auxNames.mapIndexed { i, name ->
+                        mapOf(
+                            "halfDay" to false,
+                            "primary" to name,
+                            "secondary" to "",
+                            "primaryLabel" to "auxiliar${i + 1}",
+                            "secondaryLabel" to ""
+                        )
                     }
                 )
             }
             updates["plants/${plant.id}/turnos/turnos-$dateKey"] = datePayload
         }
 
+        if (updates.isEmpty()) {
+            onResult(true, "El archivo se leyó pero no contenía asignaciones de turnos válidas.")
+            return
+        }
+
+        // 5. Guardar en Firebase
+        val database = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
         database.reference.updateChildren(updates)
             .addOnSuccessListener { onResult(true, context.getString(R.string.msg_import_success)) }
             .addOnFailureListener { onResult(false, context.getString(R.string.error_db_save, it.message)) }
@@ -1155,17 +1191,42 @@ private fun processCsvImport(
     }
 }
 
-private fun copyTemplateToDownloads(context: Context) {
-    val fileName = "plantilla_importacion_turnos.csv"
+// Nueva función para generar la plantilla dinámica
+private fun createAndDownloadMatrixTemplate(context: Context) {
+    val fileName = "plantilla_turnos_matriz.csv"
+    val sb = StringBuilder()
+
+    // 1. Generar Cabecera: Nombre, Fecha1, Fecha2, ...
+    sb.append("Nombre Personal")
+    val today = LocalDate.now()
+    val daysToGenerate = 31
+    for (i in 0 until daysToGenerate) {
+        sb.append(",").append(today.plusDays(i.toLong()).toString())
+    }
+    sb.append("\n")
+
+    // 2. Generar Fila de Ejemplo
+    sb.append("Ejemplo Apellido")
+    // Rellenamos con un patrón simple de ejemplo (Mañana, Tarde, Noche, Libre...)
+    val examplePattern = listOf("Mañana", "Mañana", "Tarde", "Tarde", "Noche", "Libre")
+    for (i in 0 until daysToGenerate) {
+        sb.append(",").append(examplePattern[i % examplePattern.size])
+    }
+    sb.append("\n")
+
     try {
-        val inputStream = context.assets.open(fileName)
         val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        if (!downloadsDir.exists()) downloadsDir.mkdirs()
+
         val outFile = File(downloadsDir, fileName)
-        FileOutputStream(outFile).use { output -> inputStream.copyTo(output) }
-        Toast.makeText(context, context.getString(R.string.msg_template_saved), Toast.LENGTH_LONG).show()
+        FileOutputStream(outFile).use { output ->
+            output.write(sb.toString().toByteArray())
+        }
+
+        Toast.makeText(context, "Plantilla guardada en Descargas: $fileName", Toast.LENGTH_LONG).show()
     } catch (e: Exception) {
         e.printStackTrace()
-        Toast.makeText(context, context.getString(R.string.error_template_save, e.message), Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "Error al guardar plantilla: ${e.message}", Toast.LENGTH_SHORT).show()
     }
 }
 
@@ -1365,9 +1426,6 @@ private fun ShiftAssignmentsSection(
             Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color(0x22000000)), border = BorderStroke(1.dp, Color(0x22FFFFFF))) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(stringResource(id = R.string.plant_shift_item, displayShiftName, timing.start.ifEmpty { "--" }, timing.end.ifEmpty { "--" }), color = Color.White, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-
-                    // --- ELIMINADO EL TEXTO DE REQUERIMIENTOS ---
-                    // Text(stringResource(id = R.string.plant_staff_requirement_item, displayShiftName, nurseReq), color = Color(0xCCFFFFFF), style = MaterialTheme.typography.bodySmall)
 
                     state.nurseSlots.forEachIndexed { i, slot ->
                         val label = if (slot.hasHalfDay) stringResource(id = R.string.nurse_half_day_label) else stringResource(id = R.string.nurse_label, i + 1)
