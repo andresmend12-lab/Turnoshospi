@@ -71,6 +71,42 @@ async function saveNotificationIfMissing(userId, payload) {
     return true;
 }
 
+// Envía un push directo a un usuario usando su fcmToken
+async function sendPushNotification(userId, notification, data = {}) {
+    if (!userId) return null;
+
+    const tokenSnap = await admin.database().ref(`/users/${userId}/fcmToken`).once('value');
+    const token = tokenSnap.val();
+    if (!token) return null;
+
+    const message = {
+        token,
+        notification,
+        android: {
+            priority: "high",
+            notification: {
+                channelId: "turnoshospi_sound_v2",
+                sound: "default",
+                priority: "high",
+                defaultSound: true,
+                icon: "ic_logo_hospi_round"
+            }
+        },
+        data: {
+            click_action: "FLUTTER_NOTIFICATION_CLICK",
+            ...data
+        }
+    };
+
+    try {
+        await admin.messaging().send(message);
+    } catch (error) {
+        console.error('Error enviando push directo:', error);
+    }
+
+    return null;
+}
+
 // ==================================================================
 // 2. Notificaciones de Chat
 // ==================================================================
@@ -169,6 +205,14 @@ exports.notifySupervisorOnPending = functions.database.ref('/plants/{plantId}/sh
                     read: false,
                     targetScreen: "ShiftChangeScreen",
                     targetId: plantId,
+                    argument: requestId
+                }));
+                promises.push(sendPushNotification(requesterId, {
+                    title: "Cambio aceptado",
+                    body: `${targetName} ha aceptado el cambio. Pendiente de supervisor para el ${shiftDate}.`
+                }, {
+                    screen: "ShiftChangeScreen",
+                    plantId: plantId,
                     argument: requestId
                 }));
             }
