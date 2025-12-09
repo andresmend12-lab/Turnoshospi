@@ -774,25 +774,47 @@ class MainActivity : ComponentActivity() {
             return
         }
 
-        val notificationRef = realtimeDatabase.getReference("user_notifications").child(userId).push()
-        val notificationId = notificationRef.key ?: run { onResult(false); return }
+        val userNotificationsRef = realtimeDatabase.getReference("user_notifications").child(userId)
 
-        val notification = UserNotification(
-            id = notificationId,
-            type = type,
-            message = message,
-            targetScreen = targetScreen,
-            targetId = targetId,
-            isRead = false
-        )
-
-        notificationRef.setValue(notification)
-            .addOnSuccessListener { onResult(true) }
-            .addOnFailureListener {
-                // Esto es un log interno de error, podríamos dejarlo así o usar un recurso genérico
-                authErrorMessage.value = "${getString(R.string.notification_save_error)} ${it.message}"
-                onResult(false)
+        userNotificationsRef.get().addOnSuccessListener { snapshot ->
+            val alreadyExists = snapshot.children.any { child ->
+                val notif = child.getValue(UserNotification::class.java)
+                notif?.let {
+                    it.type == type &&
+                            it.targetScreen == targetScreen &&
+                            it.targetId == targetId &&
+                            it.message == message &&
+                            it.isRead.not()
+                } == true
             }
+
+            if (alreadyExists) {
+                onResult(true)
+                return@addOnSuccessListener
+            }
+
+            val notificationRef = userNotificationsRef.push()
+            val notificationId = notificationRef.key ?: run { onResult(false); return@addOnSuccessListener }
+
+            val notification = UserNotification(
+                id = notificationId,
+                type = type,
+                message = message,
+                targetScreen = targetScreen,
+                targetId = targetId,
+                isRead = false
+            )
+
+            notificationRef.setValue(notification)
+                .addOnSuccessListener { onResult(true) }
+                .addOnFailureListener {
+                    // Esto es un log interno de error, podríamos dejarlo así o usar un recurso genérico
+                    authErrorMessage.value = "${getString(R.string.notification_save_error)} ${it.message}"
+                    onResult(false)
+                }
+        }.addOnFailureListener {
+            onResult(false)
+        }
     }
 
     // --- FUNCIONES PARA NOTIFICACIONES GENERALES ---
