@@ -22,15 +22,20 @@ data class ShiftChangeRequest(
     val requesterShiftDate: String = "",
     val requesterShiftName: String = "",
     val offeredDates: List<String> = emptyList(),
+
     // Target fields added for swap logic
     val targetUserId: String? = null,
     val targetUserName: String? = null,
     val targetShiftDate: String? = null,
     val targetShiftName: String? = null,
+
+    // NUEVO CAMPO: Lista de IDs de supervisores que deben aprobar esto
+    val supervisorIds: List<String> = emptyList(),
+
     val timestamp: Long = System.currentTimeMillis()
 )
 
-// Historial de favores (Marketplace)
+// ... (El resto del archivo FavorTransaction, MyShiftDisplay, PlantShift sigue igual)
 data class FavorTransaction(
     val id: String = "",
     val covererId: String = "",
@@ -42,7 +47,6 @@ data class FavorTransaction(
     val timestamp: Long = 0
 )
 
-// Visualización de mis turnos en calendario
 data class MyShiftDisplay(
     val date: String,
     val shiftName: String,
@@ -50,7 +54,6 @@ data class MyShiftDisplay(
     val isHalfDay: Boolean = false
 )
 
-// Turno genérico de planta para listas y selección
 data class PlantShift(
     val userId: String,
     val userName: String,

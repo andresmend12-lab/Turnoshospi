@@ -2,26 +2,23 @@ const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 admin.initializeApp();
 
-// 1. Notificaciones Generales (Sistema existente)
+// ==================================================================
+// 1. Notificaciones Generales (Sistema existente activado por la App)
+// ==================================================================
 exports.sendNotification = functions.database.ref('/user_notifications/{userId}/{notificationId}')
     .onCreate(async (snapshot, context) => {
         const notification = snapshot.val();
         const userId = context.params.userId;
 
-        console.log('Nueva notificacion para:', userId);
-
         const userSnapshot = await admin.database().ref(`/users/${userId}/fcmToken`).once('value');
         const fcmToken = userSnapshot.val();
 
-        if (!fcmToken) {
-            console.log('Sin token para usuario:', userId);
-            return null;
-        }
+        if (!fcmToken) return null;
 
         const message = {
             token: fcmToken,
             notification: {
-                title: "Turnoshospi",
+                title: notification.title || "Turnoshospi",
                 body: notification.message
             },
             android: {
@@ -36,22 +33,23 @@ exports.sendNotification = functions.database.ref('/user_notifications/{userId}/
             },
             data: {
                 screen: notification.targetScreen || "MainMenu",
-                targetId: notification.targetId || "",
+                plantId: notification.targetId || "", // A veces targetId se usa como plantId
+                argument: notification.argument || "",
                 click_action: "FLUTTER_NOTIFICATION_CLICK"
             }
         };
 
         try {
-            const response = await admin.messaging().send(message);
-            console.log('Mensaje enviado con éxito:', response);
-            return response;
+            return await admin.messaging().send(message);
         } catch (error) {
             console.error('Error enviando notificación:', error);
             return null;
         }
     });
 
-// 2. Notificaciones de Chat (Sistema existente)
+// ==================================================================
+// 2. Notificaciones de Chat
+// ==================================================================
 exports.sendChatNotification = functions.database.ref('/plants/{plantId}/direct_chats/{chatId}/messages/{messageId}')
     .onCreate(async (snapshot, context) => {
         const messageData = snapshot.val();
@@ -64,10 +62,10 @@ exports.sendChatNotification = functions.database.ref('/plants/{plantId}/direct_
         const ids = chatId.split("_");
         const receiverId = (ids[0] === senderId) ? ids[1] : ids[0];
 
-        if (!receiverId) return console.log("No receiverId found in chat:", chatId);
+        if (!receiverId) return null;
 
+        // Actualizar metadatos del chat (no leídos, último mensaje)
         const chatMetaRef = admin.database().ref(`/user_direct_chats/${receiverId}/${chatId}`);
-
         await chatMetaRef.transaction((currentData) => {
             const count = (currentData && currentData.unreadCount) ? currentData.unreadCount + 1 : 1;
             return {
@@ -80,10 +78,10 @@ exports.sendChatNotification = functions.database.ref('/plants/{plantId}/direct_
             };
         });
 
+        // Enviar Push
         const userSnapshot = await admin.database().ref(`/users/${receiverId}/fcmToken`).once('value');
         const fcmToken = userSnapshot.val();
-
-        if (!fcmToken) return console.log('Sin token para receptor de chat:', receiverId);
+        if (!fcmToken) return null;
 
         const senderSnapshot = await admin.database().ref(`/users/${senderId}`).once('value');
         const senderUser = senderSnapshot.val();
@@ -100,8 +98,6 @@ exports.sendChatNotification = functions.database.ref('/plants/{plantId}/direct_
                 notification: {
                     channelId: "turnoshospi_sound_v2",
                     sound: "default",
-                    priority: "high",
-                    defaultSound: true,
                     icon: "ic_logo_hospi_round",
                     tag: chatId
                 }
@@ -116,167 +112,30 @@ exports.sendChatNotification = functions.database.ref('/plants/{plantId}/direct_
             }
         };
 
-        try {
-            return await admin.messaging().send(pushMessage);
-        } catch (error) {
-            console.error('Error enviando push de chat:', error);
-            return null;
-        }
+        return admin.messaging().send(pushMessage);
     });
 
-// 3. Notificaciones de Bolsa de Turnos (Filtrado por Rol)
-exports.notifyNewShiftMarketplace = functions.database.ref('/plants/{plantId}/shift_requests/{requestId}')
-    .onCreate(async (snapshot, context) => {
-        const request = snapshot.val();
-        const plantId = context.params.plantId;
-
-        if (!request || request.status !== 'SEARCHING') return null;
-
-        const requesterId = request.requesterId;
-        const requesterName = request.requesterName || "Un compañero";
-        const requesterRole = request.requesterRole || "";
-        const shiftDate = request.requesterShiftDate;
-        const shiftName = request.requesterShiftName;
-
-        const areRolesCompatible = (roleA, roleB) => {
-            if (!roleA || !roleB) return false;
-            const rA = roleA.trim().toLowerCase();
-            const rB = roleB.trim().toLowerCase();
-            const isNurse = (r) => r.includes("enfermer");
-            const isAux = (r) => r.includes("auxiliar");
-            return (isNurse(rA) && isNurse(rB)) || (isAux(rA) && isAux(rB));
-        };
-
-        const usersInPlantSnap = await admin.database().ref(`/plants/${plantId}/userPlants`).once('value');
-        if (!usersInPlantSnap.exists()) return null;
-
-        const promises = [];
-
-        usersInPlantSnap.forEach((userChild) => {
-            const userId = userChild.key;
-            const targetRole = userChild.child("staffRole").val() || "";
-
-            if (userId !== requesterId && areRolesCompatible(requesterRole, targetRole)) {
-                const p = admin.database().ref(`/users/${userId}/fcmToken`).once('value')
-                    .then(tokenSnap => {
-                        const fcmToken = tokenSnap.val();
-                        if (!fcmToken) return null;
-
-                        const message = {
-                            token: fcmToken,
-                            notification: {
-                                title: "Nueva oferta en tu categoría",
-                                body: `${requesterName} ofrece: ${shiftName} el ${shiftDate}`
-                            },
-                            android: {
-                                priority: "high",
-                                notification: {
-                                    channelId: "turnoshospi_sound_v2",
-                                    sound: "default",
-                                    icon: "ic_logo_hospi_round"
-                                }
-                            },
-                            data: {
-                                screen: "ShiftMarketplaceScreen",
-                                plantId: plantId,
-                                click_action: "FLUTTER_NOTIFICATION_CLICK"
-                            }
-                        };
-                        return admin.messaging().send(message);
-                    })
-                    .catch(error => console.error(`Error enviando a usuario ${userId}:`, error));
-                promises.push(p);
-            }
-        });
-
-        return Promise.all(promises);
-    });
-
-// 4. Notificar al Supervisor cuando se acepta un cambio (y pasa a pendiente)
+// ==================================================================
+// 4. Notificar al Supervisor (OPTIMIZADO CON ID DIRECTO)
+// ==================================================================
 exports.notifySupervisorOnPending = functions.database.ref('/plants/{plantId}/shift_requests/{requestId}')
     .onUpdate(async (change, context) => {
         const before = change.before.val();
         const after = change.after.val();
         const plantId = context.params.plantId;
+        const requestId = context.params.requestId;
 
-        // Solo actuar si el estado cambia a AWAITING_SUPERVISOR
+        // Detectar cambio a AWAITING_SUPERVISOR
         if (before.status !== 'AWAITING_SUPERVISOR' && after.status === 'AWAITING_SUPERVISOR') {
             const requesterName = after.requesterName || "Usuario";
             const targetName = after.targetUserName || "Compañero";
             const shiftDate = after.requesterShiftDate;
+            const supervisorIds = after.supervisorIds; // <-- Leemos la lista que guardamos desde Android
 
-            console.log(`Cambio pendiente de aprobación en planta ${plantId}: ${requesterName} <-> ${targetName}`);
+            console.log(`Cambio pendiente: ${requesterName} <-> ${targetName}. IDs Supervisores:`, supervisorIds);
 
-            // 1. Obtener usuarios de la planta
-            const usersSnap = await admin.database().ref(`/plants/${plantId}/userPlants`).once('value');
-            if (!usersSnap.exists()) return null;
-
-            const promises = [];
-
-            // 2. Buscar Supervisores y notificar
-            usersSnap.forEach((userChild) => {
-                const role = userChild.child("staffRole").val() || "";
-                const userId = userChild.key;
-
-                if (role.toLowerCase().includes("supervisor")) {
-                    const p = admin.database().ref(`/users/${userId}/fcmToken`).once('value')
-                        .then(tokenSnap => {
-                            const fcmToken = tokenSnap.val();
-                            if (!fcmToken) return null;
-
-                            const message = {
-                                token: fcmToken,
-                                notification: {
-                                    title: "Solicitud de Cambio Pendiente",
-                                    body: `${targetName} aceptó el cambio con ${requesterName} (${shiftDate}). Requiere aprobación.`
-                                },
-                                android: {
-                                    priority: "high",
-                                    notification: {
-                                        channelId: "turnoshospi_sound_v2",
-                                        sound: "default",
-                                        icon: "ic_logo_hospi_round"
-                                    }
-                                },
-                                data: {
-                                    screen: "ShiftChangeScreen",
-                                    plantId: plantId,
-                                    click_action: "FLUTTER_NOTIFICATION_CLICK"
-                                }
-                            };
-                            return admin.messaging().send(message);
-                        });
-                    promises.push(p);
-                }
-            });
-
-            return Promise.all(promises);
-        }
-        return null;
-    });
-
-// 5. NUEVO: Notificar a los Usuarios cuando el Supervisor APRUEBA
-exports.notifyUsersOnApproval = functions.database.ref('/plants/{plantId}/shift_requests/{requestId}')
-    .onUpdate(async (change, context) => {
-        const before = change.before.val();
-        const after = change.after.val();
-        const plantId = context.params.plantId;
-
-        // Detectar cambio a APPROVED
-        if (before.status !== 'APPROVED' && after.status === 'APPROVED') {
-            const requesterId = after.requesterId;
-            const targetUserId = after.targetUserId;
-
-            const requesterName = after.requesterName || "Compañero";
-            const targetName = after.targetUserName || "Compañero";
-            const shiftDate = after.requesterShiftDate;
-
-            console.log(`Cambio APROBADO por supervisor: ${requesterName} <-> ${targetName}`);
-
-            const promises = [];
-
-            // Función auxiliar para enviar
-            const sendToUser = (userId, title, body) => {
+            // Función auxiliar para enviar a un ID
+            const notifyUser = (userId) => {
                 return admin.database().ref(`/users/${userId}/fcmToken`).once('value')
                     .then(tokenSnap => {
                         const fcmToken = tokenSnap.val();
@@ -284,45 +143,207 @@ exports.notifyUsersOnApproval = functions.database.ref('/plants/{plantId}/shift_
 
                         const message = {
                             token: fcmToken,
-                            notification: { title: title, body: body },
+                            notification: {
+                                title: "Solicitud Requiere Aprobación",
+                                body: `${targetName} aceptó el cambio con ${requesterName} (${shiftDate}).`
+                            },
                             android: {
                                 priority: "high",
                                 notification: {
                                     channelId: "turnoshospi_sound_v2",
-                                    sound: "default",
                                     icon: "ic_logo_hospi_round"
                                 }
                             },
                             data: {
                                 screen: "ShiftChangeScreen",
                                 plantId: plantId,
+                                argument: requestId, // Pasamos el ID de la solicitud
                                 click_action: "FLUTTER_NOTIFICATION_CLICK"
                             }
                         };
                         return admin.messaging().send(message);
                     })
-                    .catch(e => console.error(`Error enviando a ${userId}:`, e));
+                    .catch(e => console.error(`Error enviando a supervisor ${userId}:`, e));
             };
 
-            // Notificar al Solicitante Original
-            if (requesterId) {
-                promises.push(sendToUser(
-                    requesterId,
-                    "¡Cambio Aprobado!",
-                    `El supervisor ha aprobado tu cambio con ${targetName} para el día ${shiftDate}.`
-                ));
-            }
+            const promises = [];
 
-            // Notificar al que cubre el turno (Target)
-            if (targetUserId) {
-                promises.push(sendToUser(
-                    targetUserId,
-                    "¡Cambio Aprobado!",
-                    `El supervisor ha aprobado el cambio con ${requesterName} para el día ${shiftDate}.`
-                ));
+            // A. Usar la lista directa si existe (Método rápido)
+            if (supervisorIds && Array.isArray(supervisorIds) && supervisorIds.length > 0) {
+                // Guardar también en DB interna para cada supervisor
+                for (const supId of supervisorIds) {
+                    const notifRef = admin.database().ref(`/user_notifications/${supId}`).push();
+                    promises.push(notifRef.set({
+                        title: "Solicitud de Cambio",
+                        message: `${targetName} y ${requesterName} solicitan aprobación para el ${shiftDate}.`,
+                        timestamp: admin.database.ServerValue.TIMESTAMP,
+                        read: false,
+                        targetScreen: "ShiftChangeScreen",
+                        targetId: plantId,
+                        argument: requestId
+                    }));
+                    // Enviar Push
+                    promises.push(notifyUser(supId));
+                }
+            }
+            // B. Fallback (Método lento buscando en userPlants) por si acaso falla la lista
+            else {
+                const usersSnap = await admin.database().ref(`/plants/${plantId}/userPlants`).once('value');
+                if (usersSnap.exists()) {
+                    usersSnap.forEach((userChild) => {
+                        const role = userChild.child("staffRole").val() || "";
+                        const userId = userChild.key;
+                        if (role.toLowerCase().includes("supervisor")) {
+                            promises.push(notifyUser(userId));
+                        }
+                    });
+                }
             }
 
             return Promise.all(promises);
+        }
+        return null;
+    });
+
+// ==================================================================
+// 5. Notificar a Usuarios (Supervisor Aprueba o Rechaza)
+// ==================================================================
+exports.notifyUsersOnStatusChange = functions.database.ref('/plants/{plantId}/shift_requests/{requestId}')
+    .onUpdate(async (change, context) => {
+        const before = change.before.val();
+        const after = change.after.val();
+        const plantId = context.params.plantId;
+        const requestId = context.params.requestId;
+
+        const requesterId = after.requesterId;
+        const targetUserId = after.targetUserId;
+        const requesterName = after.requesterName;
+        const targetName = after.targetUserName;
+        const shiftDate = after.requesterShiftDate;
+
+        const promises = [];
+
+        // Función auxiliar que GUARDA en DB y ENVÍA Push
+        const sendFullNotification = async (userId, title, body) => {
+            if (!userId || userId.startsWith("UNREGISTERED")) return;
+
+            // 1. Guardar en user_notifications (Para que salga en la lista de la app)
+            const notifRef = admin.database().ref(`/user_notifications/${userId}`).push();
+            await notifRef.set({
+                title: title,
+                message: body,
+                timestamp: admin.database.ServerValue.TIMESTAMP,
+                read: false,
+                targetScreen: "ShiftChangeScreen",
+                targetId: plantId,
+                argument: requestId
+            });
+
+            // 2. Enviar Push Notification
+            const tokenSnap = await admin.database().ref(`/users/${userId}/fcmToken`).once('value');
+            const fcmToken = tokenSnap.val();
+            if (!fcmToken) return;
+
+            const message = {
+                token: fcmToken,
+                notification: { title, body },
+                android: {
+                    priority: "high",
+                    notification: {
+                        channelId: "turnoshospi_sound_v2",
+                        icon: "ic_logo_hospi_round"
+                    }
+                },
+                data: {
+                    screen: "ShiftChangeScreen",
+                    plantId: plantId,
+                    argument: requestId,
+                    click_action: "FLUTTER_NOTIFICATION_CLICK"
+                }
+            };
+            return admin.messaging().send(message);
+        };
+
+        // APROBADO
+        if (before.status !== 'APPROVED' && after.status === 'APPROVED') {
+            if (requesterId) promises.push(sendFullNotification(requesterId, "¡Cambio Aprobado!", `El supervisor aprobó tu cambio con ${targetName} (${shiftDate}).`));
+            if (targetUserId) promises.push(sendFullNotification(targetUserId, "¡Cambio Aprobado!", `El supervisor aprobó el cambio con ${requesterName} (${shiftDate}).`));
+        }
+
+        // RECHAZADO
+        if (before.status !== 'REJECTED' && after.status === 'REJECTED') {
+            if (requesterId) promises.push(sendFullNotification(requesterId, "Solicitud Rechazada", `La solicitud de cambio para el ${shiftDate} ha sido rechazada.`));
+            if (targetUserId) promises.push(sendFullNotification(targetUserId, "Solicitud Rechazada", `La solicitud de cambio con ${requesterName} ha sido rechazada.`));
+        }
+
+        return Promise.all(promises);
+    });
+
+// ==================================================================
+// 6. NUEVO: Notificar al Destinatario cuando recibe una PROPUESTA
+// ==================================================================
+exports.notifyTargetOnProposal = functions.database.ref('/plants/{plantId}/shift_requests/{requestId}')
+    .onUpdate(async (change, context) => {
+        const before = change.before.val();
+        const after = change.after.val();
+        const plantId = context.params.plantId;
+        const requestId = context.params.requestId;
+
+        // Detectar cambio a PENDING_PARTNER (Propuesta directa enviada)
+        if (before.status !== 'PENDING_PARTNER' && after.status === 'PENDING_PARTNER') {
+            const targetUserId = after.targetUserId;
+            const requesterName = after.requesterName || "Un compañero";
+            const requesterShiftDate = after.requesterShiftDate;
+            const targetShiftDate = after.targetShiftDate;
+
+            // Si no hay usuario destino o es no registrado, salimos
+            if (!targetUserId || targetUserId.startsWith("UNREGISTERED")) return null;
+
+            console.log(`Nueva propuesta directa enviada a: ${targetUserId}`);
+
+            const title = "Te han propuesto un cambio";
+            const body = `${requesterName} quiere cambiar su turno del ${requesterShiftDate} por tu turno del ${targetShiftDate}.`;
+
+            // 1. Guardar en DB Interna (Para que salga en NotificationsScreen)
+            const notifRef = admin.database().ref(`/user_notifications/${targetUserId}`).push();
+            await notifRef.set({
+                title: title,
+                message: body,
+                timestamp: admin.database.ServerValue.TIMESTAMP,
+                read: false,
+                targetScreen: "ShiftChangeScreen",
+                targetId: plantId,
+                argument: requestId
+            });
+
+            // 2. Enviar Push Notification
+            const tokenSnap = await admin.database().ref(`/users/${targetUserId}/fcmToken`).once('value');
+            const fcmToken = tokenSnap.val();
+
+            if (!fcmToken) return null;
+
+            const message = {
+                token: fcmToken,
+                notification: {
+                    title: title,
+                    body: body
+                },
+                android: {
+                    priority: "high",
+                    notification: {
+                        channelId: "turnoshospi_sound_v2",
+                        icon: "ic_logo_hospi_round"
+                    }
+                },
+                data: {
+                    screen: "ShiftChangeScreen",
+                    plantId: plantId,
+                    argument: requestId,
+                    click_action: "FLUTTER_NOTIFICATION_CLICK"
+                }
+            };
+
+            return admin.messaging().send(message);
         }
         return null;
     });

@@ -94,6 +94,10 @@ fun ShiftChangeScreen(
     // Datos para el buscador ("Sugerencias")
     val plantStaffMap = remember { mutableStateMapOf<String, RegisteredUser>() }
     val staffNameMap = remember { mutableStateMapOf<String, String>() }
+
+    // Mapa para traducir de StaffId (Planilla) a AuthId (Firebase User) para notificaciones
+    val staffIdToUserId = remember { mutableStateMapOf<String, String>() }
+
     val allPlantShifts = remember { mutableStateListOf<PlantShift>() }
     val userSchedules = remember { mutableStateMapOf<String, MutableMap<LocalDate, String>>() }
 
@@ -122,7 +126,7 @@ fun ShiftChangeScreen(
         if (currentUser == null) return@LaunchedEffect
         val myName = "${currentUser.firstName} ${currentUser.lastName}".trim()
 
-        // 1. CARGAR PERSONAL (Mapeo Nombre -> ID)
+        // 1. CARGAR PERSONAL (Mapeo Nombre -> ID de Staff)
         database.getReference("plants/$plantId/personal_de_planta").get().addOnSuccessListener { snap ->
             plantStaffMap.clear()
             staffNameMap.clear()
@@ -136,82 +140,106 @@ fun ShiftChangeScreen(
                 }
             }
 
-            // 2. CARGAR TURNOS
-            val startDate = LocalDate.now().minusDays(15)
-            val startKey = "turnos-$startDate"
-
-            database.getReference("plants/$plantId/turnos")
-                .orderByKey()
-                .startAt(startKey)
-                .limitToFirst(90)
-                .addValueEventListener(object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        myShiftsMap.clear()
-                        myShiftsList.clear()
-                        allPlantShifts.clear()
-                        userSchedules.clear()
-
-                        snapshot.children.forEach { dateSnapshot ->
-                            val dateKey = dateSnapshot.key?.removePrefix("turnos-") ?: return@forEach
-                            try {
-                                val date = LocalDate.parse(dateKey)
-                                dateSnapshot.children.forEach { shiftSnap ->
-                                    val shiftNameOriginal = shiftSnap.key ?: ""
-
-                                    fun processSlot(slot: DataSnapshot, rolePrefix: String) {
-                                        val name = slot.child("primary").value.toString()
-                                        val secondaryName = slot.child("secondary").value.toString()
-                                        val isHalfDay = slot.child("halfDay").value as? Boolean == true
-
-                                        val displayShiftName = if (isHalfDay) "Media $shiftNameOriginal" else shiftNameOriginal
-
-                                        // -> Procesar Primary
-                                        if (name.isNotBlank() && name != "null" && !name.equals("sin asignar", ignoreCase = true)) {
-                                            val uid = staffNameMap[name.trim().lowercase()]
-                                            val finalId = uid ?: "UNREGISTERED_$name"
-                                            val role = if (plantStaffMap[finalId] != null) plantStaffMap[finalId]!!.role else rolePrefix
-
-                                            if (!userSchedules.containsKey(finalId)) userSchedules[finalId] = mutableMapOf()
-                                            userSchedules[finalId]!![date] = displayShiftName
-                                            allPlantShifts.add(PlantShift(finalId, name, role, date, displayShiftName))
-
-                                            if (finalId == currentUserId || name.equals(myName, true)) {
-                                                myShiftsMap[date] = displayShiftName
-                                                myShiftsList.add(MyShiftDisplay(dateKey, displayShiftName, date))
-                                            }
-                                        }
-
-                                        // -> Procesar Secondary
-                                        if (secondaryName.isNotBlank() && secondaryName != "null" && !secondaryName.equals("sin asignar", ignoreCase = true)) {
-                                            val uid = staffNameMap[secondaryName.trim().lowercase()]
-                                            val finalId = uid ?: "UNREGISTERED_$secondaryName"
-                                            val role = if (plantStaffMap[finalId] != null) plantStaffMap[finalId]!!.role else rolePrefix
-
-                                            if (!userSchedules.containsKey(finalId)) userSchedules[finalId] = mutableMapOf()
-                                            userSchedules[finalId]!![date] = displayShiftName
-                                            allPlantShifts.add(PlantShift(finalId, secondaryName, role, date, displayShiftName))
-
-                                            if (finalId == currentUserId || secondaryName.equals(myName, true)) {
-                                                myShiftsMap[date] = displayShiftName
-                                                myShiftsList.add(MyShiftDisplay(dateKey, displayShiftName, date))
-                                            }
-                                        }
-                                    }
-
-                                    shiftSnap.child("nurses").children.forEach { processSlot(it, "Enfermero/a") }
-                                    shiftSnap.child("auxiliaries").children.forEach { processSlot(it, "Auxiliar") }
-                                }
-                            } catch (_: Exception) {}
+            // 2. CARGAR MAPEO DE USUARIOS REGISTRADOS (UserPlants)
+            // Esto permite saber qué usuario real (Auth ID) corresponde a cada miembro de la planilla (Staff ID)
+            database.getReference("plants/$plantId/userPlants").addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(userSnap: DataSnapshot) {
+                    staffIdToUserId.clear()
+                    userSnap.children.forEach { u ->
+                        val authId = u.key
+                        val sId = u.child("staffId").value as? String
+                        if (authId != null && sId != null) {
+                            staffIdToUserId[sId] = authId
                         }
-                        myShiftsList.sortBy { it.fullDate }
-                        allPlantShifts.sortBy { it.date }
-                        isLoading = false
                     }
-                    override fun onCancelled(error: DatabaseError) { isLoading = false }
-                })
+
+                    // 3. CARGAR TURNOS (Dentro del callback para asegurar que tenemos los IDs)
+                    val startDate = LocalDate.now().minusDays(15)
+                    val startKey = "turnos-$startDate"
+
+                    database.getReference("plants/$plantId/turnos")
+                        .orderByKey()
+                        .startAt(startKey)
+                        .limitToFirst(90)
+                        .addValueEventListener(object : ValueEventListener {
+                            override fun onDataChange(snapshot: DataSnapshot) {
+                                myShiftsMap.clear()
+                                myShiftsList.clear()
+                                allPlantShifts.clear()
+                                userSchedules.clear()
+
+                                snapshot.children.forEach { dateSnapshot ->
+                                    val dateKey = dateSnapshot.key?.removePrefix("turnos-") ?: return@forEach
+                                    try {
+                                        val date = LocalDate.parse(dateKey)
+                                        dateSnapshot.children.forEach { shiftSnap ->
+                                            val shiftNameOriginal = shiftSnap.key ?: ""
+
+                                            fun processSlot(slot: DataSnapshot, rolePrefix: String) {
+                                                val name = slot.child("primary").value.toString()
+                                                val secondaryName = slot.child("secondary").value.toString()
+                                                val isHalfDay = slot.child("halfDay").value as? Boolean == true
+
+                                                val displayShiftName = if (isHalfDay) "Media $shiftNameOriginal" else shiftNameOriginal
+
+                                                // -> Procesar Primary
+                                                if (name.isNotBlank() && name != "null" && !name.equals("sin asignar", ignoreCase = true)) {
+                                                    // Resolución de IDs
+                                                    val staffId = staffNameMap[name.trim().lowercase()]
+                                                    val authId = if (staffId != null) staffIdToUserId[staffId] else null
+
+                                                    // Preferimos AuthID, luego StaffID, sino Unregistered
+                                                    val finalId = authId ?: staffId ?: "UNREGISTERED_$name"
+
+                                                    // Buscamos rol usando el StaffID si existe
+                                                    val role = if (staffId != null && plantStaffMap[staffId] != null) plantStaffMap[staffId]!!.role else rolePrefix
+
+                                                    if (!userSchedules.containsKey(finalId)) userSchedules[finalId] = mutableMapOf()
+                                                    userSchedules[finalId]!![date] = displayShiftName
+                                                    allPlantShifts.add(PlantShift(finalId, name, role, date, displayShiftName))
+
+                                                    if (finalId == currentUserId || name.equals(myName, true)) {
+                                                        myShiftsMap[date] = displayShiftName
+                                                        myShiftsList.add(MyShiftDisplay(dateKey, displayShiftName, date))
+                                                    }
+                                                }
+
+                                                // -> Procesar Secondary
+                                                if (secondaryName.isNotBlank() && secondaryName != "null" && !secondaryName.equals("sin asignar", ignoreCase = true)) {
+                                                    val staffId = staffNameMap[secondaryName.trim().lowercase()]
+                                                    val authId = if (staffId != null) staffIdToUserId[staffId] else null
+                                                    val finalId = authId ?: staffId ?: "UNREGISTERED_$secondaryName"
+
+                                                    val role = if (staffId != null && plantStaffMap[staffId] != null) plantStaffMap[staffId]!!.role else rolePrefix
+
+                                                    if (!userSchedules.containsKey(finalId)) userSchedules[finalId] = mutableMapOf()
+                                                    userSchedules[finalId]!![date] = displayShiftName
+                                                    allPlantShifts.add(PlantShift(finalId, secondaryName, role, date, displayShiftName))
+
+                                                    if (finalId == currentUserId || secondaryName.equals(myName, true)) {
+                                                        myShiftsMap[date] = displayShiftName
+                                                        myShiftsList.add(MyShiftDisplay(dateKey, displayShiftName, date))
+                                                    }
+                                                }
+                                            }
+
+                                            shiftSnap.child("nurses").children.forEach { processSlot(it, "Enfermero/a") }
+                                            shiftSnap.child("auxiliaries").children.forEach { processSlot(it, "Auxiliar") }
+                                        }
+                                    } catch (_: Exception) {}
+                                }
+                                myShiftsList.sortBy { it.fullDate }
+                                allPlantShifts.sortBy { it.date }
+                                isLoading = false
+                            }
+                            override fun onCancelled(error: DatabaseError) { isLoading = false }
+                        })
+                }
+                override fun onCancelled(error: DatabaseError) {}
+            })
         }
 
-        // 3. CARGAR SOLICITUDES
+        // 4. CARGAR SOLICITUDES
         database.getReference("plants/$plantId/shift_requests")
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -350,7 +378,12 @@ fun ShiftChangeScreen(
                             onRejectBySupervisor = { req ->
                                 updateRequestStatus(database, plantId, req.id, RequestStatus.REJECTED)
                                 onSaveNotification(req.requesterId, "SHIFT_REJECTED", msgSupervisorRejected, "ShiftChangeScreen", req.id, {})
-                            }
+                                if (!req.targetUserId.isNullOrBlank() && !req.targetUserId.startsWith("UNREGISTERED")) {
+                                    onSaveNotification(req.targetUserId, "SHIFT_REJECTED", msgSupervisorRejected, "ShiftChangeScreen", req.id, {})
+                                }
+                            },
+                            staffIdToUserId = staffIdToUserId,
+                            plantStaffMap = plantStaffMap
                         )
                     } else {
                         when (selectedTab) {
@@ -395,15 +428,44 @@ fun ShiftChangeScreen(
                                         Toast.makeText(context, msgRequestDeleted, Toast.LENGTH_SHORT).show()
                                     },
                                     onAcceptByPartner = { req ->
-                                        updateRequestStatus(database, plantId, req.id, RequestStatus.AWAITING_SUPERVISOR)
-                                        // MODIFICADO: Notificación personalizada al aceptar
-                                        onSaveNotification(
-                                            req.requesterId,
-                                            "SHIFT_UPDATE",
-                                            "$currentUserName ha aceptado el cambio. Pendiente de supervisor.",
-                                            "ShiftChangeScreen",
-                                            req.id, {}
+                                        // 1. Identificar a los Supervisores (Auth IDs)
+                                        val supervisorIds = mutableListOf<String>()
+                                        plantStaffMap.forEach { (staffId, user) ->
+                                            if (user.role.contains("Supervisor", ignoreCase = true)) {
+                                                val authId = staffIdToUserId[staffId]
+                                                if (authId != null) {
+                                                    supervisorIds.add(authId)
+                                                }
+                                            }
+                                        }
+
+                                        // 2. Preparar actualización en Firebase
+                                        val updates = mapOf(
+                                            "plants/$plantId/shift_requests/${req.id}/status" to RequestStatus.AWAITING_SUPERVISOR.name,
+                                            "plants/$plantId/shift_requests/${req.id}/supervisorIds" to supervisorIds
                                         )
+
+                                        database.reference.updateChildren(updates).addOnSuccessListener {
+                                            // 3. Notificación al Solicitante
+                                            onSaveNotification(
+                                                req.requesterId,
+                                                "SHIFT_UPDATE",
+                                                "$currentUserName ha aceptado el cambio. Pendiente de supervisor.",
+                                                "ShiftChangeScreen",
+                                                req.id, {}
+                                            )
+
+                                            // 4. Notificación manual a supervisores (opcional si usas Cloud Functions)
+                                            supervisorIds.forEach { supId ->
+                                                onSaveNotification(
+                                                    supId,
+                                                    "SHIFT_PENDING_SUPERVISOR",
+                                                    "Solicitud aceptada entre ${req.requesterName} y ${currentUserName}. Requiere aprobación.",
+                                                    "ShiftChangeScreen",
+                                                    req.id, {}
+                                                )
+                                            }
+                                        }
                                     },
                                     onRejectByPartner = { req ->
                                         deleteShiftRequest(database, plantId, req.id)
@@ -418,7 +480,9 @@ fun ShiftChangeScreen(
                                         }
                                     },
                                     onApproveBySupervisor = { },
-                                    onRejectBySupervisor = { }
+                                    onRejectBySupervisor = { },
+                                    staffIdToUserId = staffIdToUserId,
+                                    plantStaffMap = plantStaffMap
                                 )
                             }
                             2 -> MyRequestsForSuggestionsTab(
@@ -489,7 +553,9 @@ fun ShiftManagementTab(
     onAcceptByPartner: (ShiftChangeRequest) -> Unit,
     onRejectByPartner: (ShiftChangeRequest) -> Unit,
     onApproveBySupervisor: (ShiftChangeRequest) -> Unit,
-    onRejectBySupervisor: (ShiftChangeRequest) -> Unit
+    onRejectBySupervisor: (ShiftChangeRequest) -> Unit,
+    staffIdToUserId: Map<String, String>,
+    plantStaffMap: Map<String, RegisteredUser>
 ) {
     var previewReq by remember { mutableStateOf<ShiftChangeRequest?>(null) }
     var isPreviewSupervisorMode by remember { mutableStateOf(false) }
@@ -1342,15 +1408,16 @@ fun performDirectProposal(
     targetShift: PlantShift,
     onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit
 ) {
+    // Al usar .name nos aseguramos que el Enum se guarda como String ("PENDING_PARTNER")
     val updates = mapOf(
-        "plants/$plantId/shift_requests/${myReq.id}/status" to RequestStatus.PENDING_PARTNER,
+        "plants/$plantId/shift_requests/${myReq.id}/status" to RequestStatus.PENDING_PARTNER.name,
         "plants/$plantId/shift_requests/${myReq.id}/targetUserId" to targetShift.userId,
         "plants/$plantId/shift_requests/${myReq.id}/targetUserName" to targetShift.userName,
         "plants/$plantId/shift_requests/${myReq.id}/targetShiftDate" to targetShift.date.toString(),
         "plants/$plantId/shift_requests/${myReq.id}/targetShiftName" to targetShift.shiftName
     )
     database.reference.updateChildren(updates).addOnSuccessListener {
-        // MODIFICADO: Mensaje de "Te ha solicitado"
+        // Notificación manual al Target
         onSaveNotification(
             targetShift.userId,
             "SHIFT_PROPOSAL",
@@ -1383,13 +1450,10 @@ fun approveSwapBySupervisor(
     onSuccess: () -> Unit,
     onError: (String) -> Unit
 ) {
-    // 1. Verificar si es COBERTURA (Marketplace)
     if (req.type == RequestType.COVERAGE) {
         approveCoverage(database, plantId, req, onSuccess, onError)
         return
     }
-
-    // 2. Si es SWAP normal
     if (req.targetUserId == null || req.targetShiftDate == null || req.targetShiftName == null) {
         onError("Datos de intercambio incompletos.")
         return
@@ -1456,7 +1520,6 @@ fun approveSwapBySupervisor(
     })
 }
 
-// Sub-función para aprobar COBERTURA (Marketplace) con búsqueda robusta
 private fun approveCoverage(
     database: FirebaseDatabase,
     plantId: String,
