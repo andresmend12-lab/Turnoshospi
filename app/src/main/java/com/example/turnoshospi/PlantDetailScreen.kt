@@ -36,22 +36,27 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+// import androidx.compose.material.icons.automirrored.filled.Assignment <--- ELIMINADO
 import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.FactCheck
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.filled.Assignment // <--- AGREGADO (Versión estándar)
 import androidx.compose.material.icons.filled.BeachAccess
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete // Aseguramos que esté Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.FactCheck
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -63,6 +68,7 @@ import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -82,8 +88,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -142,12 +150,17 @@ fun PlantDetailScreen(
     datePickerState: DatePickerState,
     currentUserProfile: UserProfile?,
     currentMembership: PlantMembership?,
+    unreadChatCount: Int,
     onBack: () -> Unit,
     onAddStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
     onEditStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
+    // NUEVO PARAMETRO DE BORRADO (Asegúrate de que esté aquí para que compile el diálogo)
+    onDeleteStaff: (String, String, (Boolean) -> Unit) -> Unit,
     onOpenPlantSettings: () -> Unit,
     onOpenImportShifts: () -> Unit,
     onOpenChat: () -> Unit,
+    onOpenDirectChats: () -> Unit,
+    onOpenNotifications: () -> Unit,
     onOpenShiftChange: () -> Unit,
     onOpenShiftMarketplace: () -> Unit,
     onOpenStatistics: () -> Unit,
@@ -160,11 +173,32 @@ fun PlantDetailScreen(
         FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
     }
 
+    var unreadNotifCount by remember { mutableIntStateOf(0) }
+    val currentUserId = remember { FirebaseAuth.getInstance().currentUser?.uid ?: "" }
+
+    DisposableEffect(currentUserId) {
+        if (currentUserId.isNotBlank()) {
+            val notifsRef = database.getReference("user_notifications").child(currentUserId)
+            val listener = object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val count = snapshot.children.count { child ->
+                        child.child("read").getValue(Boolean::class.java) == false
+                    }
+                    unreadNotifCount = count
+                }
+                override fun onCancelled(error: DatabaseError) {}
+            }
+            notifsRef.addValueEventListener(listener)
+            onDispose { notifsRef.removeEventListener(listener) }
+        } else {
+            onDispose { }
+        }
+    }
+
     val selectedDate = datePickerState.selectedDateMillis?.let { millis ->
         Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
     }
 
-    // --- LÓGICA DE ROLES ---
     val supervisorRoles = listOf(
         stringResource(id = R.string.role_supervisor_male),
         stringResource(id = R.string.role_supervisor_female)
@@ -176,7 +210,7 @@ fun PlantDetailScreen(
         stringResource(id = R.string.role_nurse_female)
     )
     val normalizedNurseRoles = remember(nurseRoles) { nurseRoles.map { it.normalizedRole() } }
-    val auxRole = stringResource(id = R.string.role_aux_generic) // TCAE
+    val auxRole = stringResource(id = R.string.role_aux_generic)
     val auxRoles = listOf(
         auxRole,
         stringResource(id = R.string.role_aux_male),
@@ -187,7 +221,6 @@ fun PlantDetailScreen(
         ?: currentUserProfile?.role
     val isSupervisor = resolvedRole in supervisorRoles
 
-    // --- ESTADOS DE DATOS ---
     val assignmentsByDate = remember(plant?.id) {
         mutableStateMapOf<String, MutableMap<String, ShiftAssignmentState>>()
     }
@@ -209,7 +242,6 @@ fun PlantDetailScreen(
         auxStaff.map { member -> member.displayName(auxRole) }.sorted()
     }
 
-    // --- MAPEO DE STAFF ID A USER ID (Para notificaciones) ---
     val staffIdToUserIdMap = remember { mutableStateMapOf<String, String>() }
 
     LaunchedEffect(plant?.id) {
@@ -231,7 +263,6 @@ fun PlantDetailScreen(
         }
     }
 
-    // --- ESTADOS DIALOGOS ---
     var showAddStaffDialog by remember { mutableStateOf(false) }
     var isSavingStaff by remember { mutableStateOf(false) }
     var showStaffListDialog by remember { mutableStateOf(false) }
@@ -263,12 +294,64 @@ fun PlantDetailScreen(
                             }
                         }
                     },
+                    actions = {
+                        IconButton(onClick = onOpenNotifications) {
+                            if (unreadNotifCount > 0) {
+                                BadgedBox(
+                                    badge = {
+                                        Badge { Text(text = unreadNotifCount.toString()) }
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Notifications,
+                                        contentDescription = stringResource(id = R.string.title_notifications),
+                                        tint = Color.White
+                                    )
+                                }
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Notifications,
+                                    contentDescription = stringResource(id = R.string.title_notifications),
+                                    tint = Color.White
+                                )
+                            }
+                        }
+                    },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
                         navigationIconContentColor = Color.White,
-                        titleContentColor = Color.White
+                        titleContentColor = Color.White,
+                        actionIconContentColor = Color.White
                     )
                 )
+            },
+            floatingActionButton = {
+                FloatingActionButton(
+                    onClick = onOpenDirectChats,
+                    containerColor = Color(0xFF54C7EC),
+                    contentColor = Color.White,
+                    shape = CircleShape
+                ) {
+                    if (unreadChatCount > 0) {
+                        BadgedBox(
+                            badge = {
+                                Badge { Text(text = unreadChatCount.toString()) }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Chat,
+                                contentDescription = stringResource(id = R.string.chat_screen_title),
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    } else {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Chat,
+                            contentDescription = stringResource(id = R.string.chat_screen_title),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
             }
         ) { paddingValues ->
             Box(
@@ -393,7 +476,6 @@ fun PlantDetailScreen(
                     DrawerHeader(displayName = plant?.name ?: "", welcomeStringId = R.string.side_menu_title)
 
                     if (isSupervisor) {
-                        // OPCIONES DE SUPERVISOR
                         NavigationDrawerItem(
                             modifier = Modifier.padding(horizontal = 12.dp),
                             label = {
@@ -451,7 +533,7 @@ fun PlantDetailScreen(
                             modifier = Modifier.padding(horizontal = 12.dp),
                             label = {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.FactCheck, contentDescription = null, tint = Color(0xFFFFA726), modifier = Modifier.size(20.dp))
+                                    Icon(Icons.AutoMirrored.Filled.FactCheck, contentDescription = null, tint = Color(0xFFFFA726), modifier = Modifier.size(20.dp))
                                     Spacer(modifier = Modifier.width(12.dp))
                                     Text(stringResource(R.string.title_change_management), color = Color.White)
                                 }
@@ -542,7 +624,7 @@ fun PlantDetailScreen(
                             modifier = Modifier.padding(horizontal = 12.dp),
                             label = {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.Assignment, null, tint = Color(0xFFFFC107), modifier = Modifier.size(20.dp))
+                                    Icon(Icons.Default.Assignment, null, tint = Color(0xFFFFC107), modifier = Modifier.size(20.dp)) // CORRECCIÓN
                                     Spacer(modifier = Modifier.width(12.dp))
                                     Text(stringResource(R.string.shift_marketplace_label), color = Color.White)
                                 }
@@ -631,7 +713,9 @@ fun PlantDetailScreen(
             staff = plantStaff.toList(),
             isSupervisor = isSupervisor,
             onDismiss = { showStaffListDialog = false },
-            onSaveEdit = { editedMember, callback -> onEditStaff(plant.id, editedMember, callback) }
+            onSaveEdit = { editedMember, callback -> onEditStaff(plant.id, editedMember, callback) },
+            // AQUI CONECTAMOS EL CALLBACK DE BORRADO
+            onDelete = { staffId, callback -> onDeleteStaff(plant.id, staffId, callback) }
         )
     }
 
@@ -1331,18 +1415,24 @@ private fun StaffListDialog(
     staff: List<RegisteredUser>,
     isSupervisor: Boolean,
     onDismiss: () -> Unit,
-    onSaveEdit: (RegisteredUser, (Boolean) -> Unit) -> Unit
+    onSaveEdit: (RegisteredUser, (Boolean) -> Unit) -> Unit,
+    // NUEVO PARÁMETRO PARA BORRAR
+    onDelete: (String, (Boolean) -> Unit) -> Unit
 ) {
     val sortedStaff = remember(staff) { staff.sortedBy { it.name.lowercase() } }
+
+    // Estado para edición
     var memberInEdition by remember { mutableStateOf<RegisteredUser?>(null) }
 
+    // NUEVO: Estado para confirmación de borrado
+    var memberToDelete by remember { mutableStateOf<RegisteredUser?>(null) }
+
     if (memberInEdition != null) {
+        // --- LÓGICA DE EDICIÓN (EXISTENTE) ---
         val member = memberInEdition!!
         var editName by remember { mutableStateOf(member.name) }
-
-        // CORRECCIÓN: Si el rol guardado es "Auxiliar", lo tratamos como "TCAE" para el selector
         val roleAux = stringResource(id = R.string.role_aux_generic)
-        val roleAuxOld = "Auxiliar" // String legacy
+        val roleAuxOld = "Auxiliar"
         var editRole by remember {
             mutableStateOf(
                 if (member.role.contains(roleAuxOld, ignoreCase = true)) roleAux
@@ -1367,7 +1457,34 @@ private fun StaffListDialog(
                 }
             }
         )
+    } else if (memberToDelete != null) {
+        // --- NUEVO: DIÁLOGO DE CONFIRMACIÓN DE BORRADO ---
+        AlertDialog(
+            onDismissRequest = { memberToDelete = null },
+            title = { Text("Eliminar Personal") }, // Puedes usar un string resource aquí
+            text = { Text("¿Estás seguro de que quieres eliminar a ${memberToDelete?.name}? Esta acción no se puede deshacer.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val id = memberToDelete?.id ?: return@Button
+                        onDelete(id) { success ->
+                            if (success) memberToDelete = null
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Eliminar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { memberToDelete = null }) { Text(stringResource(id = R.string.cancel_label)) }
+            },
+            containerColor = Color(0xEE0B1021),
+            titleContentColor = Color.White,
+            textContentColor = Color.White
+        )
     } else {
+        // --- LISTA DE PERSONAL ---
         AlertDialog(
             onDismissRequest = onDismiss,
             confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(id = R.string.close_label)) } },
@@ -1376,16 +1493,30 @@ private fun StaffListDialog(
                 Column(modifier = Modifier.fillMaxWidth().height(350.dp).verticalScroll(rememberScrollState())) {
                     if (sortedStaff.isEmpty()) Text(stringResource(id = R.string.staff_list_dialog_empty))
                     else sortedStaff.forEach { member ->
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(member.name, style = MaterialTheme.typography.bodyLarge, color = Color.White)
-
-                                // CORRECCIÓN: Visualización en lista. Si dice "Auxiliar", mostramos "TCAE"
                                 val roleAux = stringResource(id = R.string.role_aux_generic)
                                 val displayRole = if (member.role.contains("Auxiliar", ignoreCase = true)) roleAux else member.role
                                 Text(displayRole, style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.7f))
                             }
-                            if (isSupervisor) IconButton(onClick = { memberInEdition = member }) { Icon(Icons.Default.Edit, null, tint = Color(0xFF54C7EC)) }
+
+                            if (isSupervisor) {
+                                Row {
+                                    // Botón Editar
+                                    IconButton(onClick = { memberInEdition = member }) {
+                                        Icon(Icons.Default.Edit, null, tint = Color(0xFF54C7EC))
+                                    }
+                                    // NUEVO: Botón Borrar
+                                    IconButton(onClick = { memberToDelete = member }) {
+                                        Icon(Icons.Default.Delete, null, tint = Color(0xFFEF5350))
+                                    }
+                                }
+                            }
                         }
                         HorizontalDivider(color = Color.White.copy(alpha = 0.2f))
                     }

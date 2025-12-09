@@ -194,11 +194,14 @@ fun ShiftChangeScreen(
                                                     // Buscamos rol usando el StaffID si existe
                                                     val role = if (staffId != null && plantStaffMap[staffId] != null) plantStaffMap[staffId]!!.role else rolePrefix
 
+                                                    // --- CORRECCIÓN: Usar nombre canónico del staff si existe ---
+                                                    val canonicalName = if (staffId != null && plantStaffMap[staffId] != null) plantStaffMap[staffId]!!.name else name
+
                                                     if (!userSchedules.containsKey(finalId)) userSchedules[finalId] = mutableMapOf()
                                                     userSchedules[finalId]!![date] = displayShiftName
-                                                    allPlantShifts.add(PlantShift(finalId, name, role, date, displayShiftName))
+                                                    allPlantShifts.add(PlantShift(finalId, canonicalName, role, date, displayShiftName))
 
-                                                    if (finalId == currentUserId || name.equals(myName, true)) {
+                                                    if (finalId == currentUserId || canonicalName.equals(myName, true)) {
                                                         myShiftsMap[date] = displayShiftName
                                                         myShiftsList.add(MyShiftDisplay(dateKey, displayShiftName, date))
                                                     }
@@ -212,11 +215,14 @@ fun ShiftChangeScreen(
 
                                                     val role = if (staffId != null && plantStaffMap[staffId] != null) plantStaffMap[staffId]!!.role else rolePrefix
 
+                                                    // --- CORRECCIÓN: Usar nombre canónico del staff si existe ---
+                                                    val canonicalName = if (staffId != null && plantStaffMap[staffId] != null) plantStaffMap[staffId]!!.name else secondaryName
+
                                                     if (!userSchedules.containsKey(finalId)) userSchedules[finalId] = mutableMapOf()
                                                     userSchedules[finalId]!![date] = displayShiftName
-                                                    allPlantShifts.add(PlantShift(finalId, secondaryName, role, date, displayShiftName))
+                                                    allPlantShifts.add(PlantShift(finalId, canonicalName, role, date, displayShiftName))
 
-                                                    if (finalId == currentUserId || secondaryName.equals(myName, true)) {
+                                                    if (finalId == currentUserId || canonicalName.equals(myName, true)) {
                                                         myShiftsMap[date] = displayShiftName
                                                         myShiftsList.add(MyShiftDisplay(dateKey, displayShiftName, date))
                                                     }
@@ -333,6 +339,8 @@ fun ShiftChangeScreen(
                             currentUserId = currentUserId,
                             userSchedules = userSchedules,
                             currentUserSchedule = myShiftsMap,
+                            // CORRECCIÓN: Pasar la lista oficial de personal para el filtro
+                            plantStaff = plantStaffMap.values.toList(),
                             shiftColors = shiftColors,
                             onProposeSwap = { candidateShift ->
                                 performDirectProposal(database, plantId, selectedRequestForSuggestions!!, candidateShift, onSaveNotification)
@@ -366,7 +374,7 @@ fun ShiftChangeScreen(
                             onRejectByPartner = { },
                             onApproveBySupervisor = { req ->
                                 approveSwapBySupervisor(database, plantId, req, {
-
+                                    // Eliminado bloque duplicado de notificación
                                     Toast.makeText(context, msgSwapApproved, Toast.LENGTH_SHORT).show()
                                 }, { err ->
                                     Toast.makeText(context, "Error: $err", Toast.LENGTH_SHORT).show()
@@ -374,10 +382,7 @@ fun ShiftChangeScreen(
                             },
                             onRejectBySupervisor = { req ->
                                 updateRequestStatus(database, plantId, req.id, RequestStatus.REJECTED)
-                                onSaveNotification(req.requesterId, "SHIFT_REJECTED", msgSupervisorRejected, "ShiftChangeScreen", req.id, {})
-                                if (!req.targetUserId.isNullOrBlank() && !req.targetUserId.startsWith("UNREGISTERED")) {
-                                    onSaveNotification(req.targetUserId, "SHIFT_REJECTED", msgSupervisorRejected, "ShiftChangeScreen", req.id, {})
-                                }
+                                // Eliminado bloque duplicado de notificación
                             },
                             staffIdToUserId = staffIdToUserId,
                             plantStaffMap = plantStaffMap
@@ -443,13 +448,37 @@ fun ShiftChangeScreen(
                                         )
 
                                         database.reference.updateChildren(updates).addOnSuccessListener {
+                                            // 3. Notificación al Solicitante
+                                            onSaveNotification(
+                                                req.requesterId,
+                                                "SHIFT_UPDATE",
+                                                "$currentUserName ha aceptado el cambio. Pendiente de supervisor.",
+                                                "ShiftChangeScreen",
+                                                req.id, {}
+                                            )
 
+                                            // 4. Notificación manual a supervisores (opcional si usas Cloud Functions)
+                                            supervisorIds.forEach { supId ->
+                                                onSaveNotification(
+                                                    supId,
+                                                    "SHIFT_PENDING_SUPERVISOR",
+                                                    "Solicitud aceptada entre ${req.requesterName} y ${currentUserName}. Requiere aprobación.",
+                                                    "ShiftChangeScreen",
+                                                    req.id, {}
+                                                )
+                                            }
                                         }
                                     },
                                     onRejectByPartner = { req ->
                                         deleteShiftRequest(database, plantId, req.id)
                                         if (req.targetUserId == currentUserId || req.targetUserName.equals(currentUserName, ignoreCase = true)) {
-
+                                            onSaveNotification(
+                                                req.requesterId,
+                                                "SHIFT_REJECTED",
+                                                msgPartnerRejected,
+                                                "ShiftChangeScreen",
+                                                req.id, {}
+                                            )
                                         }
                                     },
                                     onApproveBySupervisor = { },
@@ -845,6 +874,7 @@ fun FullPlantShiftsList(
     currentUserId: String,
     userSchedules: Map<String, Map<LocalDate, String>>,
     currentUserSchedule: Map<LocalDate, String>,
+    plantStaff: List<RegisteredUser>, // NUEVO PARÁMETRO: Lista oficial de personal
     shiftColors: ShiftColors,
     onProposeSwap: (PlantShift) -> Unit
 ) {
@@ -859,10 +889,15 @@ fun FullPlantShiftsList(
     var showPreviewDialog by remember { mutableStateOf(false) }
     var previewCandidate by remember { mutableStateOf<PlantShift?>(null) }
 
-    val availablePeople = remember(allShifts, request.requesterRole) {
-        allShifts
-            .filter { ShiftRulesEngine.areRolesCompatible(request.requesterRole, it.userRole) && it.userId != currentUserId }
-            .map { it.userName }
+    // CORRECCIÓN: Calcular 'availablePeople' usando la lista oficial 'plantStaff'
+    val availablePeople = remember(plantStaff, request.requesterRole) {
+        plantStaff
+            .filter {
+                ShiftRulesEngine.areRolesCompatible(request.requesterRole, it.role)
+                // Nota: Podríamos filtrar al propio usuario por nombre si es necesario,
+                // pero allShifts ya filtra por currentUserId luego.
+            }
+            .map { it.name }
             .distinct()
             .sorted()
     }
@@ -880,7 +915,10 @@ fun FullPlantShiftsList(
 
             if (!isFuture || !isCompatibleRole || !isNotMe || isSameExactShift) return@filter false
             if (filterDate != null && shift.date != filterDate) return@filter false
-            if (filterPerson != null && shift.userName != filterPerson) return@filter false
+
+            // CORRECCIÓN: Comparación exacta de nombres (ahora que allShifts tiene nombres canónicos)
+            if (filterPerson != null && !shift.userName.equals(filterPerson, ignoreCase = true)) return@filter false
+
             if (filterShiftType != null && !shift.shiftName.contains(filterShiftType!!, ignoreCase = true)) return@filter false
 
             val errorForMe = ShiftRulesEngine.validateWorkRules(shift.date, shift.shiftName, mySimulatedSchedule)
@@ -1391,7 +1429,14 @@ fun performDirectProposal(
     )
     database.reference.updateChildren(updates).addOnSuccessListener {
         // Notificación manual al Target
-
+        onSaveNotification(
+            targetShift.userId,
+            "SHIFT_PROPOSAL",
+            "${myReq.requesterName} te ha solicitado un cambio de turno: tu ${targetShift.shiftName} del ${targetShift.date} por su ${myReq.requesterShiftName} del ${myReq.requesterShiftDate}.",
+            "ShiftChangeScreen",
+            myReq.id,
+            {}
+        )
     }
 }
 
@@ -1469,6 +1514,7 @@ fun approveSwapBySupervisor(
                             updates["$basePathB/secondary"] = ""
                             updates["$basePathB/halfDay"] = false
                             updates["plants/$plantId/turnos/turnos-${req.requesterShiftDate}/${infoA.path}"] = req.targetUserName
+                            updates["plants/$plantId/turnos/turnos-${req.targetShiftDate}/${infoB.path}"] = req.requesterName
                         } else {
                             updates["plants/$plantId/turnos/turnos-${req.requesterShiftDate}/${infoA.path}"] = req.targetUserName
                             updates["plants/$plantId/turnos/turnos-${req.targetShiftDate}/${infoB.path}"] = req.requesterName

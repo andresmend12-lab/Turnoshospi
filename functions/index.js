@@ -26,7 +26,7 @@ exports.sendNotification = functions.database.ref('/user_notifications/{userId}/
         const message = {
             token: fcmToken,
             notification: {
-                title: notification.title || "Turnoshospi",
+                title: notification.title || "ShiftGrid",
                 body: notification.message
             },
             android: {

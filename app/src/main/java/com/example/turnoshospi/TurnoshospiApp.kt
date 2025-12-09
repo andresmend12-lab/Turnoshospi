@@ -126,7 +126,9 @@ fun TurnoshospiApp(
     onMarkNotificationAsRead: (String, String) -> Unit,
     onDeleteNotification: (String, String) -> Unit,
     onClearAllNotifications: (String) -> Unit,
-    onListenToChatUnreadCounts: (String, (Map<String, Int>) -> Unit) -> Unit
+    onListenToChatUnreadCounts: (String, (Map<String, Int>) -> Unit) -> Unit,
+    // Callback para eliminar staff
+    onDeletePlantStaff: (String, String, (Boolean) -> Unit) -> Unit
 ) {
     var showLogin by remember { mutableStateOf(true) }
     var showRegistration by remember { mutableStateOf(false) }
@@ -246,7 +248,7 @@ fun TurnoshospiApp(
                         title = getTitleForType(context, it.type), // Uso del context aquí
                         message = it.message,
                         timestamp = it.timestamp,
-                        read = it.isRead,
+                        read = it.read, // <--- CORRECCIÓN AQUÍ: Usar .read en lugar de .isRead
                         screen = it.targetScreen,
                         plantId = it.targetId, // OJO: Aquí deberías guardar plantId en BD por separado si es posible, o asumir targetId=plantId en algunos casos
                         argument = it.targetId
@@ -538,6 +540,7 @@ fun TurnoshospiApp(
                     datePickerState = sharedDatePickerState,
                     currentUserProfile = existingProfile,
                     currentMembership = plantMembership,
+                    unreadChatCount = totalUnreadChats, // NUEVO: Pasamos el contador
                     onBack = { navigateBack() },
                     onAddStaff = { plantId, staffMember, onResult ->
                         onRegisterPlantStaff(plantId, staffMember) { success ->
@@ -561,9 +564,27 @@ fun TurnoshospiApp(
                             onResult(success)
                         }
                     },
+                    onDeleteStaff = { plantId, staffId, onResult ->
+                        onDeletePlantStaff(plantId, staffId) { success ->
+                            if (success) {
+                                // Actualizamos el estado local para reflejar el borrado inmediatamente
+                                selectedPlantForDetail = selectedPlantForDetail?.copy(
+                                    personal_de_planta = selectedPlantForDetail?.personal_de_planta.orEmpty() - staffId
+                                )
+                            }
+                            onResult(success)
+                        }
+                    },
                     onOpenPlantSettings = { navigateTo(AppScreen.PlantSettings) },
                     onOpenImportShifts = { navigateTo(AppScreen.ImportShifts) },
                     onOpenChat = { navigateTo(AppScreen.GroupChat) },
+                    onOpenDirectChats = { // NUEVO: Navegación al chat individual
+                        if (userPlant != null) {
+                            selectedPlantForDetail = userPlant
+                            navigateTo(AppScreen.DirectChatList)
+                        }
+                    },
+                    onOpenNotifications = { navigateTo(AppScreen.Notifications) },
                     onOpenShiftChange = { navigateTo(AppScreen.ShiftChange) },
                     onOpenShiftMarketplace = { navigateTo(AppScreen.ShiftMarketplace) },
                     onOpenStatistics = { navigateTo(AppScreen.Statistics) },
@@ -1146,7 +1167,8 @@ fun SplashLoginPreview() {
             onMarkNotificationAsRead = { _, _ -> },
             onDeleteNotification = { _, _ -> },
             onClearAllNotifications = { _ -> },
-            onListenToChatUnreadCounts = { _, _ -> }
+            onListenToChatUnreadCounts = { _, _ -> },
+            onDeletePlantStaff = { _, _, _ -> } // Callback de borrado para preview
         )
     }
 }

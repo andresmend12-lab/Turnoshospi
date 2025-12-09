@@ -168,9 +168,13 @@ class MainActivity : ComponentActivity() {
                     onClearAllNotifications = { userId ->
                         deleteAllUserNotifications(userId)
                     },
-                    // NUEVO: Listener para obtener los contadores de no leídos
+                    // Listener para obtener los contadores de no leídos
                     onListenToChatUnreadCounts = { userId, onResult ->
                         listenToChatUnreadCounts(userId, onResult)
+                    },
+                    // NUEVO: Callback para borrar personal de planta
+                    onDeletePlantStaff = { plantId, staffId, onResult ->
+                        deletePlantStaff(plantId, staffId, onResult)
                     }
                 )
             }
@@ -573,6 +577,22 @@ class MainActivity : ComponentActivity() {
             .addOnFailureListener { onResult(false) }
     }
 
+    // --- NUEVA FUNCIÓN: BORRAR PERSONAL DE PLANTA ---
+    private fun deletePlantStaff(plantId: String, staffId: String, onResult: (Boolean) -> Unit) {
+        if (plantId.isBlank() || staffId.isBlank()) {
+            onResult(false)
+            return
+        }
+        realtimeDatabase.reference
+            .child("plants")
+            .child(plantId)
+            .child("personal_de_planta")
+            .child(staffId)
+            .removeValue()
+            .addOnSuccessListener { onResult(true) }
+            .addOnFailureListener { onResult(false) }
+    }
+
     private fun listenToUserShifts(
         plantId: String,
         staffId: String,
@@ -783,7 +803,7 @@ class MainActivity : ComponentActivity() {
             message = message,
             targetScreen = targetScreen,
             targetId = targetId,
-            isRead = false
+            read = false // IMPORTANTE: Usamos 'read'
         )
 
         notificationRef.setValue(notification)
@@ -826,7 +846,7 @@ class MainActivity : ComponentActivity() {
         realtimeDatabase.getReference("user_notifications")
             .child(userId)
             .child(notificationId)
-            .child("isRead")
+            .child("read") // CORREGIDO: Usamos "read"
             .setValue(true)
     }
 
@@ -899,6 +919,7 @@ data class UserProfile(
     val updatedAt: Timestamp? = null
 )
 
+// MODELO DE NOTIFICACIÓN CORREGIDO
 data class UserNotification(
     val id: String = "",
     val type: String = "",
@@ -906,7 +927,7 @@ data class UserNotification(
     val targetScreen: String = "",
     val targetId: String? = null,
     val timestamp: Long = System.currentTimeMillis(),
-    val isRead: Boolean = false
+    val read: Boolean = false // CORREGIDO: Renombrado de 'isRead' a 'read'
 )
 
 data class Plant(
@@ -936,10 +957,6 @@ data class RegisteredUser(
     val email: String = "",
     val profileType: String = ""
 )
-
-
-
-
 
 // --- EXTENSIONES ---
 
@@ -1038,7 +1055,8 @@ fun MainActivityPreview() {
             onMarkNotificationAsRead = { _, _ -> },
             onDeleteNotification = { _, _ -> },
             onClearAllNotifications = { _ -> },
-            onListenToChatUnreadCounts = { _, _ -> }
+            onListenToChatUnreadCounts = { _, _ -> },
+            onDeletePlantStaff = { _, _, _ -> } // Callback de borrado para preview
         )
     }
 }
