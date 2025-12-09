@@ -58,8 +58,9 @@ async function saveNotificationIfMissing(userId, payload) {
     // Evitamos duplicar entradas no leídas con mismo destino y mensaje
     const alreadyExists = current.exists() && Object.values(current.val() || {}).some((notif) => {
         const unread = notif && (notif.read === false || notif.isRead === false);
+        const sameArgument = (notif.argument || "") === (payload.argument || "");
         return unread && notif.message === payload.message && notif.targetScreen === payload.targetScreen &&
-            notif.targetId === payload.targetId;
+            notif.targetId === payload.targetId && sameArgument;
     });
 
     if (alreadyExists) {
@@ -294,5 +295,37 @@ exports.notifyTargetOnProposal = functions.database.ref('/plants/{plantId}/shift
                 argument: requestId
             });
         }
+        return null;
+    });
+
+// ==================================================================
+// 7. Avisar cuando el compañero rechaza (se elimina) la solicitud
+// ==================================================================
+exports.notifyRequesterOnDeletion = functions.database.ref('/plants/{plantId}/shift_requests/{requestId}')
+    .onDelete(async (snapshot, context) => {
+        const before = snapshot.val();
+        const plantId = context.params.plantId;
+        const requestId = context.params.requestId;
+
+        if (!before) return null;
+
+        const { requesterId, requesterName, targetUserId, targetUserName, requesterShiftDate } = before;
+
+        // Solo notificamos si existía un destinatario y la solicitud estaba pendiente de él
+        if (!requesterId || !targetUserId) return null;
+        if (before.status !== 'PENDING_PARTNER') return null;
+
+        const body = `${targetUserName || "Compañero"} ha rechazado tu solicitud para el ${requesterShiftDate || "turno"}.`;
+
+        await saveNotificationIfMissing(requesterId, {
+            title: "Solicitud rechazada",
+            message: body,
+            timestamp: admin.database.ServerValue.TIMESTAMP,
+            read: false,
+            targetScreen: "ShiftChangeScreen",
+            targetId: plantId,
+            argument: requestId
+        });
+
         return null;
     });
