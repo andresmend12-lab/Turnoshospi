@@ -248,7 +248,7 @@ fun TurnoshospiApp(
                         timestamp = it.timestamp,
                         read = it.isRead,
                         screen = it.targetScreen,
-                        plantId = it.targetId,
+                        plantId = it.targetId, // OJO: Aquí deberías guardar plantId en BD por separado si es posible, o asumir targetId=plantId en algunos casos
                         argument = it.targetId
                     )
                 }
@@ -281,10 +281,10 @@ fun TurnoshospiApp(
             val plantIdArg = pendingNavigation["plantId"]
 
             if (screen == "DirectChat") {
-                val otherId = pendingNavigation["otherUserId"]
-                val otherName = pendingNavigation["otherUserName"]
+                val otherId = pendingNavigation["otherUserId"] ?: pendingNavigation["argument"]
+                val otherName = pendingNavigation["otherUserName"] ?: ""
 
-                if (otherId != null && otherName != null) {
+                if (otherId != null) {
                     selectedDirectChatUserId = otherId
                     selectedDirectChatUserName = otherName
 
@@ -305,6 +305,16 @@ fun TurnoshospiApp(
 
                     if (currentScreen != AppScreen.ShiftChange) {
                         navigateTo(AppScreen.ShiftChange)
+                    }
+                }
+            } else if (screen == "ShiftMarketplaceScreen") { // NUEVO
+                if (plantIdArg != null) {
+                    // Asegurar que la planta está seleccionada
+                    if (selectedPlantForDetail == null || selectedPlantForDetail?.id != plantIdArg) {
+                        if (userPlant?.id == plantIdArg) selectedPlantForDetail = userPlant
+                    }
+                    if (currentScreen != AppScreen.ShiftMarketplace) {
+                        navigateTo(AppScreen.ShiftMarketplace)
                     }
                 }
             }
@@ -432,7 +442,7 @@ fun TurnoshospiApp(
                     userPlant = userPlant,
                     plantMembership = plantMembership,
                     datePickerState = sharedDatePickerState,
-                    shiftColors = shiftColors, // Pasamos colores
+                    shiftColors = shiftColors,
                     onListenToShifts = onListenToShifts,
                     onFetchColleagues = onFetchColleagues,
                     onCreatePlant = { navigateTo(AppScreen.CreatePlant) },
@@ -614,15 +624,13 @@ fun TurnoshospiApp(
 
                 AppScreen.Statistics -> {
                     val currentPlant = selectedPlantForDetail ?: userPlant
-                    // Lógica para determinar si el usuario es supervisor
                     val isUserSupervisor = plantMembership?.staffRole == "Supervisor"
 
-                    // Mapear el personal de la planta a una lista de PlantMembership.
                     val allPlantMemberships = remember(currentPlant) {
                         currentPlant?.personal_de_planta?.map { (_, staff) ->
                             PlantMembership(
                                 plantId = currentPlant.id,
-                                userId = staff.id.orEmpty(), // Usamos staff.id como userId, asumiendo que es un identificador único en ausencia de la propiedad 'userId'
+                                userId = staff.id.orEmpty(),
                                 staffId = staff.id,
                                 staffName = staff.name,
                                 staffRole = staff.role
@@ -673,6 +681,7 @@ fun TurnoshospiApp(
                         user?.uid?.let { uid -> onClearAllNotifications(uid) }
                     },
                     onNavigateToScreen = { screen, plantId, arg ->
+                        // Manejo de navegación desde la pantalla de notificaciones interna
                         if (screen == "ShiftChangeScreen" && plantId != null) {
                             if (selectedPlantForDetail == null || selectedPlantForDetail?.id != plantId) {
                                 if (userPlant?.id == plantId) selectedPlantForDetail = userPlant
@@ -681,6 +690,11 @@ fun TurnoshospiApp(
                         } else if (screen == "DirectChat" && arg != null) {
                             selectedDirectChatUserId = arg
                             navigateTo(AppScreen.DirectChat)
+                        } else if (screen == "ShiftMarketplaceScreen" && plantId != null) { // NUEVO
+                            if (selectedPlantForDetail == null || selectedPlantForDetail?.id != plantId) {
+                                if (userPlant?.id == plantId) selectedPlantForDetail = userPlant
+                            }
+                            navigateTo(AppScreen.ShiftMarketplace)
                         }
                     }
                 )
@@ -1093,7 +1107,7 @@ fun getTitleForType(context: android.content.Context, type: String): String {
         "MARKETPLACE_ADD" -> context.getString(R.string.notif_title_marketplace_add)
         "SHIFT_RESPONSE" -> context.getString(R.string.notif_title_shift_response)
         "SHIFT_PROPOSAL" -> context.getString(R.string.notif_title_shift_proposal)
-        "SHIFT_UPDATE" -> context.getString(R.string.notif_title_shift_assignment) // Reusing as update is assignment change
+        "SHIFT_UPDATE" -> context.getString(R.string.notif_title_shift_assignment)
         "SHIFT_APPROVED" -> context.getString(R.string.notif_title_shift_approved)
         "SHIFT_REJECTED" -> context.getString(R.string.notif_title_shift_rejected)
         "SUPERVISOR_ACTION" -> context.getString(R.string.notif_title_supervisor_action)
