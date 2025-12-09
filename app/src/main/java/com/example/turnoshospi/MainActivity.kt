@@ -832,7 +832,9 @@ class MainActivity : ComponentActivity() {
                     for (child in snapshot.children) {
                         val notif = child.getValue(UserNotification::class.java)
                         if (notif != null) {
-                            notifications.add(notif)
+                            // Si la notificación no guardó el id en su estructura, lo tomamos de la key del snapshot
+                            val ensuredId = if (notif.id.isNotBlank()) notif.id else child.key.orEmpty()
+                            notifications.add(notif.copy(id = ensuredId))
                         }
                     }
                     onResult(notifications.reversed())
