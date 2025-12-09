@@ -332,8 +332,9 @@ fun DrawerHeader(displayName: String, welcomeStringId: Int) {
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Image(
-            painterResource(R.mipmap.ic_logo_hospi_foreground),
-            stringResource(R.string.app_name),
+            // CORREGIDO: Usando R.drawable para evitar crash por Adaptive Icon (XML)
+            painter = painterResource(R.drawable.ic_logo_hospi_round),
+            contentDescription = stringResource(R.string.app_name),
             modifier = Modifier.size(48.dp)
         )
         Crossfade(targetState = displayName) {
