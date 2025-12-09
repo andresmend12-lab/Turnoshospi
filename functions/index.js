@@ -153,11 +153,24 @@ exports.notifySupervisorOnPending = functions.database.ref('/plants/{plantId}/sh
             const requesterName = after.requesterName || "Usuario";
             const targetName = after.targetUserName || "Compañero";
             const shiftDate = after.requesterShiftDate;
+            const requesterId = after.requesterId;
             const supervisorIds = after.supervisorIds; // <-- Leemos la lista que guardamos desde Android
 
             console.log(`Cambio pendiente: ${requesterName} <-> ${targetName}. IDs Supervisores:`, supervisorIds);
 
             const promises = [];
+
+            if (requesterId) {
+                promises.push(saveNotificationIfMissing(requesterId, {
+                    title: "Cambio aceptado",
+                    message: `${targetName} ha aceptado el cambio. Pendiente de supervisor para el ${shiftDate}.`,
+                    timestamp: admin.database.ServerValue.TIMESTAMP,
+                    read: false,
+                    targetScreen: "ShiftChangeScreen",
+                    targetId: plantId,
+                    argument: requestId
+                }));
+            }
 
             // A. Usar la lista directa si existe (Método rápido)
             if (supervisorIds && Array.isArray(supervisorIds) && supervisorIds.length > 0) {

@@ -611,8 +611,7 @@ fun TurnoshospiApp(
                     currentUser = existingProfile,
                     currentUserId = user?.uid ?: "",
                     shiftColors = shiftColors,
-                    onBack = { navigateBack() },
-                    onSaveNotification = onSaveNotification
+                    onBack = { navigateBack() }
                 )
 
                 AppScreen.ShiftMarketplace -> ShiftMarketplaceScreen(
