@@ -98,7 +98,7 @@ fun StaffListDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(id = R.string.close)) }
+            TextButton(onClick = onDismiss) { Text(stringResource(id = R.string.btn_close)) }
         }
     )
 }
@@ -153,7 +153,7 @@ fun VacationDaysDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    text = stringResource(id = R.string.vacation_dialog_hint),
+                    text = stringResource(id = R.string.dialog_vacation_instruction),
                     color = Color.Gray,
                     textAlign = TextAlign.Start
                 )
@@ -166,13 +166,17 @@ fun VacationDaysDialog(
                     }
                 }
                 if (selectedDates.isNotEmpty()) {
-                    Text(stringResource(id = R.string.vacation_selected_days, selectedDates.joinToString()))
+                    Text(
+                        text = selectedDates.joinToString(
+                            prefix = stringResource(id = R.string.dialog_vacation_instruction) + "\n"
+                        )
+                    )
                 }
             }
         },
         confirmButton = {
             Button(onClick = { onConfirm(selectedDates.map { it.toString() }) }) {
-                Text(stringResource(id = R.string.confirm))
+                Text(stringResource(id = R.string.btn_confirm_days, selectedDates.size))
             }
         },
         dismissButton = {
