@@ -47,11 +47,15 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FactCheck
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -69,6 +73,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -151,7 +156,10 @@ fun PlantDetailScreen(
     onOpenShiftChange: () -> Unit,
     onOpenShiftMarketplace: () -> Unit,
     onOpenStatistics: () -> Unit,
-    onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit
+    onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit,
+    unreadChatCount: Int,
+    unreadNotificationsCount: Int,
+    onOpenNotifications: () -> Unit
 ) {
     var isMenuOpen by remember { mutableStateOf(false) }
     var showVacationDialog by remember { mutableStateOf(false) }
@@ -258,6 +266,23 @@ fun PlantDetailScreen(
                                 Icon(
                                     imageVector = Icons.Default.Menu,
                                     contentDescription = stringResource(id = R.string.side_menu_title),
+                                    tint = Color.White
+                                )
+                            }
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = onOpenNotifications) {
+                            BadgedBox(badge = {
+                                if (unreadNotificationsCount > 0) {
+                                    Badge(containerColor = Color(0xFFE91E63)) {
+                                        Text(if (unreadNotificationsCount > 99) "99+" else "$unreadNotificationsCount")
+                                    }
+                                }
+                            }) {
+                                Icon(
+                                    Icons.Default.Notifications,
+                                    contentDescription = stringResource(id = R.string.cd_notifications),
                                     tint = Color.White
                                 )
                             }
@@ -372,6 +397,27 @@ fun PlantDetailScreen(
                     } else {
                         InfoMessage(message = stringResource(id = R.string.plant_detail_missing_data))
                     }
+                }
+            }
+        }
+
+        if (plant != null && !isMenuOpen) {
+            FloatingActionButton(
+                onClick = onOpenChat,
+                modifier = Modifier.align(Alignment.BottomEnd).padding(20.dp, 40.dp),
+                containerColor = Color(0xFF54C7EC),
+                contentColor = Color.White,
+                shape = CircleShape
+            ) {
+                BadgedBox(badge = {
+                    if (unreadChatCount > 0) {
+                        Badge(containerColor = Color.Red) { Text("$unreadChatCount") }
+                    }
+                }) {
+                    Icon(
+                        Icons.Default.Chat,
+                        contentDescription = stringResource(R.string.cd_chats)
+                    )
                 }
             }
         }

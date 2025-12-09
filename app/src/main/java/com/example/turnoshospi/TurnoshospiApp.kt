@@ -567,7 +567,10 @@ fun TurnoshospiApp(
                     onOpenShiftChange = { navigateTo(AppScreen.ShiftChange) },
                     onOpenShiftMarketplace = { navigateTo(AppScreen.ShiftMarketplace) },
                     onOpenStatistics = { navigateTo(AppScreen.Statistics) },
-                    onSaveNotification = onSaveNotification
+                    onSaveNotification = onSaveNotification,
+                    unreadChatCount = totalUnreadChats,
+                    unreadNotificationsCount = unreadNotificationsCount,
+                    onOpenNotifications = { navigateTo(AppScreen.Notifications) }
                 )
                 AppScreen.Settings -> SettingsScreen(
                     currentColors = shiftColors,
