@@ -25,7 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource // Importante
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,7 +35,6 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import java.time.LocalDate
-import java.util.UUID
 import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,7 +57,6 @@ fun ShiftMarketplaceScreen(
     val transactionsList = remember { mutableStateListOf<FavorTransaction>() }
     val staffNamesMap = remember { mutableStateMapOf<String, String>() }
     val userIdToStaffIdMap = remember { mutableStateMapOf<String, String>() }
-
     val myShiftsMap = remember { mutableStateMapOf<LocalDate, String>() }
 
     var isLoadingRequests by remember { mutableStateOf(true) }
@@ -71,7 +69,6 @@ fun ShiftMarketplaceScreen(
 
     val labelUser = stringResource(R.string.default_user)
 
-    // Función auxiliar para resolver nombres
     fun resolveName(id: String): String {
         if (staffNamesMap.containsKey(id)) return staffNamesMap[id]!!
         val staffId = userIdToStaffIdMap[id]
@@ -81,11 +78,9 @@ fun ShiftMarketplaceScreen(
 
     val errorLoadingSchedule = stringResource(R.string.error_loading_schedule)
 
-    // Función para cargar el horario del solicitante
     fun fetchWeeklySchedule(userId: String, date: LocalDate) {
         val pivotStart = date.minusDays(7)
         val pivotEnd = date.plusDays(7)
-
         val startKey = "turnos-$pivotStart"
         val endKey = "turnos-$pivotEnd"
 
@@ -103,7 +98,6 @@ fun ShiftMarketplaceScreen(
                             dateSnapshot.children.forEach { shiftSnap ->
                                 val shiftName = shiftSnap.key ?: ""
                                 val userName = resolveName(userId)
-
                                 fun checkSlot(node: String) {
                                     shiftSnap.child(node).children.forEach { slot ->
                                         val p = slot.child("primary").value.toString()
@@ -127,7 +121,6 @@ fun ShiftMarketplaceScreen(
     }
 
     LaunchedEffect(plantId) {
-        // ... (Tu lógica de carga sigue igual) ...
         // 1. Cargar Solicitudes Activas
         database.getReference("plants/$plantId/shift_requests")
             .orderByChild("status")
@@ -185,38 +178,34 @@ fun ShiftMarketplaceScreen(
                 override fun onCancelled(error: DatabaseError) { isLoadingSchedule = false }
             })
 
-        // 3. Balances
-        database.getReference("plants/$plantId/balances/$currentUserId")
-            .addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    balancesMap.clear()
-                    snapshot.children.forEach { child ->
-                        val partnerId = child.key ?: return@forEach
-                        val score = child.getValue(Int::class.java) ?: 0
-                        if (score != 0) balancesMap[partnerId] = score
-                    }
-                }
-                override fun onCancelled(error: DatabaseError) {}
-            })
-
-        // 4. Historial
+        // 3. Historial y Cálculo de Balances
         database.getReference("plants/$plantId/transactions")
-            .limitToLast(100)
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     transactionsList.clear()
+                    val tempBalances = mutableMapOf<String, Int>()
                     snapshot.children.forEach { child ->
                         val t = child.getValue(FavorTransaction::class.java)
-                        if (t != null && (t.covererId == currentUserId || t.requesterId == currentUserId)) {
-                            transactionsList.add(t)
+                        if (t != null) {
+                            if (t.covererId == currentUserId) {
+                                transactionsList.add(t)
+                                val current = tempBalances[t.requesterId] ?: 0
+                                tempBalances[t.requesterId] = current + 1
+                            } else if (t.requesterId == currentUserId) {
+                                transactionsList.add(t)
+                                val current = tempBalances[t.covererId] ?: 0
+                                tempBalances[t.covererId] = current - 1
+                            }
                         }
                     }
                     transactionsList.sortByDescending { it.timestamp }
+                    balancesMap.clear()
+                    tempBalances.forEach { (partnerId, score) -> balancesMap[partnerId] = score }
                 }
                 override fun onCancelled(error: DatabaseError) {}
             })
 
-        // 5. Nombres
+        // 4. Nombres y IDs
         database.getReference("plants/$plantId/personal_de_planta")
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -234,7 +223,6 @@ fun ShiftMarketplaceScreen(
                 override fun onCancelled(error: DatabaseError) {}
             })
 
-        // 6. User IDs
         database.getReference("plants/$plantId/userPlants")
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -261,14 +249,11 @@ fun ShiftMarketplaceScreen(
                     userSchedule = myShiftsMap
                 )
                 validationError == null
-            } catch (e: Exception) {
-                false
-            }
+            } catch (e: Exception) { false }
         }
     }
 
-    // STRINGS PARA USO INTERNO
-    val msgShiftAccepted = stringResource(R.string.msg_shift_accepted)
+    val msgRequestSent = stringResource(R.string.msg_request_sent) // "Solicitud enviada al supervisor"
     val notifTemplate = stringResource(R.string.notif_shift_covered)
 
     Scaffold(
@@ -285,41 +270,36 @@ fun ShiftMarketplaceScreen(
             )
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp)
-        ) {
-            // Balances
+        Column(modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
+
+            // --- BALANCES CON FILTRO DE CEROS ---
             if (balancesMap.isNotEmpty()) {
-                Text(stringResource(R.string.header_balances), color = Color(0xFF54C7EC), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Spacer(modifier = Modifier.height(8.dp))
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth().heightIn(max = 250.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(balancesMap.toList()) { (partnerId, score) ->
-                        val partnerName = resolveName(partnerId)
-                        val historyWithPartner = transactionsList.filter {
-                            (it.covererId == currentUserId && it.requesterId == partnerId) ||
-                                    (it.requesterId == currentUserId && it.covererId == partnerId)
+                // Filtramos para no mostrar los que sean 0
+                val visibleBalances = balancesMap.toList().filter { it.second != 0 }
+
+                if (visibleBalances.isNotEmpty()) {
+                    Text(stringResource(R.string.header_balances), color = Color(0xFF54C7EC), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 250.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(visibleBalances) { (partnerId, score) ->
+                            val partnerName = resolveName(partnerId)
+                            val historyWithPartner = transactionsList.filter {
+                                (it.covererId == currentUserId && it.requesterId == partnerId) ||
+                                        (it.requesterId == currentUserId && it.covererId == partnerId)
+                            }
+                            BalanceCard(partnerName, score, historyWithPartner, currentUserId)
                         }
-                        BalanceCard(partnerName, score, historyWithPartner, currentUserId)
                     }
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = Color.White.copy(alpha = 0.1f))
                 }
-                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = Color.White.copy(alpha = 0.1f))
             }
 
-            // Turnos
             Text(stringResource(R.string.header_available_shifts), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             Text(stringResource(R.string.desc_available_shifts), color = Color.Gray, fontSize = 12.sp)
             Spacer(modifier = Modifier.height(8.dp))
 
             if (isLoadingRequests || isLoadingSchedule) {
-                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Color(0xFF54C7EC))
-                }
+                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Color(0xFF54C7EC)) }
             } else if (filteredRequests.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize().weight(1f), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -331,28 +311,26 @@ fun ShiftMarketplaceScreen(
                     }
                 }
             } else {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.weight(1f)) {
                     items(filteredRequests) { req ->
                         val balanceWithRequester = balancesMap[req.requesterId] ?: 0
                         MarketplaceItem(
                             req = req,
                             balanceWithRequester = balanceWithRequester,
                             onAccept = {
+                                // Llamamos a la versión nueva que solo envía al supervisor
                                 acceptCoverage(
                                     database, plantId, req, currentUserId, currentUserName,
                                     onSuccess = {
                                         onSaveNotification(
                                             req.requesterId,
-                                            "SHIFT_COVERED",
-                                            String.format(notifTemplate, currentUserName),
-                                            "ShiftMarketplaceScreen",
+                                            "SHIFT_PROPOSAL", // Cambiado a propuesta
+                                            "${currentUserName} quiere cubrir tu turno del ${req.requesterShiftDate}. Pendiente de supervisor.",
+                                            "ShiftChangeScreen",
                                             req.id,
                                             {}
                                         )
-                                        Toast.makeText(context, msgShiftAccepted, Toast.LENGTH_LONG).show()
+                                        Toast.makeText(context, "Solicitud enviada al supervisor", Toast.LENGTH_LONG).show()
                                     },
                                     onError = { msg -> Toast.makeText(context, msg, Toast.LENGTH_LONG).show() }
                                 )
@@ -372,7 +350,6 @@ fun ShiftMarketplaceScreen(
     if (showPreviewDialog && previewRequest != null) {
         val req = previewRequest!!
         val pivotDate = LocalDate.parse(req.requesterShiftDate)
-
         SchedulePreviewDialog(
             onDismiss = { showPreviewDialog = false },
             row1Schedule = myShiftsMap,
@@ -385,101 +362,54 @@ fun ShiftMarketplaceScreen(
             row2DateToRemove = pivotDate,
             row2DateToAdd = null,
             row2ShiftToAdd = null,
-            shiftColors = shiftColors // <--- PASAMOS LOS COLORES AQUÍ
+            shiftColors = shiftColors
         )
     }
 }
 
-// --- COMPONENTES UI ---
-
+// ... (BalanceCard y MarketplaceItem se mantienen igual que tu versión anterior) ...
 @Composable
-fun BalanceCard(
-    partnerName: String,
-    score: Int,
-    history: List<FavorTransaction>,
-    currentUserId: String
-) {
+fun BalanceCard(partnerName: String, score: Int, history: List<FavorTransaction>, currentUserId: String) {
     var expanded by remember { mutableStateOf(false) }
     val isPositive = score > 0
     val scoreColor = if (isPositive) Color(0xFF4CAF50) else Color(0xFFE91E63)
     val containerColor = if (isPositive) Color(0xFF1E293B) else Color(0xFF2B1218)
     val borderColor = if (isPositive) Color(0xFF4CAF50) else Color(0xFFE91E63)
 
-    Card(
-        modifier = Modifier.fillMaxWidth().clickable { expanded = !expanded },
-        colors = CardDefaults.cardColors(containerColor = containerColor),
-        border = BorderStroke(1.dp, borderColor.copy(alpha = 0.5f))
-    ) {
+    Card(modifier = Modifier.fillMaxWidth().clickable { expanded = !expanded }, colors = CardDefaults.cardColors(containerColor = containerColor), border = BorderStroke(1.dp, borderColor.copy(alpha = 0.5f))) {
         Column(modifier = Modifier.padding(12.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Person, null, tint = Color.White, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text(partnerName, color = Color.White, fontWeight = FontWeight.Bold)
-                        Text(
-                            text = if (isPositive) stringResource(R.string.balance_owe_you, score) else stringResource(R.string.balance_you_owe, abs(score)),
-                            color = scoreColor,
-                            fontSize = 12.sp
-                        )
+                        Text(text = if (isPositive) stringResource(R.string.balance_owe_you, score) else stringResource(R.string.balance_you_owe, abs(score)), color = scoreColor, fontSize = 12.sp)
                     }
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = if (score > 0) "+$score" else "$score",
-                        color = scoreColor,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    )
+                    Text(text = if (score > 0) "+$score" else "$score", color = scoreColor, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Icon(
-                        imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                        contentDescription = stringResource(R.string.desc_expand),
-                        tint = Color.Gray
-                    )
+                    Icon(imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, contentDescription = stringResource(R.string.desc_expand), tint = Color.Gray)
                 }
             }
-
-            AnimatedVisibility(
-                visible = expanded,
-                enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut()
-            ) {
+            AnimatedVisibility(visible = expanded, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
                 Column(modifier = Modifier.padding(top = 12.dp)) {
                     HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(stringResource(R.string.header_favor_history), color = Color.Gray, fontSize = 11.sp)
                     Spacer(modifier = Modifier.height(4.dp))
-
                     if (history.isEmpty()) {
                         Text(stringResource(R.string.msg_no_history), color = Color.Gray, fontSize = 12.sp)
                     } else {
                         history.forEach { t ->
                             val isMeCovering = t.covererId == currentUserId
                             Row(modifier = Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.Top) {
-                                Icon(
-                                    imageVector = if (isMeCovering) Icons.Default.CheckCircle else Icons.Default.History,
-                                    contentDescription = null,
-                                    tint = if (isMeCovering) Color(0xFF4CAF50) else Color(0xFFFF9800),
-                                    modifier = Modifier.size(14.dp).padding(top = 2.dp)
-                                )
+                                Icon(imageVector = if (isMeCovering) Icons.Default.CheckCircle else Icons.Default.History, contentDescription = null, tint = if (isMeCovering) Color(0xFF4CAF50) else Color(0xFFFF9800), modifier = Modifier.size(14.dp).padding(top = 2.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Column {
-                                    Text(
-                                        text = if (isMeCovering) stringResource(R.string.msg_you_covered) else stringResource(R.string.msg_covered_you),
-                                        color = Color.White,
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                    Text(
-                                        text = "${t.shiftName} del ${t.date}",
-                                        color = Color(0xCCFFFFFF),
-                                        fontSize = 12.sp
-                                    )
+                                    Text(text = if (isMeCovering) stringResource(R.string.msg_you_covered) else stringResource(R.string.msg_covered_you), color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                                    Text(text = "${t.shiftName} del ${t.date}", color = Color(0xCCFFFFFF), fontSize = 12.sp)
                                 }
                             }
                         }
@@ -491,56 +421,30 @@ fun BalanceCard(
 }
 
 @Composable
-fun MarketplaceItem(
-    req: ShiftChangeRequest,
-    balanceWithRequester: Int,
-    onAccept: () -> Unit,
-    onPreview: () -> Unit
-) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0x11FFFFFF)),
-        border = BorderStroke(1.dp, Color(0x22FFFFFF))
-    ) {
+fun MarketplaceItem(req: ShiftChangeRequest, balanceWithRequester: Int, onAccept: () -> Unit, onPreview: () -> Unit) {
+    Card(colors = CardDefaults.cardColors(containerColor = Color(0x11FFFFFF)), border = BorderStroke(1.dp, Color(0x22FFFFFF))) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(stringResource(R.string.label_requests, req.requesterName), color = Color.White, fontWeight = FontWeight.Bold)
                     if (balanceWithRequester != 0) {
-                        Text(
-                            text = if (balanceWithRequester > 0) stringResource(R.string.balance_owe_you, balanceWithRequester) else stringResource(R.string.balance_you_owe, abs(balanceWithRequester)),
-                            color = if (balanceWithRequester > 0) Color(0xFF4CAF50) else Color(0xFFE91E63),
-                            fontSize = 11.sp
-                        )
+                        Text(text = if (balanceWithRequester > 0) stringResource(R.string.balance_owe_you, balanceWithRequester) else stringResource(R.string.balance_you_owe, abs(balanceWithRequester)), color = if (balanceWithRequester > 0) Color(0xFF4CAF50) else Color(0xFFE91E63), fontSize = 11.sp)
                     } else {
                         Text(stringResource(R.string.balance_neutral), color = Color.Gray, fontSize = 11.sp)
                     }
                 }
-                Badge(containerColor = Color(0xFF54C7EC)) {
-                    Text(req.requesterShiftName, color = Color.Black)
-                }
+                Badge(containerColor = Color(0xFF54C7EC)) { Text(req.requesterShiftName, color = Color.Black) }
             }
             Spacer(modifier = Modifier.height(12.dp))
             Text(stringResource(R.string.label_date_simple, req.requesterShiftDate), color = Color(0xFF54C7EC), fontSize = 18.sp, fontWeight = FontWeight.Bold)
-
             Spacer(modifier = Modifier.height(16.dp))
-
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(
-                    onClick = onAccept,
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50), contentColor = Color.White)
-                ) {
+                Button(onClick = onAccept, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50), contentColor = Color.White)) {
                     Icon(Icons.AutoMirrored.Filled.Assignment, null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.btn_cover_shift))
                 }
-
-                OutlinedButton(
-                    onClick = onPreview,
-                    modifier = Modifier.weight(0.5f),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF54C7EC)),
-                    border = BorderStroke(1.dp, Color(0xFF54C7EC))
-                ) {
+                OutlinedButton(onClick = onPreview, modifier = Modifier.weight(0.5f), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF54C7EC)), border = BorderStroke(1.dp, Color(0xFF54C7EC))) {
                     Text(stringResource(R.string.btn_preview_eye), fontSize = 12.sp)
                 }
             }
@@ -548,7 +452,10 @@ fun MarketplaceItem(
     }
 }
 
-// ... acceptCoverage sigue igual ...
+// ============================================================================================
+// FUNCION ACTUALIZADA: Solo envía al supervisor
+// ============================================================================================
+
 fun acceptCoverage(
     database: FirebaseDatabase,
     plantId: String,
@@ -558,76 +465,19 @@ fun acceptCoverage(
     onSuccess: () -> Unit,
     onError: (String) -> Unit
 ) {
-    // ... (Tu código de acceptCoverage original, no tiene strings visibles para el usuario salvo errores que puedes mapear o dejar genéricos)
-    val turnosRef = database.reference.child("plants/$plantId/turnos/turnos-${req.requesterShiftDate}")
+    // 1. Intentar resolver el nombre REAL usado en la planta a partir del User ID (opcional, pero buena práctica)
+    // Para simplificar y dado que solo vamos a pedir aprobación, podemos enviar los datos directamente.
+    // El supervisor hará la búsqueda robusta cuando apruebe.
 
-    turnosRef.addListenerForSingleValueEvent(object : ValueEventListener {
-        override fun onDataChange(snapshot: DataSnapshot) {
-            if (!snapshot.exists()) { onError("Error: Day not found."); return } // Puedes dejarlo simple o traducirlo
+    val updates = mapOf(
+        "status" to RequestStatus.AWAITING_SUPERVISOR,
+        "targetUserId" to covererId,
+        "targetUserName" to covererName,
+        "type" to RequestType.COVERAGE // Forzamos el tipo COVERAGE para que el supervisor sepa qué hacer
+    )
 
-            val shiftRef = snapshot.child(req.requesterShiftName)
-
-            var pathFound: String? = null
-            var slotKey: String? = null
-            var fieldToUpdate: String? = null
-
-            fun findInNode(nodeName: String) {
-                shiftRef.child(nodeName).children.forEach { slot ->
-                    if (slot.child("primary").value == req.requesterName) {
-                        pathFound = nodeName; slotKey = slot.key; fieldToUpdate = "primary"
-                    } else if (slot.child("secondary").value == req.requesterName) {
-                        pathFound = nodeName; slotKey = slot.key; fieldToUpdate = "secondary"
-                    }
-                }
-            }
-
-            findInNode("nurses")
-            if (pathFound == null) findInNode("auxiliaries")
-
-            if (pathFound != null && slotKey != null && fieldToUpdate != null) {
-                val transactionId = UUID.randomUUID().toString()
-                val transaction = FavorTransaction(
-                    id = transactionId,
-                    covererId = covererId,
-                    covererName = covererName,
-                    requesterId = req.requesterId,
-                    requesterName = req.requesterName,
-                    date = req.requesterShiftDate,
-                    shiftName = req.requesterShiftName,
-                    timestamp = System.currentTimeMillis()
-                )
-
-                database.reference.child("plants/$plantId/balances").runTransaction(object : com.google.firebase.database.Transaction.Handler {
-                    override fun doTransaction(currentData: com.google.firebase.database.MutableData): com.google.firebase.database.Transaction.Result {
-                        val myBalancePath = currentData.child(covererId).child(req.requesterId)
-                        val myCurrentScore = myBalancePath.getValue(Int::class.java) ?: 0
-                        myBalancePath.value = myCurrentScore + 1
-
-                        val hisBalancePath = currentData.child(req.requesterId).child(covererId)
-                        val hisCurrentScore = hisBalancePath.getValue(Int::class.java) ?: 0
-                        hisBalancePath.value = hisCurrentScore - 1
-
-                        return com.google.firebase.database.Transaction.success(currentData)
-                    }
-
-                    override fun onComplete(error: DatabaseError?, committed: Boolean, snapshot: DataSnapshot?) {
-                        if (committed) {
-                            val updates = mutableMapOf<String, Any?>()
-                            updates["plants/$plantId/turnos/turnos-${req.requesterShiftDate}/${req.requesterShiftName}/$pathFound/$slotKey/$fieldToUpdate"] = covererName
-                            updates["plants/$plantId/shift_requests/${req.id}/status"] = RequestStatus.APPROVED
-                            updates["plants/$plantId/shift_requests/${req.id}/targetUserId"] = covererId
-                            updates["plants/$plantId/transactions/$transactionId"] = transaction
-
-                            database.reference.updateChildren(updates).addOnSuccessListener { onSuccess() }
-                        } else {
-                            onError("Error updating balances: ${error?.message}")
-                        }
-                    }
-                })
-            } else {
-                onError("User not found in shift.")
-            }
-        }
-        override fun onCancelled(error: DatabaseError) { onError("Connection error.") }
-    })
+    database.reference.child("plants/$plantId/shift_requests/${req.id}")
+        .updateChildren(updates)
+        .addOnSuccessListener { onSuccess() }
+        .addOnFailureListener { onError(it.message ?: "Error al enviar solicitud") }
 }
