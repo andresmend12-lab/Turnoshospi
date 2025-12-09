@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -44,6 +45,10 @@ fun PlantDetailScreen(
     onEditStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
     onOpenPlantSettings: () -> Unit,
     onOpenImportShifts: () -> Unit,
+    onOpenNotifications: () -> Unit,
+    unreadNotificationsCount: Int = 0,
+    onOpenDirectChats: () -> Unit,
+    unreadChatCount: Int = 0,
     onOpenChat: () -> Unit,
     onOpenShiftChange: () -> Unit,
     onOpenShiftMarketplace: () -> Unit,
@@ -124,6 +129,25 @@ fun PlantDetailScreen(
                     navigationIcon = {
                         IconButton(onClick = { isMenuOpen = true }) { Icon(Icons.Default.Menu, contentDescription = stringResource(id = R.string.side_menu_title), tint = Color.White) }
                     },
+                    actions = {
+                        IconButton(onClick = onOpenNotifications) {
+                            BadgedBox(
+                                badge = {
+                                    if (unreadNotificationsCount > 0) {
+                                        Badge(containerColor = Color(0xFFE91E63)) {
+                                            Text(if (unreadNotificationsCount > 99) "99+" else "$unreadNotificationsCount")
+                                        }
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    Icons.Default.Notifications,
+                                    contentDescription = stringResource(R.string.cd_notifications),
+                                    tint = Color.White
+                                )
+                            }
+                        }
+                    },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, navigationIconContentColor = Color.White, titleContentColor = Color.White)
                 )
             }
@@ -182,6 +206,23 @@ fun PlantDetailScreen(
                     } else {
                         InfoMessage(message = stringResource(id = R.string.plant_detail_missing_data))
                     }
+                }
+            }
+        }
+
+        if (plant != null && !isMenuOpen) {
+            FloatingActionButton(
+                onClick = onOpenDirectChats,
+                modifier = Modifier.align(Alignment.BottomEnd).padding(20.dp, 40.dp),
+                containerColor = Color(0xFF54C7EC),
+                contentColor = Color.White,
+                shape = CircleShape
+            ) {
+                BadgedBox(badge = { if (unreadChatCount > 0) Badge(containerColor = Color.Red) { Text("$unreadChatCount") } }) {
+                    Icon(
+                        Icons.Default.Chat,
+                        contentDescription = stringResource(R.string.cd_chats)
+                    )
                 }
             }
         }

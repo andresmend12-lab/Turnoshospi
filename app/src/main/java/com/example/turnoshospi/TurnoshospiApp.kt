@@ -563,6 +563,14 @@ fun TurnoshospiApp(
                     },
                     onOpenPlantSettings = { navigateTo(AppScreen.PlantSettings) },
                     onOpenImportShifts = { navigateTo(AppScreen.ImportShifts) },
+                    onOpenNotifications = { navigateTo(AppScreen.Notifications) },
+                    unreadNotificationsCount = unreadNotificationsCount,
+                    onOpenDirectChats = {
+                        if (selectedPlantForDetail != null) {
+                            navigateTo(AppScreen.DirectChatList)
+                        }
+                    },
+                    unreadChatCount = totalUnreadChats,
                     onOpenChat = { navigateTo(AppScreen.GroupChat) },
                     onOpenShiftChange = { navigateTo(AppScreen.ShiftChange) },
                     onOpenShiftMarketplace = { navigateTo(AppScreen.ShiftMarketplace) },
