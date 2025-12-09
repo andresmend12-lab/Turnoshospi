@@ -126,7 +126,7 @@ fun NotificationsScreen(
         }
     }
 }
-
+ 
 @Composable
 fun NotificationItem(
     notification: AppNotification,
