@@ -285,6 +285,7 @@ fun ShiftChangeScreen(
                                 selectedRequestForSuggestions = null
                                 Toast.makeText(context, msgRequestSent, Toast.LENGTH_LONG).show()
                             }
+                            
                         )
                     } else if (isSupervisor) {
                         val supervisorRequests = allRequests.filter { it.status == RequestStatus.AWAITING_SUPERVISOR }
