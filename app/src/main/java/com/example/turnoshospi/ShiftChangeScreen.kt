@@ -366,10 +366,7 @@ fun ShiftChangeScreen(
                             onRejectByPartner = { },
                             onApproveBySupervisor = { req ->
                                 approveSwapBySupervisor(database, plantId, req, {
-                                    onSaveNotification(req.requesterId, "SHIFT_APPROVED", "Cambio aprobado por supervisor.", "ShiftChangeScreen", req.id, {})
-                                    if (req.targetUserId != null && !req.targetUserId.startsWith("UNREGISTERED")) {
-                                        onSaveNotification(req.targetUserId, "SHIFT_APPROVED", "Cambio aprobado por supervisor.", "ShiftChangeScreen", req.id, {})
-                                    }
+
                                     Toast.makeText(context, msgSwapApproved, Toast.LENGTH_SHORT).show()
                                 }, { err ->
                                     Toast.makeText(context, "Error: $err", Toast.LENGTH_SHORT).show()
@@ -446,37 +443,13 @@ fun ShiftChangeScreen(
                                         )
 
                                         database.reference.updateChildren(updates).addOnSuccessListener {
-                                            // 3. Notificación al Solicitante
-                                            onSaveNotification(
-                                                req.requesterId,
-                                                "SHIFT_UPDATE",
-                                                "$currentUserName ha aceptado el cambio. Pendiente de supervisor.",
-                                                "ShiftChangeScreen",
-                                                req.id, {}
-                                            )
 
-                                            // 4. Notificación manual a supervisores (opcional si usas Cloud Functions)
-                                            supervisorIds.forEach { supId ->
-                                                onSaveNotification(
-                                                    supId,
-                                                    "SHIFT_PENDING_SUPERVISOR",
-                                                    "Solicitud aceptada entre ${req.requesterName} y ${currentUserName}. Requiere aprobación.",
-                                                    "ShiftChangeScreen",
-                                                    req.id, {}
-                                                )
-                                            }
                                         }
                                     },
                                     onRejectByPartner = { req ->
                                         deleteShiftRequest(database, plantId, req.id)
                                         if (req.targetUserId == currentUserId || req.targetUserName.equals(currentUserName, ignoreCase = true)) {
-                                            onSaveNotification(
-                                                req.requesterId,
-                                                "SHIFT_REJECTED",
-                                                msgPartnerRejected,
-                                                "ShiftChangeScreen",
-                                                req.id, {}
-                                            )
+
                                         }
                                     },
                                     onApproveBySupervisor = { },
@@ -1418,14 +1391,7 @@ fun performDirectProposal(
     )
     database.reference.updateChildren(updates).addOnSuccessListener {
         // Notificación manual al Target
-        onSaveNotification(
-            targetShift.userId,
-            "SHIFT_PROPOSAL",
-            "${myReq.requesterName} te ha solicitado un cambio de turno: tu ${targetShift.shiftName} del ${targetShift.date} por su ${myReq.requesterShiftName} del ${myReq.requesterShiftDate}.",
-            "ShiftChangeScreen",
-            myReq.id,
-            {}
-        )
+
     }
 }
 
