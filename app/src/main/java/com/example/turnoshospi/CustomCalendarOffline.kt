@@ -59,6 +59,9 @@ fun CustomCalendarOffline(
         context.getSharedPreferences("TurnosOfflinePrefs", Context.MODE_PRIVATE)
     }
 
+    // --- ESTADO DEL SCROLL PRINCIPAL ---
+    val scrollState = rememberScrollState()
+
     // --- ESTADOS DE DATOS ---
     var localShifts by remember { mutableStateOf<Map<String, UserShift>>(emptyMap()) }
     var localNotes by remember { mutableStateOf<Map<String, List<String>>>(emptyMap()) }
@@ -164,8 +167,14 @@ fun CustomCalendarOffline(
         editingNoteText = ""
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Box(modifier = Modifier.weight(1f)) {
+    // --- CONTENEDOR PRINCIPAL CON SCROLL ---
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState) // <-- Scroll aplicado aquí
+    ) {
+        // Caja del calendario (sin weight, ocupa su espacio natural)
+        Box(modifier = Modifier.fillMaxWidth()) {
             InternalOfflineCalendar(
                 shifts = localShifts,
                 selectedDate = selectedDate,
@@ -188,21 +197,20 @@ fun CustomCalendarOffline(
             )
 
             // --- BOTÓN DE CONFIGURACIÓN (ENGRANAJE) ---
-            // Modificado: Más pequeño y con posición ajustada para no tapar flechas
             if (!isAssignmentMode) {
                 IconButton(
                     onClick = { showConfigDialog = true },
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(top = 8.dp, end = 8.dp) // Más arriba y a la derecha
-                        .size(32.dp) // Tamaño reducido
+                        .padding(top = 8.dp, end = 8.dp)
+                        .size(32.dp)
                         .background(Color.Black.copy(alpha = 0.3f), CircleShape)
                 ) {
                     Icon(
                         Icons.Default.Settings,
                         contentDescription = "Configurar",
                         tint = Color.White,
-                        modifier = Modifier.size(18.dp) // Icono interno más pequeño
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }
@@ -498,11 +506,10 @@ private fun InternalOfflineCalendar(
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth() // Ocupa todo el ancho, altura dinámica
             .background(Color(0xFF0F172A))
-            // PADDING MODIFICADO: Top=40dp empuja las flechas hacia abajo para dejar sitio al engranaje
-            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 40.dp)
-            .verticalScroll(rememberScrollState()),
+            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 40.dp),
+        // .verticalScroll Eliminado para evitar scroll anidado
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Cabecera Mes

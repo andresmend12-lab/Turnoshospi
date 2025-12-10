@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Turnoshospi"
+rootProject.name = "Gestor de Turnos"
 include(":app")
