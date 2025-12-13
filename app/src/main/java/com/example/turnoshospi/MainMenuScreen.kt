@@ -332,7 +332,7 @@ fun DrawerHeader(displayName: String, welcomeStringId: Int) {
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Image(
-            painterResource(R.mipmap.ic_logo_hospi_foreground),
+            painterResource(R.mipmap.ic_logo_hospi_round),
             stringResource(R.string.app_name),
             modifier = Modifier.size(48.dp)
         )

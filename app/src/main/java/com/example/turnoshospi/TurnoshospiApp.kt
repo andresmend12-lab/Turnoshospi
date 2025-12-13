@@ -187,7 +187,7 @@ fun TurnoshospiApp(
 
     fun navigateBack() {
         if (backStack.isNotEmpty()) {
-            currentScreen = backStack.removeLast()
+            currentScreen = backStack.removeAt(backStack.lastIndex)
         }
     }
 
@@ -385,7 +385,7 @@ fun TurnoshospiApp(
                 Spacer(modifier = Modifier.height(if (showLogin) 32.dp else 0.dp))
 
                 Image(
-                    painter = painterResource(id = R.mipmap.ic_logo_hospi_foreground),
+                    painter = painterResource(id = R.mipmap.ic_logo_hospi_round),
                     contentDescription = stringResource(id = R.string.logo_desc),
                     modifier = Modifier.size(logoSize)
                 )
@@ -604,9 +604,9 @@ fun TurnoshospiApp(
                         onDeletePlant(plantId)
                         refreshUserPlant()
                         while(backStack.isNotEmpty() && backStack.last() != AppScreen.MyPlant && backStack.last() != AppScreen.MainMenu) {
-                            backStack.removeLast()
+                            backStack.removeAt(backStack.lastIndex)
                         }
-                        if (backStack.isNotEmpty()) currentScreen = backStack.removeLast()
+                        if (backStack.isNotEmpty()) currentScreen = backStack.removeAt(backStack.lastIndex)
                         else currentScreen = AppScreen.MainMenu
                     }
                 )
