@@ -473,8 +473,6 @@ fun PlantDetailScreen(
                                     Icon(Icons.Default.Person, contentDescription = null, tint = Color(0xFF54C7EC), modifier = Modifier.size(20.dp))
                                     Spacer(modifier = Modifier.width(12.dp))
                                     Text(stringResource(id = R.string.plant_manage_staff_option), color = Color.White)
-<<<<<<< HEAD
-=======
                                 }
                             },
                             selected = false,
@@ -538,7 +536,6 @@ fun PlantDetailScreen(
                                     Icon(Icons.Default.Share, contentDescription = null, tint = Color(0xFF54C7EC), modifier = Modifier.size(20.dp))
                                     Spacer(modifier = Modifier.width(12.dp))
                                     Text(stringResource(R.string.invite_colleagues_label), color = Color.White)
->>>>>>> f90325bfad3a78d6f602ac6745ec05027c7db96f
                                 }
                             },
                             selected = false,
