@@ -291,7 +291,7 @@ fun CustomCalendarOffline(
                     }
 
                 } else {
-                    val formatter = DateTimeFormatter.ofPattern("d MMMM", Locale.getDefault())
+                    val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.getDefault())
                     val dateText = selectedDate?.format(formatter) ?: stringResource(R.string.select_day)
 
                     Column(modifier = Modifier.fillMaxWidth()) {

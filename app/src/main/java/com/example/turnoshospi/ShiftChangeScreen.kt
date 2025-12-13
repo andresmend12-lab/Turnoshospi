@@ -1135,7 +1135,7 @@ fun SchedulePreviewDialog(
     val days1 = remember(date1) { (-5..5).map { date1.plusDays(it.toLong()) } }
     val days2 = remember(date2) { (-5..5).map { date2.plusDays(it.toLong()) } }
     val deviceLocale = Locale.getDefault()
-    val dateFormatter = DateTimeFormatter.ofPattern("dd 'de' MMMM", deviceLocale)
+    val dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", deviceLocale)
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -1320,7 +1320,7 @@ fun MyShiftsCalendarTab(
             val date = selectedDate!!
             val shift = shiftsMap[date]
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                Text(text = date.format(DateTimeFormatter.ofPattern("EEEE d 'de' MMMM", deviceLocale)).replaceFirstChar { it.uppercase() }, color = Color(0xFF54C7EC), style = MaterialTheme.typography.titleMedium)
+                Text(text = date.format(DateTimeFormatter.ofPattern("EEEE dd-MM-yyyy", deviceLocale)).replaceFirstChar { it.uppercase() }, color = Color(0xFF54C7EC), style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))
                 if (shift != null) {
                     Text(text = stringResource(R.string.label_current_turn, shift.shiftName), color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)

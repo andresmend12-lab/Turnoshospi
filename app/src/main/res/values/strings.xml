@@ -163,10 +163,11 @@
     <string name="aux_half_day_label">Assistant Half Day</string>
     <string name="staff_unassigned_option">Unassigned</string>
     <string name="half_day_readonly_label">Half Day: %1$s</string>
-    <string name="save_assignments_action">Save Organization</string>
-    <string name="edit_assignments_action">Edit Organization</string>
+    <string name="save_assignments_action">Guardar cambios</string>
+    <string name="edit_assignments_action">Guardar cambios</string>
     <string name="plant_add_staff_option">Add Ward Staff</string>
     <string name="plant_staff_list_option">Staff List</string>
+    <string name="plant_manage_staff_option">Manage Staff</string>
     <string name="plant_self_assign_action">Select Myself</string>
     <string name="staff_dialog_title">Add Staff</string>
     <string name="staff_dialog_name_label">Full Name</string>
@@ -252,6 +253,11 @@
     <string name="plant_auth_error">Authentication error when loading ward</string>
     <string name="staff_dialog_error">Complete the name to continue.</string>
     <string name="staff_dialog_save_error">Could not save staff. Try again.</string>
+    <string name="staff_linked_user">Linked user: %1$s</string>
+    <string name="staff_linked_simple">Linked</string>
+    <string name="staff_not_linked">Not linked</string>
+    <string name="staff_delete_title">Delete Staff Member</string>
+    <string name="staff_delete_message">Are you sure you want to delete %1$s? This cannot be undone.</string>
 
     <string name="join_plant_error">Error joining the ward</string>
     <string name="join_plant_not_found">Ward not found</string>

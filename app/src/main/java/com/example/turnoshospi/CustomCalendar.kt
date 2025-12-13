@@ -233,7 +233,7 @@ private fun DayDetailsSection(
     Spacer(modifier = Modifier.height(16.dp))
 
     // Formato de fecha localizado
-    val formatter = DateTimeFormatter.ofPattern("MMMM d", Locale.getDefault())
+    val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.getDefault())
     val dateStr = date.format(formatter)
 
     Column(
