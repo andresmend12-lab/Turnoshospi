@@ -22,6 +22,7 @@ import com.example.turnoshospi.ui.theme.TurnoshospiTheme
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.ActionCodeSettings
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -301,7 +302,14 @@ class MainActivity : ComponentActivity() {
 
     private fun sendPasswordReset(email: String, onResult: (Boolean) -> Unit) {
         authErrorMessage.value = null
-        auth.sendPasswordResetEmail(email.trim())
+        auth.useAppLanguage()
+        val actionCodeSettings = ActionCodeSettings.newBuilder()
+            .setUrl("https://turnoshospi-f4870.firebaseapp.com/__/auth/action")
+            .setHandleCodeInApp(false)
+            .setAndroidPackageName(packageName, true, null)
+            .build()
+
+        auth.sendPasswordResetEmail(email.trim(), actionCodeSettings)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     onResult(true)

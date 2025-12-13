@@ -152,10 +152,7 @@ fun PlantDetailScreen(
     currentMembership: PlantMembership?,
     unreadChatCount: Int,
     onBack: () -> Unit,
-    onAddStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
-    onEditStaff: (String, RegisteredUser, (Boolean) -> Unit) -> Unit,
-    // NUEVO PARAMETRO DE BORRADO (Asegúrate de que esté aquí para que compile el diálogo)
-    onDeleteStaff: (String, String, (Boolean) -> Unit) -> Unit,
+    onOpenStaffManagement: () -> Unit,
     onOpenPlantSettings: () -> Unit,
     onOpenImportShifts: () -> Unit,
     onOpenChat: () -> Unit,
@@ -262,13 +259,6 @@ fun PlantDetailScreen(
                 })
         }
     }
-
-    var showAddStaffDialog by remember { mutableStateOf(false) }
-    var isSavingStaff by remember { mutableStateOf(false) }
-    var showStaffListDialog by remember { mutableStateOf(false) }
-    var staffName by remember { mutableStateOf("") }
-    var staffRole by remember { mutableStateOf(nurseRole) }
-    var addStaffError by remember { mutableStateOf<String?>(null) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -480,26 +470,18 @@ fun PlantDetailScreen(
                             modifier = Modifier.padding(horizontal = 12.dp),
                             label = {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.Add, contentDescription = null, tint = Color(0xFF54C7EC), modifier = Modifier.size(20.dp))
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Text(stringResource(id = R.string.plant_add_staff_option), color = Color.White)
-                                }
-                            },
-                            selected = false,
-                            onClick = { isMenuOpen = false; showAddStaffDialog = true },
-                            colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
-                        )
-                        NavigationDrawerItem(
-                            modifier = Modifier.padding(horizontal = 12.dp),
-                            label = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Default.Person, contentDescription = null, tint = Color(0xFF54C7EC), modifier = Modifier.size(20.dp))
                                     Spacer(modifier = Modifier.width(12.dp))
-                                    Text(stringResource(id = R.string.plant_staff_list_option), color = Color.White)
+                                    Text(stringResource(id = R.string.plant_manage_staff_option), color = Color.White)
                                 }
                             },
                             selected = false,
-                            onClick = { isMenuOpen = false; showStaffListDialog = true },
+                            onClick = {
+                                isMenuOpen = false
+                                if (plant != null) {
+                                    onOpenStaffManagement()
+                                }
+                            },
                             colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
                         )
                         NavigationDrawerItem(
@@ -676,47 +658,6 @@ fun PlantDetailScreen(
                 )
             }
         }
-    }
-
-    if (showAddStaffDialog && plant != null) {
-        AddStaffDialog(
-            staffName = staffName,
-            onStaffNameChange = { staffName = it },
-            staffRole = staffRole,
-            onStaffRoleChange = { staffRole = it },
-            isSaving = isSavingStaff,
-            errorMessage = addStaffError,
-            onDismiss = { showAddStaffDialog = false; addStaffError = null; staffName = ""; staffRole = nurseRole },
-            onConfirm = {
-                if (staffName.isBlank()) {
-                    addStaffError = context.getString(R.string.staff_dialog_error)
-                } else {
-                    isSavingStaff = true
-                    addStaffError = null
-                    val newStaff = RegisteredUser(UUID.randomUUID().toString(), staffName, staffRole, "", "plant_staff")
-                    onAddStaff(plant.id, newStaff) { success ->
-                        isSavingStaff = false
-                        if (success) {
-                            showAddStaffDialog = false; staffName = ""; staffRole = nurseRole
-                        } else {
-                            addStaffError = context.getString(R.string.staff_dialog_save_error)
-                        }
-                    }
-                }
-            }
-        )
-    }
-
-    if (showStaffListDialog && plant != null) {
-        StaffListDialog(
-            plantName = plant.name,
-            staff = plantStaff.toList(),
-            isSupervisor = isSupervisor,
-            onDismiss = { showStaffListDialog = false },
-            onSaveEdit = { editedMember, callback -> onEditStaff(plant.id, editedMember, callback) },
-            // AQUI CONECTAMOS EL CALLBACK DE BORRADO
-            onDelete = { staffId, callback -> onDeleteStaff(plant.id, staffId, callback) }
-        )
     }
 
     if (showVacationDialog && plant != null && currentMembership?.staffId != null) {

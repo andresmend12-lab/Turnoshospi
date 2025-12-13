@@ -80,6 +80,7 @@ enum class AppScreen {
     PlantCreated,
     MyPlant,
     PlantDetail,
+    StaffManagement,
     Settings,
     PlantSettings,
     ImportShifts,
@@ -542,6 +543,29 @@ fun TurnoshospiApp(
                     currentMembership = plantMembership,
                     unreadChatCount = totalUnreadChats, // NUEVO: Pasamos el contador
                     onBack = { navigateBack() },
+                    onOpenStaffManagement = {
+                        if (selectedPlantForDetail != null) {
+                            navigateTo(AppScreen.StaffManagement)
+                        }
+                    },
+                    onOpenPlantSettings = { navigateTo(AppScreen.PlantSettings) },
+                    onOpenImportShifts = { navigateTo(AppScreen.ImportShifts) },
+                    onOpenChat = { navigateTo(AppScreen.GroupChat) },
+                    onOpenDirectChats = { // NUEVO: Navegación al chat individual
+                        if (userPlant != null) {
+                            selectedPlantForDetail = userPlant
+                            navigateTo(AppScreen.DirectChatList)
+                        }
+                    },
+                    onOpenNotifications = { navigateTo(AppScreen.Notifications) },
+                    onOpenShiftChange = { navigateTo(AppScreen.ShiftChange) },
+                    onOpenShiftMarketplace = { navigateTo(AppScreen.ShiftMarketplace) },
+                    onOpenStatistics = { navigateTo(AppScreen.Statistics) },
+                    onSaveNotification = onSaveNotification
+                )
+                AppScreen.StaffManagement -> StaffManagementScreen(
+                    plant = selectedPlantForDetail,
+                    onBack = { navigateBack() },
                     onAddStaff = { plantId, staffMember, onResult ->
                         onRegisterPlantStaff(plantId, staffMember) { success ->
                             if (success) {
@@ -567,28 +591,13 @@ fun TurnoshospiApp(
                     onDeleteStaff = { plantId, staffId, onResult ->
                         onDeletePlantStaff(plantId, staffId) { success ->
                             if (success) {
-                                // Actualizamos el estado local para reflejar el borrado inmediatamente
                                 selectedPlantForDetail = selectedPlantForDetail?.copy(
                                     personal_de_planta = selectedPlantForDetail?.personal_de_planta.orEmpty() - staffId
                                 )
                             }
                             onResult(success)
                         }
-                    },
-                    onOpenPlantSettings = { navigateTo(AppScreen.PlantSettings) },
-                    onOpenImportShifts = { navigateTo(AppScreen.ImportShifts) },
-                    onOpenChat = { navigateTo(AppScreen.GroupChat) },
-                    onOpenDirectChats = { // NUEVO: Navegación al chat individual
-                        if (userPlant != null) {
-                            selectedPlantForDetail = userPlant
-                            navigateTo(AppScreen.DirectChatList)
-                        }
-                    },
-                    onOpenNotifications = { navigateTo(AppScreen.Notifications) },
-                    onOpenShiftChange = { navigateTo(AppScreen.ShiftChange) },
-                    onOpenShiftMarketplace = { navigateTo(AppScreen.ShiftMarketplace) },
-                    onOpenStatistics = { navigateTo(AppScreen.Statistics) },
-                    onSaveNotification = onSaveNotification
+                    }
                 )
                 AppScreen.Settings -> SettingsScreen(
                     currentColors = shiftColors,
