@@ -25,7 +25,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+<<<<<<< HEAD
 import androidx.compose.material3.ExperimentalMaterial3Api
+=======
+>>>>>>> f90325bfad3a78d6f602ac6745ec05027c7db96f
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -62,7 +65,10 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import java.util.UUID
 
+<<<<<<< HEAD
 @OptIn(ExperimentalMaterial3Api::class)
+=======
+>>>>>>> f90325bfad3a78d6f602ac6745ec05027c7db96f
 @Composable
 fun StaffManagementScreen(
     plant: Plant?,
@@ -284,7 +290,12 @@ private fun StaffRow(
                     IconButton(onClick = onDelete) { Icon(Icons.Default.Delete, contentDescription = null, tint = Color(0xFFEF5350)) }
                 }
             }
+<<<<<<< HEAD
             val linkedText = if (linkedUserId != null) stringResource(id = R.string.staff_linked_simple) else stringResource(id = R.string.staff_not_linked)
+=======
+            val linkedText = linkedUserId?.let { stringResource(id = R.string.staff_linked_user, it) }
+                ?: stringResource(id = R.string.staff_not_linked)
+>>>>>>> f90325bfad3a78d6f602ac6745ec05027c7db96f
             Text(linkedText, color = if (linkedUserId != null) Color(0xFF54C7EC) else Color.Gray, style = MaterialTheme.typography.bodySmall)
             HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
         }
