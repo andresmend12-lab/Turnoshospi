@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ShiftGrid</string>
+    <string name="app_name">Shift Manager</string>
 
     <string-array name="days_of_week_short">
         <item>सोम</item> <item>मंगल</item> <item>बुध</item> <item>गुरु</item> <item>शुक्र</item> <item>शनि</item> <item>रवि</item>

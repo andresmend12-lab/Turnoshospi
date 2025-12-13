@@ -30,7 +30,7 @@
 [debug] [2025-11-28T12:55:28.017Z] Checked if tokens are valid: true, expires at: 1764337326360
 [debug] [2025-11-28T12:55:28.018Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/turnoshospi-f4870 [none]
 [debug] [2025-11-28T12:55:28.183Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/turnoshospi-f4870 200
-[debug] [2025-11-28T12:55:28.183Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/turnoshospi-f4870 {"projectNumber":"130974977586","projectId":"turnoshospi-f4870","lifecycleState":"ACTIVE","name":"Turnoshospi","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2025-11-24T12:55:53.604476Z"}
+[debug] [2025-11-28T12:55:28.183Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/turnoshospi-f4870 {"projectNumber":"130974977586","projectId":"turnoshospi-f4870","lifecycleState":"ACTIVE","name":"Gestor de Turnos","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2025-11-24T12:55:53.604476Z"}
 [info] i  functions: preparing codebase default for deployment 
 [info] i  functions: ensuring required API cloudfunctions.googleapis.com is enabled... 
 [info] i  functions: ensuring required API cloudbuild.googleapis.com is enabled... 
@@ -116,7 +116,7 @@
 [debug] [2025-11-28T12:55:51.022Z] Checked if tokens are valid: true, expires at: 1764337326360
 [debug] [2025-11-28T12:55:51.022Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/turnoshospi-f4870 [none]
 [debug] [2025-11-28T12:55:51.196Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/turnoshospi-f4870 200
-[debug] [2025-11-28T12:55:51.196Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/turnoshospi-f4870 {"projectNumber":"130974977586","projectId":"turnoshospi-f4870","lifecycleState":"ACTIVE","name":"Turnoshospi","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2025-11-24T12:55:53.604476Z"}
+[debug] [2025-11-28T12:55:51.196Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/turnoshospi-f4870 {"projectNumber":"130974977586","projectId":"turnoshospi-f4870","lifecycleState":"ACTIVE","name":"Gestor de Turnos","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2025-11-24T12:55:53.604476Z"}
 [debug] [2025-11-28T12:55:51.197Z] Checked if tokens are valid: true, expires at: 1764337326360
 [debug] [2025-11-28T12:55:51.197Z] Checked if tokens are valid: true, expires at: 1764337326360
 [debug] [2025-11-28T12:55:51.197Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/turnoshospi-f4870/billingInfo [none]

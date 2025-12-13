@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ShiftGrid</string>
+    <string name="app_name">Shift Manager</string>
     <string-array name="days_of_week_short">
         <item>Al</item> <item>Ar</item> <item>Az</item> <item>Og</item> <item>Ol</item> <item>Lr</item> <item>Ig</item>
     </string-array>
