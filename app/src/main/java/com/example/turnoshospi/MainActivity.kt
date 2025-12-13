@@ -830,7 +830,11 @@ class MainActivity : ComponentActivity() {
                     for (child in snapshot.children) {
                         val notif = child.getValue(UserNotification::class.java)
                         if (notif != null) {
-                            notifications.add(notif)
+                            val resolvedId = child.key ?: notif.id
+                            notifications.add(
+                                if (!resolvedId.isNullOrBlank() && resolvedId != notif.id) notif.copy(id = resolvedId)
+                                else notif
+                            )
                         }
                     }
                     onResult(notifications.reversed())
@@ -843,6 +847,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun markNotificationAsRead(userId: String, notificationId: String) {
+        if (notificationId.isBlank()) return
         realtimeDatabase.getReference("user_notifications")
             .child(userId)
             .child(notificationId)
