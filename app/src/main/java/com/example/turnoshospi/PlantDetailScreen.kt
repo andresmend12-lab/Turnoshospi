@@ -1235,8 +1235,8 @@ private fun createAndDownloadMatrixTemplate(context: Context) {
 
 @Composable
 fun PlantCalendar(selectedDate: LocalDate?, onDateSelected: (LocalDate) -> Unit) {
+    // Estado para controlar qué mes se está visualizando
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
-    // Locale dinámico
     val deviceLocale = Locale.getDefault()
 
     Column(
@@ -1251,31 +1251,47 @@ fun PlantCalendar(selectedDate: LocalDate?, onDateSelected: (LocalDate) -> Unit)
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Botón Mes Anterior
             IconButton(onClick = { currentMonth = currentMonth.minusMonths(1) }) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.desc_prev_month), tint = Color.White)
             }
+
+            // TÍTULO DEL MES (MODIFICADO)
             Text(
                 text = "${currentMonth.month.getDisplayName(TextStyle.FULL, deviceLocale).uppercase()} ${currentMonth.year}",
                 color = Color.White,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.clickable {
+                    // AQUÍ ESTÁ LA LÓGICA: Volver al mes actual al pulsar
+                    currentMonth = YearMonth.now()
+                }
             )
+
+            // Botón Mes Siguiente
             IconButton(onClick = { currentMonth = currentMonth.plusMonths(1) }) {
                 Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = stringResource(R.string.desc_next_month), tint = Color.White)
             }
         }
+
         Spacer(modifier = Modifier.height(16.dp))
+
+        // Días de la semana (L, M, X...)
         Row(modifier = Modifier.fillMaxWidth()) {
             val daysOfWeekShort = androidx.compose.ui.res.stringArrayResource(R.array.days_of_week_short)
             daysOfWeekShort.forEach { day ->
                 Text(text = day, modifier = Modifier.weight(1f), color = Color.Gray, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold)
             }
         }
+
         Spacer(modifier = Modifier.height(8.dp))
+
+        // Lógica de la cuadrícula de días
         val firstDay = currentMonth.atDay(1)
         val daysInMonth = currentMonth.lengthOfMonth()
         val offset = firstDay.dayOfWeek.value - 1
         val totalCells = (daysInMonth + offset + 6) / 7 * 7
+
         Column {
             for (i in 0 until totalCells step 7) {
                 Row(modifier = Modifier.fillMaxWidth()) {

@@ -366,7 +366,7 @@
     <string name="menu_import_shifts">Import Shifts</string>
     <string name="menu_invite_colleagues">Invite Colleagues</string>
     <string name="menu_vacation_days">Vacation Days</string>
-    <string name="menu_group_chat">Group Chat</string>
+    <string name="menu_group_chat">Noticeboard</string>
     <string name="menu_shift_change">Shift Change</string>
     <string name="menu_shift_marketplace">Shift Marketplace</string>
     <string name="menu_statistics">Statistics</string>

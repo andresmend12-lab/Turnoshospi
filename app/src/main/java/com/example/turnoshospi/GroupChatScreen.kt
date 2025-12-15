@@ -36,10 +36,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource // Importante
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.turnoshospi.R // Importante
+import com.example.turnoshospi.R
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -63,7 +63,6 @@ fun GroupChatScreen(
     currentUser: UserProfile?,
     currentUserId: String,
     onBack: () -> Unit,
-    // NEW
     onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit
 ) {
     val database = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
@@ -73,13 +72,20 @@ fun GroupChatScreen(
     var textInput by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
 
-    // --- RECURSOS DE TEXTO (Capturados aquí para usarlos en lambdas) ---
-    val defaultUserAlias = stringResource(R.string.default_user_alias) // "Usuario"
-    val notificationTemplate = stringResource(R.string.notification_group_msg_template) // "Nuevo mensaje de %1$s..."
-    val placeholderText = stringResource(R.string.write_message_placeholder) // "Escribe un mensaje..."
+    // --- LÓGICA DE SUPERVISOR ---
+    val isSupervisor = remember(currentUser) {
+        currentUser?.role?.contains("Supervisor", ignoreCase = true) == true
+    }
+
+    // --- RECURSOS DE TEXTO ---
+    val defaultUserAlias = stringResource(R.string.default_user_alias)
+    val notificationTemplate = stringResource(R.string.notification_group_msg_template)
+    val placeholderText = stringResource(R.string.write_message_placeholder)
     val backDesc = stringResource(R.string.back_desc)
     val sendDesc = stringResource(R.string.send_desc)
-    val titleText = stringResource(R.string.group_chat_title)
+
+    // CAMBIO: Título actualizado
+    val titleText = "Tablón de Anuncios"
 
     LaunchedEffect(plantId) {
         val childEventListener = object : ChildEventListener {
@@ -136,64 +142,64 @@ fun GroupChatScreen(
                 }
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value = textInput,
-                    onValueChange = { textInput = it },
-                    placeholder = { Text(placeholderText, color = Color.Gray) },
-                    modifier = Modifier.weight(1f),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = Color(0xFF54C7EC),
-                        unfocusedBorderColor = Color(0x66FFFFFF),
-                        cursorColor = Color.White,
-                        focusedContainerColor = Color(0x22000000),
-                        unfocusedContainerColor = Color(0x22000000)
-                    ),
-                    shape = RoundedCornerShape(24.dp)
-                )
-                IconButton(
-                    onClick = {
-                        if (textInput.isNotBlank()) {
-                            val msgId = chatRef.push().key ?: return@IconButton
-
-                            // Usamos el alias por defecto cargado desde strings.xml si está vacío
-                            val name = "${currentUser?.firstName} ${currentUser?.lastName}".trim().ifBlank { defaultUserAlias }
-
-                            val newMsg = ChatMessage(
-                                id = msgId,
-                                senderId = currentUserId,
-                                senderName = name,
-                                text = textInput.trim(),
-                                timestamp = System.currentTimeMillis()
-                            )
-                            chatRef.child(msgId).setValue(newMsg)
-                            textInput = ""
-
-                            // Construimos el mensaje de notificación usando el template
-                            // String.format reemplaza %1$s con el nombre del usuario
-                            val notificationMessage = String.format(notificationTemplate, newMsg.senderName)
-
-                            // NEW: Notificación de Chat de Grupo
-                            onSaveNotification(
-                                "GROUP_CHAT_FANOUT_ID",
-                                "CHAT_GROUP",
-                                notificationMessage,
-                                AppScreen.GroupChat.name,
-                                plantId,
-                                {}
-                            )
-                        }
-                    },
-                    modifier = Modifier.padding(start = 8.dp)
+            // CAMBIO: La barra de entrada solo se muestra si es Supervisor
+            if (isSupervisor) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.AutoMirrored.Filled.Send, sendDesc, tint = Color(0xFF54C7EC))
+                    OutlinedTextField(
+                        value = textInput,
+                        onValueChange = { textInput = it },
+                        placeholder = { Text(placeholderText, color = Color.Gray) },
+                        modifier = Modifier.weight(1f),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = Color(0xFF54C7EC),
+                            unfocusedBorderColor = Color(0x66FFFFFF),
+                            cursorColor = Color.White,
+                            focusedContainerColor = Color(0x22000000),
+                            unfocusedContainerColor = Color(0x22000000)
+                        ),
+                        shape = RoundedCornerShape(24.dp)
+                    )
+                    IconButton(
+                        onClick = {
+                            if (textInput.isNotBlank()) {
+                                val msgId = chatRef.push().key ?: return@IconButton
+
+                                val name = "${currentUser?.firstName} ${currentUser?.lastName}".trim()
+                                    .ifBlank { defaultUserAlias }
+
+                                val newMsg = ChatMessage(
+                                    id = msgId,
+                                    senderId = currentUserId,
+                                    senderName = name,
+                                    text = textInput.trim(),
+                                    timestamp = System.currentTimeMillis()
+                                )
+                                chatRef.child(msgId).setValue(newMsg)
+                                textInput = ""
+
+                                val notificationMessage = String.format(notificationTemplate, newMsg.senderName)
+
+                                onSaveNotification(
+                                    "GROUP_CHAT_FANOUT_ID",
+                                    "CHAT_GROUP",
+                                    notificationMessage,
+                                    AppScreen.GroupChat.name,
+                                    plantId,
+                                    {}
+                                )
+                            }
+                        },
+                        modifier = Modifier.padding(start = 8.dp)
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.Send, sendDesc, tint = Color(0xFF54C7EC))
+                    }
                 }
             }
         }

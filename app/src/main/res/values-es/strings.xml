@@ -217,7 +217,7 @@
     <string name="start_new_chat_title">Iniciar nuevo chat</string>
     <string name="no_users_found">No se encontraron otros usuarios registrados en esta planta.</string>
     <string name="message_placeholder">Mensaje...</string>
-    <string name="group_chat_title">Chat de Planta</string>
+    <string name="group_chat_title">Tablon de anuncios</string>
     <string name="write_message_placeholder">Escribe un mensaje...</string>
     <string name="notification_group_msg_template">Nuevo mensaje de %1$s en el chat de planta.</string>
 

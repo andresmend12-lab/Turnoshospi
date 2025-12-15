@@ -73,13 +73,19 @@ fun CustomCalendar(
                     tint = Color.White
                 )
             }
-            // Usamos el Locale por defecto para que el mes salga en el idioma del usuario
+
+            // --- CAMBIO AQUÍ ---
             Text(
                 text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault()).uppercase()} ${currentMonth.year}",
                 color = Color.White,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.clickable {
+                    currentMonth = YearMonth.now() // Vuelve al mes actual
+                }
             )
+            // -------------------
+
             IconButton(onClick = { currentMonth = currentMonth.plusMonths(1) }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
