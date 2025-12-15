@@ -36,24 +36,21 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-// import androidx.compose.material.icons.automirrored.filled.Assignment <--- ELIMINADO
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.FactCheck
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Assignment // <--- AGREGADO (Versión estándar)
+import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.BeachAccess
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete // Aseguramos que esté Delete
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -105,9 +102,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.turnoshospi.ui.theme.TurnoshospiTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -125,7 +120,6 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
-import java.util.UUID
 
 // Modelos de datos específicos de PlantDetailScreen
 private class SlotAssignment(
@@ -465,6 +459,7 @@ fun PlantDetailScreen(
                 ) {
                     DrawerHeader(displayName = plant?.name ?: "", welcomeStringId = R.string.side_menu_title)
 
+                    // 1. Manage Staff (Supervisor only)
                     if (isSupervisor) {
                         NavigationDrawerItem(
                             modifier = Modifier.padding(horizontal = 12.dp),
@@ -484,71 +479,9 @@ fun PlantDetailScreen(
                             },
                             colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
                         )
-                        NavigationDrawerItem(
-                            modifier = Modifier.padding(horizontal = 12.dp),
-                            label = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.Settings, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(20.dp))
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Text(stringResource(R.string.plant_settings_label), color = Color.White)
-                                }
-                            },
-                            selected = false,
-                            onClick = { isMenuOpen = false; onOpenPlantSettings() },
-                            colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
-                        )
-                        NavigationDrawerItem(
-                            modifier = Modifier.padding(horizontal = 12.dp),
-                            label = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.Edit, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(20.dp))
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Text(stringResource(R.string.import_shifts_label), color = Color.White)
-                                }
-                            },
-                            selected = false,
-                            onClick = { isMenuOpen = false; onOpenImportShifts() },
-                            colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
-                        )
-
-                        NavigationDrawerItem(
-                            modifier = Modifier.padding(horizontal = 12.dp),
-                            label = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.AutoMirrored.Filled.FactCheck, contentDescription = null, tint = Color(0xFFFFA726), modifier = Modifier.size(20.dp))
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Text(stringResource(R.string.title_change_management), color = Color.White)
-                                }
-                            },
-                            selected = false,
-                            onClick = {
-                                isMenuOpen = false
-                                onOpenShiftChange()
-                            },
-                            colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
-                        )
-
-                        HorizontalDivider(color = Color.White.copy(alpha = 0.2f), modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp))
-                        NavigationDrawerItem(
-                            modifier = Modifier.padding(horizontal = 12.dp),
-                            label = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.Share, contentDescription = null, tint = Color(0xFF54C7EC), modifier = Modifier.size(20.dp))
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Text(stringResource(R.string.invite_colleagues_label), color = Color.White)
-                                }
-                            },
-                            selected = false,
-                            onClick = {
-                                isMenuOpen = false
-                                if (plant != null) {
-                                    onOpenStaffManagement()
-                                }
-                            },
-                            colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
-                        )
                     }
 
+                    // 2. Chat de planta (Todos)
                     NavigationDrawerItem(
                         modifier = Modifier.padding(horizontal = 12.dp),
                         label = {
@@ -566,6 +499,24 @@ fun PlantDetailScreen(
                         colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
                     )
 
+                    // 3. Importar turnos (Supervisor only)
+                    if (isSupervisor) {
+                        NavigationDrawerItem(
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            label = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.Edit, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(20.dp))
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text(stringResource(R.string.import_shifts_label), color = Color.White)
+                                }
+                            },
+                            selected = false,
+                            onClick = { isMenuOpen = false; onOpenImportShifts() },
+                            colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
+                        )
+                    }
+
+                    // 4. Gestion de cambios (Todos)
                     NavigationDrawerItem(
                         modifier = Modifier.padding(horizontal = 12.dp),
                         label = {
@@ -583,40 +534,43 @@ fun PlantDetailScreen(
                         colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
                     )
 
-                    if (!isSupervisor) {
+                    // 5. Dias de vacaciones (Miembros)
+                    if (currentMembership?.staffId != null) {
                         NavigationDrawerItem(
                             modifier = Modifier.padding(horizontal = 12.dp),
                             label = {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.Assignment, null, tint = Color(0xFFFFC107), modifier = Modifier.size(20.dp)) // CORRECCIón
+                                    Icon(Icons.Default.BeachAccess, contentDescription = null, tint = Color(0xFFE91E63), modifier = Modifier.size(20.dp))
                                     Spacer(modifier = Modifier.width(12.dp))
-                                    Text(stringResource(R.string.shift_marketplace_label), color = Color.White)
+                                    Text(stringResource(R.string.vacation_days_label), color = Color.White)
                                 }
                             },
                             selected = false,
-                            onClick = {
-                                isMenuOpen = false
-                                onOpenShiftMarketplace()
-                            },
+                            onClick = { isMenuOpen = false; showVacationDialog = true },
                             colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
                         )
                     }
 
-                    if (isSupervisor) {
-                        NavigationDrawerItem(
-                            modifier = Modifier.padding(horizontal = 12.dp),
-                            label = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.Edit, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(20.dp))
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Text(stringResource(R.string.import_shifts_label), color = Color.White)
-                                }
-                            },
-                            selected = false,
-                            onClick = { isMenuOpen = false; onOpenImportShifts() },
-                            colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
-                        )
+                    // 6. Estadisticas (Todos)
+                    NavigationDrawerItem(
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                        label = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.AutoMirrored.Filled.ShowChart, null, modifier = Modifier.size(20.dp), tint = Color(0xFF54C7EC))
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(stringResource(R.string.statistics_label), color = Color.White)
+                            }
+                        },
+                        selected = false,
+                        onClick = {
+                            isMenuOpen = false
+                            onOpenStatistics()
+                        },
+                        colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
+                    )
 
+                    // 7. Invitar compañeros (Supervisor only)
+                    if (isSupervisor) {
                         NavigationDrawerItem(
                             modifier = Modifier.padding(horizontal = 12.dp),
                             label = {
@@ -637,75 +591,7 @@ fun PlantDetailScreen(
                         )
                     }
 
-                    if (currentMembership?.staffId != null) {
-                        NavigationDrawerItem(
-                            modifier = Modifier.padding(horizontal = 12.dp),
-                            label = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.BeachAccess, contentDescription = null, tint = Color(0xFFE91E63), modifier = Modifier.size(20.dp))
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Text(stringResource(R.string.vacation_days_label), color = Color.White)
-                                }
-                            },
-                            selected = false,
-                            onClick = { isMenuOpen = false; showVacationDialog = true },
-                            colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
-                        )
-                    }
-
-                    if (!isSupervisor) {
-                        NavigationDrawerItem(
-                            modifier = Modifier.padding(horizontal = 12.dp),
-                            label = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.SwapHoriz, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Text(stringResource(R.string.shift_change_label), color = Color.White)
-                                }
-                            },
-                            selected = false,
-                            onClick = {
-                                isMenuOpen = false
-                                onOpenShiftChange()
-                            },
-                            colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
-                        )
-
-                        NavigationDrawerItem(
-                            modifier = Modifier.padding(horizontal = 12.dp),
-                            label = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.Assignment, null, tint = Color(0xFFFFC107), modifier = Modifier.size(20.dp)) // CORRECCIÓN
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Text(stringResource(R.string.shift_marketplace_label), color = Color.White)
-                                }
-                            },
-                            selected = false,
-                            onClick = {
-                                isMenuOpen = false
-                                onOpenShiftMarketplace()
-                            },
-                            colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
-                        )
-                    }
-
-                    NavigationDrawerItem(
-                        modifier = Modifier.padding(horizontal = 12.dp),
-                        label = {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.AutoMirrored.Filled.ShowChart, null, modifier = Modifier.size(20.dp), tint = Color(0xFF54C7EC))
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(stringResource(R.string.statistics_label), color = Color.White)
-                            }
-                        },
-                        selected = false,
-                        onClick = {
-                            isMenuOpen = false
-                            onOpenStatistics()
-                        },
-                        colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
-                    )
-
+                    // 8. Configuración de planta (Supervisor only)
                     if (isSupervisor) {
                         NavigationDrawerItem(
                             modifier = Modifier.padding(horizontal = 12.dp),
@@ -722,6 +608,9 @@ fun PlantDetailScreen(
                         )
                     }
 
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.2f), modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp))
+
+                    // 9. Volver al menu principal
                     NavigationDrawerItem(
                         modifier = Modifier.padding(horizontal = 12.dp),
                         label = {
