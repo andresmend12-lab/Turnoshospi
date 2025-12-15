@@ -302,26 +302,25 @@ class MainActivity : ComponentActivity() {
 
     private fun sendPasswordReset(email: String, onResult: (Boolean) -> Unit) {
         authErrorMessage.value = null
-        auth.useAppLanguage()
-        val actionCodeSettings = ActionCodeSettings.newBuilder()
-            .setUrl("https://turnoshospi-f4870.firebaseapp.com/__/auth/action")
-            .setHandleCodeInApp(false)
-            .setAndroidPackageName(packageName, true, null)
-            .build()
 
-        auth.sendPasswordResetEmail(email.trim(), actionCodeSettings)
+        // Indica a Firebase que use el idioma del dispositivo para el correo
+        auth.useAppLanguage()
+
+        // Usamos el método simple para disparar la plantilla estándar de Firebase
+        auth.sendPasswordResetEmail(email.trim())
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
+                    // El correo se envió correctamente
                     onResult(true)
                 } else {
+                    // Hubo un error
                     val errorMessage = task.exception?.let { formatAuthError(it) }
-                        ?: getString(R.string.reset_email_error) // "No se pudo enviar el correo de recuperación"
+                        ?: getString(R.string.reset_email_error)
                     authErrorMessage.value = errorMessage
                     onResult(false)
                 }
             }
     }
-
     // --- LÓGICA DE PERFIL Y USUARIO ---
     private fun loadUserProfile(onResult: (UserProfile?) -> Unit) {
         val user = auth.currentUser ?: run {
