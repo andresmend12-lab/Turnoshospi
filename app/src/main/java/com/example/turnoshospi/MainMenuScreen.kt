@@ -60,7 +60,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.turnoshospi.ui.theme.ShiftColors
-import com.example.turnoshospi.ui.theme.TurnoshospiTheme
+import com.example.turnoshospi.SideMenu
+import com.example.turnoshospi.DrawerComponents.DrawerHeader
+import com.example.turnoshospi.DrawerComponents.DrawerMenuItem
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -135,56 +137,13 @@ fun MainMenuScreen(
                 .fillMaxSize()
                 .padding(vertical = 12.dp)
         ) {
-            // Cabecera Superior (Menú, Nombre, Notificaciones)
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp, bottom = 12.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                IconButton(
-                    modifier = Modifier.align(Alignment.CenterStart),
-                    onClick = { isMenuOpen = true }
-                ) {
-                    Icon(
-                        Icons.Default.Menu,
-                        contentDescription = stringResource(R.string.cd_menu), // "Menú"
-                        tint = Color.White
-                    )
-                }
-
-                Crossfade(targetState = displayName, animationSpec = tween(durationMillis = 600)) { name ->
-                    Text(
-                        text = stringResource(id = welcomeStringId, name),
-                        modifier = Modifier.padding(horizontal = 56.dp),
-                        style = MaterialTheme.typography.titleLarge,
-                        color = Color.White,
-                        textAlign = TextAlign.Center,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                IconButton(
-                    modifier = Modifier.align(Alignment.CenterEnd),
-                    onClick = onOpenNotifications
-                ) {
-                    BadgedBox(
-                        badge = {
-                            if (unreadNotificationsCount > 0) {
-                                Badge(containerColor = Color(0xFFE91E63)) {
-                                    Text(if (unreadNotificationsCount > 99) "99+" else "$unreadNotificationsCount")
-                                }
-                            }
-                        }
-                    ) {
-                        Icon(
-                            Icons.Default.Notifications,
-                            contentDescription = stringResource(R.string.cd_notifications), // "Notificaciones"
-                            tint = Color.White
-                        )
-                    }
-                }
-            }
+            MainMenuBar(
+                displayName = displayName,
+                welcomeStringId = welcomeStringId,
+                unreadNotificationsCount = unreadNotificationsCount,
+                onOpenMenu = { isMenuOpen = true },
+                onOpenNotifications = onOpenNotifications
+            )
 
             // TARJETA PRINCIPAL DEL CALENDARIO
             Card(
@@ -254,55 +213,39 @@ fun MainMenuScreen(
             }
         }
 
-        // Drawer (Menú Lateral)
-        AnimatedVisibility(
-            visible = isMenuOpen,
-            enter = slideInHorizontally { -it } + fadeIn(),
-            exit = slideOutHorizontally { -it } + fadeOut()
-        ) {
-            Row(modifier = Modifier.fillMaxSize()) {
-                Column(
-                    modifier = Modifier
-                        .width(280.dp)
-                        .fillMaxHeight()
-                        .background(Color(0xFF0F172A), RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp))
-                        .padding(vertical = 16.dp)
-                ) {
-                    DrawerHeader(displayName, welcomeStringId)
-                    if (showCreatePlant) {
-                        DrawerMenuItem(
-                            stringResource(R.string.menu_create_plant),
-                            stringResource(R.string.menu_create_plant_desc)
-                        ) { isMenuOpen = false; onCreatePlant() }
-                    }
-
-                    DrawerMenuItem(
-                        stringResource(R.string.menu_my_plants),
-                        stringResource(R.string.menu_my_plants_desc)
-                    ) { isMenuOpen = false; onOpenPlant() }
-
-                    DrawerMenuItem(
-                        stringResource(R.string.edit_profile),
-                        stringResource(R.string.edit_profile) // Puede que quieras usar menu_edit_profile_desc si existe
-                    ) { isMenuOpen = false; onEditProfile() }
-
-                    DrawerMenuItem(
-                        stringResource(R.string.menu_settings),
-                        stringResource(R.string.menu_settings_desc)
-                    ) { isMenuOpen = false; onOpenSettings() }
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    NavigationDrawerItem(
-                        modifier = Modifier.padding(horizontal = 12.dp),
-                        label = { Text(stringResource(R.string.sign_out), color = Color(0xFFFFB4AB)) },
-                        selected = false,
-                        onClick = { isMenuOpen = false; onSignOut() },
-                        colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
-                    )
-                }
-                Box(modifier = Modifier.weight(1f).fillMaxHeight().clickable { isMenuOpen = false })
+        SideMenu(isMenuOpen = isMenuOpen, onCloseMenu = { isMenuOpen = false }) {
+            DrawerHeader(displayName, userEmail, welcomeStringId)
+            if (showCreatePlant) {
+                DrawerMenuItem(
+                    stringResource(R.string.menu_create_plant),
+                    stringResource(R.string.menu_create_plant_desc)
+                ) { isMenuOpen = false; onCreatePlant() }
             }
+
+            DrawerMenuItem(
+                stringResource(R.string.menu_my_plants),
+                stringResource(R.string.menu_my_plants_desc)
+            ) { isMenuOpen = false; onOpenPlant() }
+
+            DrawerMenuItem(
+                stringResource(R.string.edit_profile),
+                stringResource(R.string.edit_profile) // Puede que quieras usar menu_edit_profile_desc si existe
+            ) { isMenuOpen = false; onEditProfile() }
+
+            DrawerMenuItem(
+                stringResource(R.string.menu_settings),
+                stringResource(R.string.menu_settings_desc)
+            ) { isMenuOpen = false; onOpenSettings() }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            NavigationDrawerItem(
+                modifier = Modifier.padding(horizontal = 12.dp),
+                label = { Text(stringResource(R.string.sign_out), color = Color(0xFFFFB4AB)) },
+                selected = false,
+                onClick = { isMenuOpen = false; onSignOut() },
+                colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
+            )
         }
 
         // FAB (Chat)
@@ -325,39 +268,7 @@ fun MainMenuScreen(
     }
 }
 
-@Composable
-fun DrawerHeader(displayName: String, welcomeStringId: Int) {
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        Image(
-            painterResource(R.drawable.ic_logo_hospi_round),
-            stringResource(R.string.app_name),
-            modifier = Modifier.size(48.dp)
-        )
-        Crossfade(targetState = displayName) {
-            Text(stringResource(welcomeStringId, it), style = MaterialTheme.typography.bodySmall, color = Color(0xCCFFFFFF))
-        }
-    }
-    HorizontalDivider(color = Color(0x22FFFFFF))
-}
 
-@Composable
-fun DrawerMenuItem(label: String, description: String, onClick: () -> Unit) {
-    NavigationDrawerItem(
-        modifier = Modifier.padding(horizontal = 12.dp),
-        label = {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(label, color = Color.White, fontWeight = FontWeight.SemiBold)
-                Text(description, color = Color(0xCCFFFFFF), style = MaterialTheme.typography.bodySmall)
-            }
-        },
-        selected = false,
-        onClick = onClick,
-        colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
-    )
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true)

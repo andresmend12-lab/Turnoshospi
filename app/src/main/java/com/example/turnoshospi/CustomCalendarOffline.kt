@@ -503,71 +503,48 @@ private fun InternalOfflineCalendar(
     onDayClick: (LocalDate) -> Unit
 ) {
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
+    BaseCalendar(
+        currentMonth = currentMonth,
+        onCurrentMonthChanged = { newMonth -> currentMonth = newMonth }
+    ) { date ->
+        val dateKey = date.toString()
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth() // Ocupa todo el ancho, altura dinámica
-            .background(Color(0xFF0F172A))
-            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 40.dp),
-        // .verticalScroll Eliminado para evitar scroll anidado
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Cabecera Mes
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = { currentMonth = currentMonth.minusMonths(1) }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White) }
-            Text(text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault()).uppercase()} ${currentMonth.year}", color = Color.White, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            IconButton(onClick = { currentMonth = currentMonth.plusMonths(1) }) { Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Color.White) }
+        val shift = shifts[dateKey]
+        val color = if (shift != null) getShiftColorForType(shift.shiftName, shiftColors) else {
+            val yesterday = date.minusDays(1).toString()
+            val yShift = shifts[yesterday]
+            if (yShift?.shiftName == "Noche") shiftColors.saliente else shiftColors.free
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-        // Días Semana
-        Row(modifier = Modifier.fillMaxWidth()) {
-            val daysOfWeek = listOf("L", "M", "X", "J", "V", "S", "D")
-            daysOfWeek.forEach { day -> Text(text = day, modifier = Modifier.weight(1f), color = Color.Gray, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold) }
-        }
-        Spacer(modifier = Modifier.height(8.dp))
+        val isSelected = date == selectedDate
+        val hasNotes = !notesMap[dateKey].isNullOrEmpty()
 
-        // Grid
-        val firstDayOfMonth = currentMonth.atDay(1)
-        val daysInMonth = currentMonth.lengthOfMonth()
-        val dayOfWeekOffset = firstDayOfMonth.dayOfWeek.value - 1
-        val totalCells = (daysInMonth + dayOfWeekOffset + 6) / 7 * 7
-
-        Column {
-            for (i in 0 until totalCells step 7) {
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    for (j in 0 until 7) {
-                        val dayIndex = i + j - dayOfWeekOffset + 1
-                        if (dayIndex in 1..daysInMonth) {
-                            val date = currentMonth.atDay(dayIndex)
-                            val dateKey = date.toString()
-
-                            val shift = shifts[dateKey]
-                            val color = if (shift != null) getShiftColorForType(shift.shiftName, shiftColors) else {
-                                val yesterday = date.minusDays(1).toString()
-                                val yShift = shifts[yesterday]
-                                if (yShift?.shiftName == "Noche") shiftColors.saliente else shiftColors.free
-                            }
-
-                            val isSelected = date == selectedDate
-                            val hasNotes = !notesMap[dateKey].isNullOrEmpty()
-
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f).height(48.dp).padding(2.dp)
-                                    .background(color, CircleShape)
-                                    .border(width = if(isSelected) 2.dp else 0.dp, color = if(isSelected) Color.White else Color.Transparent, shape = CircleShape)
-                                    .clickable { onDayClick(date) },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(text = dayIndex.toString(), color = if (color == shiftColors.free) Color.White else Color.Black, fontWeight = FontWeight.Medium)
-                                if (hasNotes) Box(modifier = Modifier.align(Alignment.TopCenter).padding(top = 2.dp).size(6.dp).background(Color(0xFFE91E63), CircleShape))
-                            }
-                        } else { Spacer(modifier = Modifier.weight(1f)) }
-                    }
-                }
-                Spacer(modifier = Modifier.height(4.dp))
-            }
+        Box(
+            modifier = Modifier
+                .padding(2.dp)
+                .background(color, CircleShape)
+                .border(
+                    width = if (isSelected) 2.dp else 0.dp,
+                    color = if (isSelected) Color.White else Color.Transparent,
+                    shape = CircleShape
+                )
+                .clickable { onDayClick(date) }
+                .fillMaxWidth()
+                .height(48.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = date.dayOfMonth.toString(),
+                color = if (color == shiftColors.free) Color.White else Color.Black,
+                fontWeight = FontWeight.Medium
+            )
+            if (hasNotes) Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 2.dp)
+                    .size(6.dp)
+                    .background(Color(0xFFE91E63), CircleShape)
+            )
         }
     }
 }
