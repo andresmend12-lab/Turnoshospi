@@ -1086,7 +1086,7 @@ private fun processCsvImport(
 
         // Estructura temporal para acumular: Fecha -> Turno -> Listas de Staff
         // Map<Fecha, Map<Turno, Pair<MutableList<Enfermeros>, MutableList<Auxiliares>>>>
-        val assignmentsBuffer = mutableMapOf<String, MutableMap<String, Pair<MutableList<String>, MutableList<String>>>>()
+        val assignmentsBuffer = mutableMapOf<String, MutableMap<String, Pair<MutableList<Pair<String, Boolean>>, MutableList<Pair<String, Boolean>>>>>()
 
         val plantStaff = plant.personal_de_planta.values
         // val unassignedLabel = context.getString(R.string.staff_unassigned_option)
@@ -1120,8 +1120,17 @@ private fun processCsvImport(
             for ((colIndex, dateKey) in dateMap) {
                 if (colIndex >= cols.size) break
 
-                val shiftValue = cols[colIndex]
+                var shiftValue = cols[colIndex]
                 if (shiftValue.isNotBlank()) {
+                    var isHalfDay = false
+                    if (shiftValue.equals("Media Tarde", ignoreCase = true)) {
+                        shiftValue = "Tarde"
+                        isHalfDay = true
+                    } else if (shiftValue.equals("Media Mañana", ignoreCase = true)) {
+                        shiftValue = "Mañana"
+                        isHalfDay = true
+                    }
+
                     // Validar que el turno exista (Mañana, Tarde, Noche...)
                     // Match insensible a mayúsculas con las keys de shiftTimes de la planta
                     val matchedShiftKey = plant.shiftTimes.keys.find { it.equals(shiftValue, ignoreCase = true) }
@@ -1133,9 +1142,9 @@ private fun processCsvImport(
                         }
 
                         if (isNurse) {
-                            shiftLists.first.add(staffMember.name)
+                            shiftLists.first.add(Pair(staffMember.name, isHalfDay))
                         } else {
-                            shiftLists.second.add(staffMember.name)
+                            shiftLists.second.add(Pair(staffMember.name, isHalfDay))
                         }
                     }
                 }
@@ -1147,21 +1156,21 @@ private fun processCsvImport(
 
         assignmentsBuffer.forEach { (dateKey, shiftsMap) ->
             val datePayload = shiftsMap.mapValues { (_, lists) ->
-                val (nursesNames, auxNames) = lists
+                val (nursesData, auxData) = lists
 
                 mapOf(
-                    "nurses" to nursesNames.mapIndexed { i, name ->
+                    "nurses" to nursesData.mapIndexed { i, (name, isHalfDay) ->
                         mapOf(
-                            "halfDay" to false,
+                            "halfDay" to isHalfDay,
                             "primary" to name,
                             "secondary" to "",
                             "primaryLabel" to "enfermero${i + 1}",
                             "secondaryLabel" to ""
                         )
                     },
-                    "auxiliaries" to auxNames.mapIndexed { i, name ->
+                    "auxiliaries" to auxData.mapIndexed { i, (name, isHalfDay) ->
                         mapOf(
-                            "halfDay" to false,
+                            "halfDay" to isHalfDay,
                             "primary" to name,
                             "secondary" to "",
                             "primaryLabel" to "auxiliar${i + 1}",
