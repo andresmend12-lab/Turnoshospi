@@ -39,17 +39,24 @@ object ShiftRulesEngine {
     }
 
     // --- REGLA 1: Roles ---
+    private fun roleGroup(role: String): String? {
+        val normalized = role.trim().lowercase()
+        if (normalized.contains("supervisor")) return null
+        return when {
+            normalized.contains("enfermer") -> "nurse"
+            normalized.contains("auxiliar") || normalized.contains("tcae") -> "aux"
+            else -> null
+        }
+    }
+
     fun canUserParticipate(userRole: String): Boolean {
-        val normalized = userRole.trim().lowercase()
-        return !normalized.contains("supervisor") &&
-                (normalized.contains("enfermer") || normalized.contains("auxiliar"))
+        return roleGroup(userRole) != null
     }
 
     fun areRolesCompatible(roleA: String, roleB: String): Boolean {
-        val rA = roleA.trim().lowercase()
-        val rB = roleB.trim().lowercase()
-        return (rA.contains("enfermer") && rB.contains("enfermer")) ||
-                (rA.contains("auxiliar") && rB.contains("auxiliar"))
+        val groupA = roleGroup(roleA)
+        val groupB = roleGroup(roleB)
+        return groupA != null && groupA == groupB
     }
 
     // --- REGLA 2: Validación Laboral (Salientes, Doble turno, Racha) ---
