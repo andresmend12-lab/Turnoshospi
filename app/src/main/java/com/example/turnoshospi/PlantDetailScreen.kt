@@ -103,10 +103,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.example.turnoshospi.PlantDetailComponents.*
-import com.example.turnoshospi.SideMenu
-import com.example.turnoshospi.DrawerComponents.DrawerHeader
-import com.example.turnoshospi.DrawerComponents.DrawerMenuItem
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -125,7 +121,21 @@ import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 
+// Modelos de datos específicos de PlantDetailScreen
+private class SlotAssignment(
+    primaryName: String = "",
+    secondaryName: String = "",
+    hasHalfDay: Boolean = false
+) {
+    var primaryName by mutableStateOf(primaryName)
+    var secondaryName by mutableStateOf(secondaryName)
+    var hasHalfDay by mutableStateOf(hasHalfDay)
+}
 
+private data class ShiftAssignmentState(
+    val nurseSlots: MutableList<SlotAssignment>,
+    val auxSlots: MutableList<SlotAssignment>
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -433,179 +443,194 @@ fun PlantDetailScreen(
             }
         }
 
-        SideMenu(isMenuOpen = isMenuOpen, onCloseMenu = { isMenuOpen = false }) {
-            DrawerHeader(
-                displayName = plant?.name ?: "",
-                email = "", // No hay email directo para la planta, se pasa vacío
-                welcomeStringId = R.string.side_menu_title
-            )
+        // --- MENU LATERAL (DRAWER) ---
+        AnimatedVisibility(
+            visible = isMenuOpen,
+            enter = slideInHorizontally { -it } + fadeIn(),
+            exit = slideOutHorizontally { -it } + fadeOut()
+        ) {
+            Row(modifier = Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier
+                        .width(280.dp)
+                        .fillMaxHeight()
+                        .background(Color(0xFF0F172A), RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp))
+                        .padding(vertical = 16.dp)
+                ) {
+                    DrawerHeader(displayName = plant?.name ?: "", welcomeStringId = R.string.side_menu_title)
 
-            // 1. Manage Staff (Supervisor only)
-            if (isSupervisor) {
-                NavigationDrawerItem(
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                    label = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Person, contentDescription = null, tint = Color(0xFF54C7EC), modifier = Modifier.size(20.dp))
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(stringResource(id = R.string.plant_manage_staff_option), color = Color.White)
-                        }
-                    },
-                    selected = false,
-                    onClick = {
-                        isMenuOpen = false
-                        if (plant != null) {
-                            onOpenStaffManagement()
-                        }
-                    },
-                    colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
-                )
-            }
-
-            // 2. Chat de planta (Todos)
-            NavigationDrawerItem(
-                modifier = Modifier.padding(horizontal = 12.dp),
-                label = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(stringResource(R.string.group_chat_title), color = Color.White)
+                    // 1. Manage Staff (Supervisor only)
+                    if (isSupervisor) {
+                        NavigationDrawerItem(
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            label = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.Person, contentDescription = null, tint = Color(0xFF54C7EC), modifier = Modifier.size(20.dp))
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text(stringResource(id = R.string.plant_manage_staff_option), color = Color.White)
+                                }
+                            },
+                            selected = false,
+                            onClick = {
+                                isMenuOpen = false
+                                if (plant != null) {
+                                    onOpenStaffManagement()
+                                }
+                            },
+                            colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
+                        )
                     }
-                },
-                selected = false,
-                onClick = {
-                    isMenuOpen = false
-                    onOpenChat()
-                },
-                colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
-            )
 
-            // 3. Importar turnos (Supervisor only)
-            if (isSupervisor) {
-                NavigationDrawerItem(
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                    label = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Edit, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(20.dp))
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(stringResource(R.string.import_shifts_label), color = Color.White)
-                        }
-                    },
-                    selected = false,
-                    onClick = { isMenuOpen = false; onOpenImportShifts() },
-                    colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
-                )
-            }
+                    // 2. Chat de planta (Todos)
+                    NavigationDrawerItem(
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                        label = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(stringResource(R.string.group_chat_title), color = Color.White)
+                            }
+                        },
+                        selected = false,
+                        onClick = {
+                            isMenuOpen = false
+                            onOpenChat()
+                        },
+                        colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
+                    )
 
-            // 4. Gestion de cambios (Todos)
-            NavigationDrawerItem(
-                modifier = Modifier.padding(horizontal = 12.dp),
-                label = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.AutoMirrored.Filled.FactCheck, contentDescription = null, tint = Color(0xFFFFA726), modifier = Modifier.size(20.dp))
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(stringResource(R.string.title_change_management), color = Color.White)
+                    // 3. Importar turnos (Supervisor only)
+                    if (isSupervisor) {
+                        NavigationDrawerItem(
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            label = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.Edit, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(20.dp))
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text(stringResource(R.string.import_shifts_label), color = Color.White)
+                                }
+                            },
+                            selected = false,
+                            onClick = { isMenuOpen = false; onOpenImportShifts() },
+                            colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
+                        )
                     }
-                },
-                selected = false,
-                onClick = {
-                    isMenuOpen = false
-                    onOpenShiftChange()
-                },
-                colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
-            )
 
-            // 5. Dias de vacaciones (Miembros)
-            if (currentMembership?.staffId != null) {
-                NavigationDrawerItem(
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                    label = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.BeachAccess, contentDescription = null, tint = Color(0xFFE91E63), modifier = Modifier.size(20.dp))
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(stringResource(R.string.vacation_days_label), color = Color.White)
-                        }
-                    },
-                    selected = false,
-                    onClick = { isMenuOpen = false; showVacationDialog = true },
-                    colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
-                )
-            }
+                    // 4. Gestion de cambios (Todos)
+                    NavigationDrawerItem(
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                        label = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.AutoMirrored.Filled.FactCheck, contentDescription = null, tint = Color(0xFFFFA726), modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(stringResource(R.string.title_change_management), color = Color.White)
+                            }
+                        },
+                        selected = false,
+                        onClick = {
+                            isMenuOpen = false
+                            onOpenShiftChange()
+                        },
+                        colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
+                    )
 
-            // 6. Estadisticas (Todos)
-            NavigationDrawerItem(
-                modifier = Modifier.padding(horizontal = 12.dp),
-                label = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.AutoMirrored.Filled.ShowChart, null, modifier = Modifier.size(20.dp), tint = Color(0xFF54C7EC))
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(stringResource(R.string.statistics_label), color = Color.White)
+                    // 5. Dias de vacaciones (Miembros)
+                    if (currentMembership?.staffId != null) {
+                        NavigationDrawerItem(
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            label = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.BeachAccess, contentDescription = null, tint = Color(0xFFE91E63), modifier = Modifier.size(20.dp))
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text(stringResource(R.string.vacation_days_label), color = Color.White)
+                                }
+                            },
+                            selected = false,
+                            onClick = { isMenuOpen = false; showVacationDialog = true },
+                            colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
+                        )
                     }
-                },
-                selected = false,
-                onClick = {
-                    isMenuOpen = false
-                    onOpenStatistics()
-                },
-                colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
-            )
 
-            // 7. Invitar compañeros (Supervisor only)
-            if (isSupervisor) {
-                NavigationDrawerItem(
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                    label = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Share, contentDescription = null, tint = Color(0xFF54C7EC), modifier = Modifier.size(20.dp))
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(stringResource(R.string.invite_colleagues_label), color = Color.White)
-                        }
-                    },
-                    selected = false,
-                    onClick = {
-                        isMenuOpen = false
-                        if (plant != null) {
-                            sharePlantInvitation(context, plant.name, plant.id, plant.accessPassword)
-                        }
-                    },
-                    colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
-                )
-            }
+                    // 6. Estadisticas (Todos)
+                    NavigationDrawerItem(
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                        label = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.AutoMirrored.Filled.ShowChart, null, modifier = Modifier.size(20.dp), tint = Color(0xFF54C7EC))
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(stringResource(R.string.statistics_label), color = Color.White)
+                            }
+                        },
+                        selected = false,
+                        onClick = {
+                            isMenuOpen = false
+                            onOpenStatistics()
+                        },
+                        colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
+                    )
 
-            // 8. Configuración de planta (Supervisor only)
-            if (isSupervisor) {
-                NavigationDrawerItem(
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                    label = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Settings, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(20.dp))
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(stringResource(R.string.plant_settings_label), color = Color.White)
-                        }
-                    },
-                    selected = false,
-                    onClick = { isMenuOpen = false; onOpenPlantSettings() },
-                    colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
-                )
-            }
-
-            HorizontalDivider(color = Color.White.copy(alpha = 0.2f), modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp))
-
-            // 9. Volver al menu principal
-            NavigationDrawerItem(
-                modifier = Modifier.padding(horizontal = 12.dp),
-                label = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(stringResource(id = R.string.back_to_menu), color = Color.White)
+                    // 7. Invitar compañeros (Supervisor only)
+                    if (isSupervisor) {
+                        NavigationDrawerItem(
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            label = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.Share, contentDescription = null, tint = Color(0xFF54C7EC), modifier = Modifier.size(20.dp))
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text(stringResource(R.string.invite_colleagues_label), color = Color.White)
+                                }
+                            },
+                            selected = false,
+                            onClick = {
+                                isMenuOpen = false
+                                if (plant != null) {
+                                    sharePlantInvitation(context, plant.name, plant.id, plant.accessPassword)
+                                }
+                            },
+                            colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
+                        )
                     }
-                },
-                selected = false,
-                onClick = { isMenuOpen = false; onBack() },
-                colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
-            )
-            Spacer(modifier = Modifier.height(16.dp))
+
+                    // 8. Configuración de planta (Supervisor only)
+                    if (isSupervisor) {
+                        NavigationDrawerItem(
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            label = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.Settings, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(20.dp))
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text(stringResource(R.string.plant_settings_label), color = Color.White)
+                                }
+                            },
+                            selected = false,
+                            onClick = { isMenuOpen = false; onOpenPlantSettings() },
+                            colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
+                        )
+                    }
+
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.2f), modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp))
+
+                    // 9. Volver al menu principal
+                    NavigationDrawerItem(
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                        label = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(stringResource(id = R.string.back_to_menu), color = Color.White)
+                            }
+                        },
+                        selected = false,
+                        onClick = { isMenuOpen = false; onBack() },
+                        colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Transparent)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+                Box(
+                    modifier = Modifier.weight(1f).fillMaxHeight().background(Color(0x80000000))
+                        .clickable { isMenuOpen = false }
+                )
+            }
         }
     }
 
@@ -631,9 +656,29 @@ fun PlantDetailScreen(
 // FUNCIONES AUXILIARES DE ORDEN Y LOCALIZACIÓN DE TURNOS
 // -----------------------------------------------------------------------------
 
+// Asigna prioridad: 1=Mañana, 2=Tarde, 3=Noche
+fun getShiftPriority(shiftName: String): Int {
+    val lower = shiftName.lowercase().trim()
+    return when {
+        lower.contains("mañana") || lower.contains("morning") || lower.contains("día") || lower.contains("day") -> 1
+        lower.contains("tarde") || lower.contains("afternoon") -> 2
+        lower.contains("noche") || lower.contains("night") -> 3
+        else -> 99
+    }
+}
 
-
-
+// Traduce el nombre de la BD al string resource local
+@Composable
+fun getLocalizedShiftName(rawName: String): String {
+    val lower = rawName.lowercase().trim()
+    return when {
+        lower == "mañana" || lower == "morning" -> stringResource(R.string.shift_morning)
+        lower == "tarde" || lower == "afternoon" -> stringResource(R.string.shift_afternoon)
+        lower == "noche" || lower == "night" -> stringResource(R.string.shift_night)
+        lower == "día" || lower == "dia" || lower == "day" -> stringResource(R.string.shift_day)
+        else -> rawName
+    }
+}
 
 // -----------------------------------------------------------------------------
 // LÓGICA DE COMPARTIR PLANTA
@@ -1199,39 +1244,109 @@ private fun createAndDownloadMatrixTemplate(context: Context) {
 
 @Composable
 fun PlantCalendar(selectedDate: LocalDate?, onDateSelected: (LocalDate) -> Unit) {
+    // Estado para controlar qué mes se está visualizando
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
+    val deviceLocale = Locale.getDefault()
 
-    BaseCalendar(
-        currentMonth = currentMonth,
-        onCurrentMonthChanged = { newMonth -> currentMonth = newMonth }
-    ) { date ->
-        val isSelected = date == selectedDate
-        Box(
-            modifier = Modifier
-                .padding(2.dp)
-                .background(if (isSelected) Color(0xFF54C7EC) else Color.Transparent, CircleShape)
-                .border(
-                    1.dp,
-                    if (isSelected) Color.White.copy(alpha = 0.1f) else Color.White.copy(alpha = 0.1f),
-                    CircleShape
-                )
-                .clickable { onDateSelected(date) }
-                .fillMaxWidth()
-                .height(48.dp),
-            contentAlignment = Alignment.Center
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFF0F172A), RoundedCornerShape(24.dp))
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            // Botón Mes Anterior
+            IconButton(onClick = { currentMonth = currentMonth.minusMonths(1) }) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.desc_prev_month), tint = Color.White)
+            }
+
+            // TÍTULO DEL MES (MODIFICADO)
             Text(
-                text = date.dayOfMonth.toString(),
-                color = if (isSelected) Color.Black else Color.White,
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                text = "${currentMonth.month.getDisplayName(TextStyle.FULL, deviceLocale).uppercase()} ${currentMonth.year}",
+                color = Color.White,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.clickable {
+                    // AQUÍ ESTÁ LA LÓGICA: Volver al mes actual al pulsar
+                    currentMonth = YearMonth.now()
+                }
             )
+
+            // Botón Mes Siguiente
+            IconButton(onClick = { currentMonth = currentMonth.plusMonths(1) }) {
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = stringResource(R.string.desc_next_month), tint = Color.White)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Días de la semana (L, M, X...)
+        Row(modifier = Modifier.fillMaxWidth()) {
+            val daysOfWeekShort = androidx.compose.ui.res.stringArrayResource(R.array.days_of_week_short)
+            daysOfWeekShort.forEach { day ->
+                Text(text = day, modifier = Modifier.weight(1f), color = Color.Gray, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Lógica de la cuadrícula de días
+        val firstDay = currentMonth.atDay(1)
+        val daysInMonth = currentMonth.lengthOfMonth()
+        val offset = firstDay.dayOfWeek.value - 1
+        val totalCells = (daysInMonth + offset + 6) / 7 * 7
+
+        Column {
+            for (i in 0 until totalCells step 7) {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    for (j in 0 until 7) {
+                        val dayIndex = i + j - offset + 1
+                        if (dayIndex in 1..daysInMonth) {
+                            val date = currentMonth.atDay(dayIndex)
+                            val isSelected = date == selectedDate
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f).height(48.dp).padding(2.dp)
+                                    .background(if (isSelected) Color(0xFF54C7EC) else Color.Transparent, CircleShape)
+                                    .border(if (isSelected) 0.dp else 1.dp, if (isSelected) Color.White.copy(alpha = 0.1f) else Color.White.copy(alpha = 0.1f), CircleShape)
+                                    .clickable { onDateSelected(date) },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(text = dayIndex.toString(), color = if (isSelected) Color.Black else Color.White, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal)
+                            }
+                        } else {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+            }
         }
     }
 }
 
+@Composable
+private fun InfoMessage(message: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0x22000000)),
+        border = BorderStroke(1.dp, Color(0x22FFFFFF))
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+            Text(text = message, color = Color.White, style = MaterialTheme.typography.bodyMedium)
+        }
+    }
+}
 
-
-
+fun formatPlantDate(date: LocalDate): String {
+    return date.format(DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.getDefault()))
+}
 
 @Composable
 private fun StaffListDialog(
@@ -1351,19 +1466,124 @@ private fun StaffListDialog(
     }
 }
 
+@Composable
+private fun ShiftAssignmentsSection(
+    plant: Plant, assignments: MutableMap<String, ShiftAssignmentState>, selectedDateLabel: String,
+    isSupervisor: Boolean, isSavedForDate: Boolean, unassignedLabel: String,
+    nurseOptions: List<String>, auxOptions: List<String>, onSaveAssignments: (Map<String, ShiftAssignmentState>) -> Unit
+) {
+    val allowAux = plant.staffScope.normalizedRole() == stringResource(id = R.string.staff_scope_with_aux).normalizedRole() ||
+            plant.staffScope.contains("aux", ignoreCase = true) || auxOptions.isNotEmpty()
 
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(stringResource(id = R.string.plant_shifts_for_date, selectedDateLabel), color = Color.White, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
+        // CAMBIO: Ordenar los turnos disponibles por prioridad fija (Mañana -> Tarde -> Noche)
+        val orderedShifts = remember(plant.shiftTimes) {
+            plant.shiftTimes.entries.sortedBy { getShiftPriority(it.key) }
+        }
 
+        orderedShifts.forEach { (rawShiftName, timing) ->
+            // CAMBIO: Obtener nombre localizado para mostrar en UI
+            val displayShiftName = getLocalizedShiftName(rawShiftName)
 
+            val nurseReq = plant.staffRequirements[rawShiftName] ?: 0
+            val auxReq = if (allowAux) (plant.staffRequirements[rawShiftName] ?: 0).coerceAtLeast(1) else 0
+            val state = assignments.getOrPut(rawShiftName) { ShiftAssignmentState(mutableStateListOf(), mutableStateListOf()) }
+            ensureSlotSize(state.nurseSlots, nurseReq.coerceAtLeast(1))
+            if (auxReq > 0) ensureSlotSize(state.auxSlots, auxReq) else state.auxSlots.clear()
 
+            Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color(0x22000000)), border = BorderStroke(1.dp, Color(0x22FFFFFF))) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(stringResource(id = R.string.plant_shift_item, displayShiftName, timing.start.ifEmpty { "--" }, timing.end.ifEmpty { "--" }), color = Color.White, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
+                    state.nurseSlots.forEachIndexed { i, slot ->
+                        val label = if (slot.hasHalfDay) stringResource(id = R.string.nurse_half_day_label) else stringResource(id = R.string.nurse_label, i + 1)
+                        if (isSupervisor) EditableAssignmentRow(label, slot, nurseOptions, stringResource(id = R.string.nurse_half_day_label))
+                        else ReadOnlyAssignmentRow(label, stringResource(id = R.string.nurse_half_day_label), slot, unassignedLabel)
+                    }
+                    if (allowAux) {
+                        HorizontalDivider(color = Color(0x22FFFFFF))
+                        state.auxSlots.forEachIndexed { i, slot ->
+                            val label = if (slot.hasHalfDay) stringResource(id = R.string.aux_half_day_label) else stringResource(id = R.string.aux_label, i + 1)
+                            if (isSupervisor) EditableAssignmentRow(label, slot, auxOptions, stringResource(id = R.string.aux_half_day_label))
+                            else ReadOnlyAssignmentRow(label, stringResource(id = R.string.aux_half_day_label), slot, unassignedLabel)
+                        }
+                    }
+                }
+            }
+        }
+        if (isSupervisor) {
+            Button(onClick = { onSaveAssignments(assignments) }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF54C7EC), contentColor = Color.Black)) {
+                Text(if (isSavedForDate) stringResource(id = R.string.save_assignments_action) else stringResource(id = R.string.save_assignments_action))
+            }
+        }
+    }
+}
 
+@Composable
+private fun EditableAssignmentRow(label: String, slot: SlotAssignment, options: List<String>, halfDayLabel: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Switch(checked = slot.hasHalfDay, onCheckedChange = { slot.hasHalfDay = it; if (!it) slot.secondaryName = "" }, modifier = Modifier.width(52.dp))
+            StaffDropdownField(modifier = Modifier.weight(1f), label = label, selectedValue = slot.primaryName, options = options, enabled = true, onOptionSelected = { slot.primaryName = it }, includeUnassigned = true)
+        }
+        if (slot.hasHalfDay) {
+            StaffDropdownField(modifier = Modifier.fillMaxWidth().padding(start = 60.dp), label = halfDayLabel, selectedValue = slot.secondaryName, options = options, enabled = true, onOptionSelected = { slot.secondaryName = it }, includeUnassigned = true)
+        }
+    }
+}
 
+private fun ensureSlotSize(list: MutableList<SlotAssignment>, expected: Int) {
+    while (list.size < expected) list.add(SlotAssignment())
+    if (list.size > expected) repeat(list.size - expected) { list.removeLastOrNull() }
+}
 
+private fun SlotAssignment.toFirebaseMap(unassigned: String, base: String) = mapOf(
+    "halfDay" to hasHalfDay,
+    "primary" to primaryName.ifBlank { unassigned },
+    "secondary" to if (hasHalfDay) secondaryName.ifBlank { unassigned } else "",
+    "primaryLabel" to base,
+    "secondaryLabel" to if (hasHalfDay) "$base media jornada" else ""
+)
 
+// CORRECCIÓN: Normalizar el valor de "Sin asignar" al leer desde Firebase
+private fun DataSnapshot.toSlotAssignment(unassignedLabel: String): SlotAssignment {
+    val h = child("halfDay").value as? Boolean ?: false
+    val p = (child("primary").value as? String).orEmpty()
+    val s = (child("secondary").value as? String).orEmpty()
 
+    fun isUnassigned(value: String): Boolean {
+        // Detecta variantes de "sin asignar" para limpiarlas y que la UI muestre la traducción actual
+        return value.equals(unassignedLabel, ignoreCase = true) ||
+                value.equals("Sin asignar", ignoreCase = true) ||
+                value.equals("Unassigned", ignoreCase = true) ||
+                value.equals("null", ignoreCase = true)
+    }
 
+    return SlotAssignment(
+        primaryName = if (isUnassigned(p)) "" else p,
+        secondaryName = if (isUnassigned(s)) "" else s,
+        hasHalfDay = h
+    )
+}
 
+private fun String.normalizedRole() = trim().lowercase()
+private fun RegisteredUser.displayName(def: String) = name.ifBlank { email.ifBlank { role.ifBlank { def } } }
+private fun RegisteredUser.isNurseRole(roles: List<String>) = role.normalizedRole() in roles || role.normalizedRole().contains("enfermer")
+private fun RegisteredUser.isAuxRole(roles: List<String>) = role.normalizedRole() in roles || role.normalizedRole().contains("auxiliar")
+
+@Composable
+private fun ReadOnlyAssignmentRow(label: String, halfDayLabel: String, slot: SlotAssignment, unassigned: String) {
+    Column {
+        Text(label, style = MaterialTheme.typography.bodyMedium, color = Color(0xCCFFFFFF), fontWeight = FontWeight.SemiBold)
+        Text(slot.primaryName.ifBlank { unassigned }, style = MaterialTheme.typography.bodyLarge, color = Color.White)
+        if (slot.hasHalfDay) {
+            Text(halfDayLabel, style = MaterialTheme.typography.bodyMedium, color = Color(0xCCFFFFFF), fontWeight = FontWeight.SemiBold)
+            Text(slot.secondaryName.ifBlank { unassigned }, style = MaterialTheme.typography.bodyLarge, color = Color.White)
+        }
+    }
+}
 
 @Composable
 private fun AddStaffDialog(
@@ -1399,4 +1619,24 @@ private fun AddStaffDialog(
         },
         containerColor = Color(0xEE0B1021), titleContentColor = Color.White, textContentColor = Color.White
     )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun StaffDropdownField(modifier: Modifier = Modifier, label: String, selectedValue: String, options: List<String>, enabled: Boolean, onOptionSelected: (String) -> Unit, includeUnassigned: Boolean = false) {
+    var expanded by remember { mutableStateOf(false) }
+    val unassigned = stringResource(id = R.string.staff_unassigned_option)
+    val display = selectedValue.ifBlank { if (includeUnassigned) unassigned else "" }
+    val menuOptions = if (includeUnassigned) listOf(unassigned) + options else options
+    Box(modifier = modifier) {
+        OutlinedTextField(
+            value = display, onValueChange = {}, readOnly = true, enabled = enabled, label = { Text(label) },
+            trailingIcon = { IconButton(onClick = { if (enabled) expanded = !expanded }) { Icon(Icons.Filled.ArrowDropDown, null, Modifier.rotate(if (expanded) 180f else 0f) ) } },
+            modifier = Modifier.fillMaxWidth().clickable(enabled = enabled, indication = null, interactionSource = remember { MutableInteractionSource() }) { expanded = !expanded },
+            colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedBorderColor = Color(0xFF54C7EC), unfocusedBorderColor = Color(0x66FFFFFF))
+        )
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, modifier = Modifier.fillMaxWidth(), containerColor = Color(0xF00B1021)) {
+            menuOptions.forEach { op -> DropdownMenuItem(text = { Text(op, color = Color.White) }, onClick = { onOptionSelected(if (op == unassigned) "" else op); expanded = false }) }
+        }
+    }
 }

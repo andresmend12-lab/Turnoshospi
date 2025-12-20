@@ -52,34 +52,116 @@ fun CustomCalendar(
 ) {
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
 
-    BaseCalendar(currentMonth = currentMonth, onCurrentMonthChanged = {currentMonth = it}) { date ->
-        val dateKey = date.toString()
-        val shift = shifts[dateKey]
-
-        val color = if (isSupervisor) Color.Transparent else getDayColor(date, shifts, shiftColors)
-        val isSelected = date == selectedDate
-
-        Box(
-            modifier = Modifier
-                .padding(2.dp)
-                .background(color, CircleShape)
-                .border(
-                    width = if (isSelected) 2.dp else 0.dp,
-                    color = if (isSelected) Color.White else Color.Transparent,
-                    shape = CircleShape
-                )
-                .clickable { onDayClick(date, shift) }
-                .fillMaxWidth()
-                .height(48.dp),
-            contentAlignment = Alignment.Center
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF0F172A))
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Cabecera del calendario (Mes y Navegación)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            IconButton(onClick = { currentMonth = currentMonth.minusMonths(1) }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.previous_month_desc),
+                    tint = Color.White
+                )
+            }
+
+            // --- CAMBIO AQUÍ ---
             Text(
-                text = date.dayOfMonth.toString(),
+                text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault()).uppercase()} ${currentMonth.year}",
                 color = Color.White,
-                fontWeight = FontWeight.Medium
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.clickable {
+                    currentMonth = YearMonth.now() // Vuelve al mes actual
+                }
             )
+            // -------------------
+
+            IconButton(onClick = { currentMonth = currentMonth.plusMonths(1) }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = stringResource(R.string.next_month_desc),
+                    tint = Color.White
+                )
+            }
         }
-    }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Días de la semana
+        Row(modifier = Modifier.fillMaxWidth()) {
+            // Obtenemos los días desde strings.xml (array)
+            val daysOfWeek = stringArrayResource(R.array.days_of_week_short).toList()
+
+            daysOfWeek.forEach { day ->
+                Text(
+                    text = day,
+                    modifier = Modifier.weight(1f),
+                    color = Color.Gray,
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Cuadrícula de días
+        val firstDayOfMonth = currentMonth.atDay(1)
+        val daysInMonth = currentMonth.lengthOfMonth()
+        val dayOfWeekOffset = firstDayOfMonth.dayOfWeek.value - 1
+        val totalCells = (daysInMonth + dayOfWeekOffset + 6) / 7 * 7
+
+        Column {
+            for (i in 0 until totalCells step 7) {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    for (j in 0 until 7) {
+                        val dayIndex = i + j - dayOfWeekOffset + 1
+                        if (dayIndex in 1..daysInMonth) {
+                            val date = currentMonth.atDay(dayIndex)
+                            val dateKey = date.toString()
+                            val shift = shifts[dateKey]
+
+                            val color = if (isSupervisor) Color.Transparent else getDayColor(date, shifts, shiftColors)
+                            val isSelected = date == selectedDate
+
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp)
+                                    .padding(2.dp)
+                                    .background(color, CircleShape)
+                                    .border(
+                                        width = if(isSelected) 2.dp else 0.dp,
+                                        color = if(isSelected) Color.White else Color.Transparent,
+                                        shape = CircleShape
+                                    )
+                                    .clickable { onDayClick(date, shift) },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = dayIndex.toString(),
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        } else {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+            }
+        }
 
         // Leyenda y Detalles
         if (plantId != null && !isSupervisor) {
