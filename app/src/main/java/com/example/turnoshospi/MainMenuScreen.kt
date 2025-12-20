@@ -160,7 +160,7 @@ fun MainMenuScreen(
                         style = MaterialTheme.typography.titleLarge,
                         color = Color.White,
                         textAlign = TextAlign.Center,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold 
                     )
                 }
 
