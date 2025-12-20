@@ -137,6 +137,7 @@ fun MainMenuScreen(
                 .fillMaxSize()
                 .padding(vertical = 12.dp)
         ) {
+<<<<<<< HEAD
             MainMenuBar(
                 displayName = displayName,
                 welcomeStringId = welcomeStringId,
@@ -144,6 +145,58 @@ fun MainMenuScreen(
                 onOpenMenu = { isMenuOpen = true },
                 onOpenNotifications = onOpenNotifications
             )
+=======
+            // Cabecera Superior (Menú, Nombre, Notificaciones)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp, bottom = 12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                IconButton(
+                    modifier = Modifier.align(Alignment.CenterStart),
+                    onClick = { isMenuOpen = true }
+                ) {
+                    Icon(
+                        Icons.Default.Menu,
+                        contentDescription = stringResource(R.string.cd_menu), // "Menú"
+                        tint = Color.White
+                    )
+                }
+
+                Crossfade(targetState = displayName, animationSpec = tween(durationMillis = 600)) { name ->
+                    Text(
+                        text = stringResource(id = welcomeStringId, name),
+                        modifier = Modifier.padding(horizontal = 56.dp),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold 
+                    )
+                }
+
+                IconButton(
+                    modifier = Modifier.align(Alignment.CenterEnd),
+                    onClick = onOpenNotifications
+                ) {
+                    BadgedBox(
+                        badge = {
+                            if (unreadNotificationsCount > 0) {
+                                Badge(containerColor = Color(0xFFE91E63)) {
+                                    Text(if (unreadNotificationsCount > 99) "99+" else "$unreadNotificationsCount")
+                                }
+                            }
+                        }
+                    ) {
+                        Icon(
+                            Icons.Default.Notifications,
+                            contentDescription = stringResource(R.string.cd_notifications), // "Notificaciones"
+                            tint = Color.White
+                        )
+                    }
+                }
+            }
+>>>>>>> df442940efa5d04ea51467be849df5150762d2f9
 
             // TARJETA PRINCIPAL DEL CALENDARIO
             Card(
