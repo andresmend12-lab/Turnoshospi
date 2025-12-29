@@ -1,4 +1,4 @@
-<resources>
+﻿<resources>
     <string name="app_name">Shift Manager</string>
 
     <string-array name="days_of_week_short">
@@ -9,7 +9,7 @@
     <string name="cancel_label">Cancel</string>
     <string name="cancel">Cancel</string>
     <string name="save">Save</string>
-    <string name="saving_label">Saving…</string>
+    <string name="saving_label">Saving...</string>
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
     <string name="send_desc">Send</string>
@@ -77,7 +77,7 @@
     <string name="reset_email_sent">We have sent a recovery link</string>
     <string name="back_to_login_action">Back to Log In</string>
     <string name="sign_out">Log Out</string>
-    <string name="loading_profile">Loading your profile data…</string>
+    <string name="loading_profile">Loading your profile data...</string>
     <string name="profile_summary_title">Your Profile</string>
     <string name="edit_profile">Edit Profile</string>
     <string name="email_label">Email</string>
@@ -137,7 +137,7 @@
     <string name="back_to_menu">Back to Main Menu</string>
 
     <string name="refresh_plant_action">Update Data</string>
-    <string name="plant_location_label">%1$s • %2$s</string>
+    <string name="plant_location_label">%1$s â€¢ %2$s</string>
     <string name="plant_hospital_only_label">Hospital: %1$s</string>
     <string name="plant_shift_summary">Shifts for %1$s</string>
     <string name="plant_half_day_allowed">Allows half-day shifts</string>
@@ -186,12 +186,12 @@
     <string name="join_plant_action">Join Ward</string>
     <string name="join_plant_success">You joined the ward successfully.</string>
     <string name="join_plant_success_detail">You have successfully joined the ward.</string>
-    <string name="loading_my_plant">Searching for your ward…</string>
+    <string name="loading_my_plant">Searching for your ward...</string>
     <string name="plant_staff_link_title">Choose your profile in %1$s</string>
     <string name="plant_staff_link_message">Select the staff record that corresponds to you to link your account to this ward.</string>
     <string name="plant_staff_link_field_label">Ward Staff</string>
     <string name="plant_staff_link_confirm">Link</string>
-    <string name="plant_staff_lookup_message">Searching for your ward profile…</string>
+    <string name="plant_staff_lookup_message">Searching for your ward profile...</string>
     <string name="plant_staff_linked_label">Linked as %1$s (%2$s)</string>
     <string name="plant_staff_link_prompt">Link your account to a ward profile to keep data synchronized.</string>
     <string name="staff_identity_title">Your Profile in the Ward</string>
@@ -357,7 +357,7 @@
     <string name="balance_neutral">Neutral balance (0)</string>
     <string name="label_date_simple">Date: %1$s</string>
     <string name="btn_cover_shift">COVER SHIFT</string>
-    <string name="btn_preview_eye">👁 Preview</string>
+    <string name="btn_preview_eye">Preview</string>
     <string name="msg_shift_accepted">Shift accepted!</string>
     <string name="error_loading_schedule">Error loading schedule</string>
     <string name="notif_shift_covered">%1$s accepted to cover your shift. Check your balance!</string>
@@ -484,3 +484,5 @@
 
 
 </resources>
+
+

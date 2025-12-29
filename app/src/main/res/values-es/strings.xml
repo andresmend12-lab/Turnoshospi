@@ -1,4 +1,4 @@
-<resources>
+﻿<resources>
     <string name="app_name">Shift Manager</string>
 
     <string-array name="days_of_week_short">
@@ -16,7 +16,7 @@
     <string name="cancel_label">Cancelar</string>
     <string name="cancel">Cancelar</string>
     <string name="save">Guardar</string>
-    <string name="saving_label">Guardando…</string>
+    <string name="saving_label">Guardando...</string>
     <string name="edit">Editar</string>
     <string name="delete">Borrar</string>
     <string name="send_desc">Enviar</string>
@@ -84,7 +84,7 @@
     <string name="reset_email_sent">Hemos enviado un enlace de recuperación</string>
     <string name="back_to_login_action">Volver al inicio de sesión</string>
     <string name="sign_out">Cerrar sesión</string>
-    <string name="loading_profile">Cargando datos de tu perfil…</string>
+    <string name="loading_profile">Cargando datos de tu perfil...</string>
     <string name="profile_summary_title">Tu perfil</string>
     <string name="edit_profile">Editar perfil</string>
     <string name="email_label">Correo electrónico</string>
@@ -144,7 +144,7 @@
     <string name="back_to_menu">Volver al menú principal</string>
 
     <string name="refresh_plant_action">Actualizar datos</string>
-    <string name="plant_location_label">%1$s • %2$s</string>
+    <string name="plant_location_label">%1$s â€¢ %2$s</string>
     <string name="plant_hospital_only_label">Hospital: %1$s</string>
     <string name="plant_shift_summary">Turnos de %1$s</string>
     <string name="plant_half_day_allowed">Permite turnos de media jornada</string>
@@ -192,12 +192,12 @@
     <string name="join_plant_action">Unirme a la planta</string>
     <string name="join_plant_success">Te uniste a la planta correctamente.</string>
     <string name="join_plant_success_detail">Te has unido a la planta con éxito.</string>
-    <string name="loading_my_plant">Buscando tu planta…</string>
+    <string name="loading_my_plant">Buscando tu planta...</string>
     <string name="plant_staff_link_title">Elige tu perfil en %1$s</string>
     <string name="plant_staff_link_message">Selecciona el registro de personal que te corresponde para vincular tu cuenta a esta planta.</string>
     <string name="plant_staff_link_field_label">Personal de planta</string>
     <string name="plant_staff_link_confirm">Vincular</string>
-    <string name="plant_staff_lookup_message">Buscando tu perfil de planta…</string>
+    <string name="plant_staff_lookup_message">Buscando tu perfil de planta...</string>
     <string name="plant_staff_linked_label">Vinculado como %1$s (%2$s)</string>
     <string name="plant_staff_link_prompt">Vincula tu cuenta a un perfil de planta para mantener los datos sincronizados.</string>
     <string name="staff_identity_title">Tu perfil en la planta</string>
@@ -360,7 +360,7 @@
     <string name="balance_neutral">Balance neutro (0)</string>
     <string name="label_date_simple">Fecha: %1$s</string>
     <string name="btn_cover_shift">CUBRIR TURNO</string>
-    <string name="btn_preview_eye">👁 Preview</string>
+    <string name="btn_preview_eye">Vista previa</string>
     <string name="msg_shift_accepted">¡Turno aceptado!</string>
     <string name="error_loading_schedule">Error cargando horario</string>
     <string name="notif_shift_covered">%1$s ha aceptado cubrir tu turno. ¡Mira tu balance!</string>
@@ -485,3 +485,5 @@
     <string name="notif_title_generic">Notificación</string>
 
 </resources>
+
+

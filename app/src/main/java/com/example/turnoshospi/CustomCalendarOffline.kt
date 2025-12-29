@@ -1,11 +1,23 @@
+﻿
 package com.example.turnoshospi
 
 import android.content.Context
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -22,17 +34,42 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.turnoshospi.ui.theme.ShiftColors
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -45,8 +82,14 @@ import java.util.Locale
 // Enum para el patrón de turnos
 enum class ShiftPatternMode {
     THREE_SHIFTS, // Mañana, Tarde, Noche
-    TWO_SHIFTS    // Día (12h), Noche (12h)
+    TWO_SHIFTS,   // Día (12h), Noche (12h)
+    CUSTOM_SHIFTS // Turnos definidos por el usuario
 }
+
+data class CustomShiftType(
+    val name: String,
+    val colorArgb: Long
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,6 +112,7 @@ fun CustomCalendarOffline(
     // --- ESTADOS DE CONFIGURACIÓN ---
     var shiftPattern by remember { mutableStateOf(ShiftPatternMode.THREE_SHIFTS) }
     var allowHalfDays by remember { mutableStateOf(false) }
+    var customShiftTypes by remember { mutableStateOf<List<CustomShiftType>>(emptyList()) }
 
     var isDataLoaded by remember { mutableStateOf(false) }
     var showConfigDialog by remember { mutableStateOf(false) }
@@ -90,38 +134,49 @@ fun CustomCalendarOffline(
         shiftPattern = ShiftPatternMode.values().getOrElse(patternOrdinal) { ShiftPatternMode.THREE_SHIFTS }
         allowHalfDays = sharedPreferences.getBoolean("allow_half_days", false)
 
+        val customShiftsJson = sharedPreferences.getString("custom_shift_types", null)
+        if (customShiftsJson != null) {
+            val type = object : TypeToken<List<CustomShiftType>>() {}.type
+            customShiftTypes = gson.fromJson(customShiftsJson, type)
+        }
+
         isDataLoaded = true
     }
 
     // --- GUARDAR AUTOMÁTICAMENTE ---
-    LaunchedEffect(localShifts, localNotes, shiftPattern, allowHalfDays) {
+    LaunchedEffect(localShifts, localNotes, shiftPattern, allowHalfDays, customShiftTypes) {
         if (isDataLoaded) {
             val editor = sharedPreferences.edit()
             editor.putString("shifts_map", gson.toJson(localShifts))
             editor.putString("notes_map", gson.toJson(localNotes))
             editor.putInt("shift_pattern", shiftPattern.ordinal)
             editor.putBoolean("allow_half_days", allowHalfDays)
+            editor.putString("custom_shift_types", gson.toJson(customShiftTypes))
             editor.apply()
         }
     }
 
-    val activeShiftOptions = remember(shiftPattern, allowHalfDays) {
+    val activeShiftOptions = remember(shiftPattern, allowHalfDays, customShiftTypes) {
         val options = mutableListOf<String>()
         if (shiftPattern == ShiftPatternMode.THREE_SHIFTS) {
-            options.add("Mañana")
+            options.add("Manana")
             options.add("Tarde")
             options.add("Noche")
             options.add("Saliente")
             if (allowHalfDays) {
-                options.add("Media Mañana")
+                options.add("Media Manana")
                 options.add("Media Tarde")
             }
         } else {
-            options.add("Día")
-            options.add("Noche")
-            options.add("Saliente")
-            if (allowHalfDays) {
-                options.add("Medio Día")
+            if (shiftPattern == ShiftPatternMode.TWO_SHIFTS) {
+                options.add("Dia")
+                options.add("Noche")
+                options.add("Saliente")
+                if (allowHalfDays) {
+                    options.add("Medio Dia")
+                }
+            } else {
+                options.addAll(customShiftTypes.map { it.name })
             }
         }
         options.add("Vacaciones")
@@ -130,15 +185,15 @@ fun CustomCalendarOffline(
     }
 
     fun getDisplayName(raw: String): String {
-        return when(raw) {
-            "Mañana" -> context.getString(R.string.shift_morning)
+        return when (normalizeShiftType(raw)) {
+            "Manana" -> context.getString(R.string.shift_morning)
             "Tarde" -> context.getString(R.string.shift_afternoon)
             "Noche" -> context.getString(R.string.shift_night)
             "Saliente" -> context.getString(R.string.shift_saliente)
-            "Media Mañana" -> context.getString(R.string.shift_morning_half)
+            "Media Manana" -> context.getString(R.string.shift_morning_half)
             "Media Tarde" -> context.getString(R.string.shift_afternoon_half)
-            "Día" -> context.getString(R.string.shift_day)
-            "Medio Día" -> "Medio Día"
+            "Dia" -> context.getString(R.string.shift_day)
+            "Medio Dia" -> "Medio Dia"
             "Vacaciones" -> context.getString(R.string.shift_holiday)
             "Libre" -> context.getString(R.string.shift_free)
             else -> raw
@@ -147,7 +202,7 @@ fun CustomCalendarOffline(
 
     var selectedDate by remember { mutableStateOf<LocalDate?>(LocalDate.now()) }
     var isAssignmentMode by remember { mutableStateOf(false) }
-    var selectedShiftToApply by remember { mutableStateOf("Mañana") }
+    var selectedShiftToApply by remember { mutableStateOf("Manana") }
 
     LaunchedEffect(activeShiftOptions) {
         if (selectedShiftToApply !in activeShiftOptions && activeShiftOptions.isNotEmpty()) {
@@ -171,14 +226,14 @@ fun CustomCalendarOffline(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(scrollState) // <-- Scroll aplicado aquí
+            .verticalScroll(scrollState)
     ) {
-        // Caja del calendario (sin weight, ocupa su espacio natural)
         Box(modifier = Modifier.fillMaxWidth()) {
             InternalOfflineCalendar(
                 shifts = localShifts,
                 selectedDate = selectedDate,
                 shiftColors = shiftColors,
+                customShiftTypes = customShiftTypes,
                 notesMap = localNotes,
                 onDayClick = { date ->
                     if (isAssignmentMode) {
@@ -187,7 +242,7 @@ fun CustomCalendarOffline(
                             localShifts = localShifts - dateKey
                         } else {
                             val isHalf = selectedShiftToApply.contains("Media", ignoreCase = true) ||
-                                    selectedShiftToApply.contains("Medio", ignoreCase = true)
+                                selectedShiftToApply.contains("Medio", ignoreCase = true)
                             localShifts = localShifts + (dateKey to UserShift(selectedShiftToApply, isHalf))
                         }
                     } else {
@@ -196,7 +251,6 @@ fun CustomCalendarOffline(
                 }
             )
 
-            // --- BOTÓN DE CONFIGURACIÓN (ENGRANAJE) ---
             if (!isAssignmentMode) {
                 IconButton(
                     onClick = { showConfigDialog = true },
@@ -220,7 +274,7 @@ fun CustomCalendarOffline(
                     onClick = { isAssignmentMode = true },
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .padding(16.dp),
+                        .padding(end = 16.dp, bottom = 6.dp),
                     containerColor = Color(0xFF54C7EC),
                     contentColor = Color.Black
                 ) {
@@ -230,11 +284,15 @@ fun CustomCalendarOffline(
         }
 
         if (!isAssignmentMode) {
-            ShiftLegendDynamic(shiftColors = shiftColors, pattern = shiftPattern, allowHalfDays = allowHalfDays)
+            ShiftLegendDynamic(
+                shiftColors = shiftColors,
+                pattern = shiftPattern,
+                allowHalfDays = allowHalfDays,
+                customShiftTypes = customShiftTypes
+            )
             Spacer(modifier = Modifier.height(4.dp))
         }
 
-        // --- PANEL INFERIOR ---
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
@@ -242,7 +300,6 @@ fun CustomCalendarOffline(
             elevation = CardDefaults.cardElevation(8.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-
                 if (isAssignmentMode) {
                     Text(
                         text = stringResource(R.string.mode_assignment),
@@ -258,7 +315,8 @@ fun CustomCalendarOffline(
                         items(activeShiftOptions) { rawName ->
                             val isSelected = selectedShiftToApply == rawName
                             val displayName = getDisplayName(rawName)
-                            val chipColor = getShiftColorForType(rawName, shiftColors)
+                            val chipColor = getShiftColorForType(rawName, shiftColors, customShiftTypes)
+                            val labelColor = if (chipColor.luminance() < 0.45f) Color.White else Color.Black
 
                             FilterChip(
                                 selected = isSelected,
@@ -266,7 +324,7 @@ fun CustomCalendarOffline(
                                 label = { Text(displayName) },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = chipColor,
-                                    selectedLabelColor = if(rawName == "Noche" || rawName == "Tarde") Color.White else Color.Black,
+                                    selectedLabelColor = labelColor,
                                     containerColor = Color(0xFF334155),
                                     labelColor = Color.White
                                 ),
@@ -289,7 +347,6 @@ fun CustomCalendarOffline(
                         Spacer(Modifier.width(8.dp))
                         Text(stringResource(R.string.save_and_exit))
                     }
-
                 } else {
                     val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.getDefault())
                     val dateText = selectedDate?.format(formatter) ?: stringResource(R.string.select_day)
@@ -349,16 +406,27 @@ fun CustomCalendarOffline(
                         RadioButton(selected = shiftPattern == ShiftPatternMode.TWO_SHIFTS, onClick = { shiftPattern = ShiftPatternMode.TWO_SHIFTS }, colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF54C7EC), unselectedColor = Color.White))
                         Text("2 Turnos (Día 12h / Noche 12h)", color = Color.White)
                     }
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { shiftPattern = ShiftPatternMode.CUSTOM_SHIFTS }) {
+                        RadioButton(selected = shiftPattern == ShiftPatternMode.CUSTOM_SHIFTS, onClick = { shiftPattern = ShiftPatternMode.CUSTOM_SHIFTS }, colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF54C7EC), unselectedColor = Color.White))
+                        Text("Turnos personalizados", color = Color.White)
+                    }
 
                     HorizontalDivider(Modifier.padding(vertical = 12.dp), color = Color.Gray.copy(0.3f))
 
-                    Text("Opciones Extra:", fontWeight = FontWeight.Bold, color = Color(0xFF54C7EC))
-                    Spacer(Modifier.height(8.dp))
+                    if (shiftPattern != ShiftPatternMode.CUSTOM_SHIFTS) {
+                        Text("Opciones Extra:", fontWeight = FontWeight.Bold, color = Color(0xFF54C7EC))
+                        Spacer(Modifier.height(8.dp))
 
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { allowHalfDays = !allowHalfDays }) {
-                        Switch(checked = allowHalfDays, onCheckedChange = { allowHalfDays = it }, colors = SwitchDefaults.colors(checkedThumbColor = Color(0xFF54C7EC), checkedTrackColor = Color(0xFF0F172A)))
-                        Spacer(Modifier.width(8.dp))
-                        Text("Permitir Media Jornada", color = Color.White)
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { allowHalfDays = !allowHalfDays }) {
+                            Switch(checked = allowHalfDays, onCheckedChange = { allowHalfDays = it }, colors = SwitchDefaults.colors(checkedThumbColor = Color(0xFF54C7EC), checkedTrackColor = Color(0xFF0F172A)))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Permitir Media Jornada", color = Color.White)
+                        }
+                    } else {
+                        CustomShiftEditor(
+                            customShiftTypes = customShiftTypes,
+                            onCustomShiftTypesChange = { customShiftTypes = it }
+                        )
                     }
                 }
             },
@@ -370,7 +438,6 @@ fun CustomCalendarOffline(
         )
     }
 }
-
 // -------------------------------------------------------------------------
 // COMPONENTES AUXILIARES
 // -------------------------------------------------------------------------
@@ -469,7 +536,12 @@ fun NoteSection(
                     onValueChange = onNewNoteTextChange,
                     modifier = Modifier.weight(1f),
                     placeholder = { Text(stringResource(R.string.write_here), color = Color.Gray) },
-                    colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedBorderColor = Color(0xFF54C7EC), unfocusedBorderColor = Color.Gray)
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedBorderColor = Color(0xFF54C7EC),
+                        unfocusedBorderColor = Color.Gray
+                    )
                 )
                 IconButton(onClick = {
                     if (newNoteText.isNotBlank()) {
@@ -499,6 +571,7 @@ private fun InternalOfflineCalendar(
     shifts: Map<String, UserShift>,
     selectedDate: LocalDate?,
     shiftColors: ShiftColors,
+    customShiftTypes: List<CustomShiftType>,
     notesMap: Map<String, List<String>>,
     onDayClick: (LocalDate) -> Unit
 ) {
@@ -506,13 +579,11 @@ private fun InternalOfflineCalendar(
 
     Column(
         modifier = Modifier
-            .fillMaxWidth() // Ocupa todo el ancho, altura dinámica
+            .fillMaxWidth()
             .background(Color(0xFF0F172A))
             .padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 40.dp),
-        // .verticalScroll Eliminado para evitar scroll anidado
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Cabecera Mes
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = { currentMonth = currentMonth.minusMonths(1) }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White) }
             Text(text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault()).uppercase()} ${currentMonth.year}", color = Color.White, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -520,14 +591,12 @@ private fun InternalOfflineCalendar(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-        // Días Semana
         Row(modifier = Modifier.fillMaxWidth()) {
             val daysOfWeek = listOf("L", "M", "X", "J", "V", "S", "D")
             daysOfWeek.forEach { day -> Text(text = day, modifier = Modifier.weight(1f), color = Color.Gray, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold) }
         }
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Grid
         val firstDayOfMonth = currentMonth.atDay(1)
         val daysInMonth = currentMonth.lengthOfMonth()
         val dayOfWeekOffset = firstDayOfMonth.dayOfWeek.value - 1
@@ -543,7 +612,7 @@ private fun InternalOfflineCalendar(
                             val dateKey = date.toString()
 
                             val shift = shifts[dateKey]
-                            val color = if (shift != null) getShiftColorForType(shift.shiftName, shiftColors) else {
+                            val color = if (shift != null) getShiftColorForType(shift.shiftName, shiftColors, customShiftTypes) else {
                                 val yesterday = date.minusDays(1).toString()
                                 val yShift = shifts[yesterday]
                                 if (yShift?.shiftName == "Noche") shiftColors.saliente else shiftColors.free
@@ -554,16 +623,20 @@ private fun InternalOfflineCalendar(
 
                             Box(
                                 modifier = Modifier
-                                    .weight(1f).height(48.dp).padding(2.dp)
+                                    .weight(1f)
+                                    .height(48.dp)
+                                    .padding(2.dp)
                                     .background(color, CircleShape)
-                                    .border(width = if(isSelected) 2.dp else 0.dp, color = if(isSelected) Color.White else Color.Transparent, shape = CircleShape)
+                                    .border(width = if (isSelected) 2.dp else 0.dp, color = if (isSelected) Color.White else Color.Transparent, shape = CircleShape)
                                     .clickable { onDayClick(date) },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(text = dayIndex.toString(), color = if (color == shiftColors.free) Color.White else Color.Black, fontWeight = FontWeight.Medium)
                                 if (hasNotes) Box(modifier = Modifier.align(Alignment.TopCenter).padding(top = 2.dp).size(6.dp).background(Color(0xFFE91E63), CircleShape))
                             }
-                        } else { Spacer(modifier = Modifier.weight(1f)) }
+                        } else {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(4.dp))
@@ -572,23 +645,43 @@ private fun InternalOfflineCalendar(
     }
 }
 
-fun getShiftColorForType(type: String, colors: ShiftColors): Color {
-    return when (type) {
-        "Mañana" -> colors.morning
+fun normalizeShiftType(raw: String): String {
+    return when (raw) {
+        "Manana", "Mañana", "MaÃ±ana", "Ma?Øana", "Ma?Ïana", "Ma€¤ana" -> "Manana"
+        "Media Manana", "Media Mañana", "Media MaÃ±ana", "Media Ma?Øana", "Media Ma?Ïana", "Media Ma€¤ana" -> "Media Manana"
+        "Dia", "Día", "DÃ­a", "D?Ña", "DÇða", "D?¥a" -> "Dia"
+        "Medio Dia", "Medio Día", "Medio DÃ­a", "Medio D?Ña", "Medio DÇða", "Medio D?¥a" -> "Medio Dia"
+        else -> raw
+    }
+}
+
+fun getShiftColorForType(type: String, colors: ShiftColors, customShiftTypes: List<CustomShiftType>): Color {
+    val custom = customShiftTypes.firstOrNull { it.name == type }
+    if (custom != null) {
+        return Color(custom.colorArgb.toULong())
+    }
+    val normalized = normalizeShiftType(type)
+    return when (normalized) {
+        "Manana" -> colors.morning
         "Tarde" -> colors.afternoon
         "Noche" -> colors.night
         "Saliente" -> colors.saliente
-        "Día" -> colors.morning
-        "Media Mañana" -> colors.morningHalf
+        "Dia" -> colors.morning
+        "Media Manana" -> colors.morningHalf
         "Media Tarde" -> colors.afternoonHalf
-        "Medio Día" -> colors.morningHalf
+        "Medio Dia" -> colors.morningHalf
         "Vacaciones" -> colors.holiday
         else -> colors.free
     }
 }
 
 @Composable
-fun ShiftLegendDynamic(shiftColors: ShiftColors, pattern: ShiftPatternMode, allowHalfDays: Boolean) {
+fun ShiftLegendDynamic(
+    shiftColors: ShiftColors,
+    pattern: ShiftPatternMode,
+    allowHalfDays: Boolean,
+    customShiftTypes: List<CustomShiftType>
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -596,7 +689,11 @@ fun ShiftLegendDynamic(shiftColors: ShiftColors, pattern: ShiftPatternMode, allo
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-            if (pattern == ShiftPatternMode.THREE_SHIFTS) {
+            if (pattern == ShiftPatternMode.CUSTOM_SHIFTS) {
+                customShiftTypes.forEach { customShift ->
+                    LegendItem(Color(customShift.colorArgb.toULong()), customShift.name)
+                }
+            } else if (pattern == ShiftPatternMode.THREE_SHIFTS) {
                 LegendItem(shiftColors.morning, stringResource(R.string.shift_morning))
                 LegendItem(shiftColors.afternoon, stringResource(R.string.shift_afternoon))
                 LegendItem(shiftColors.night, stringResource(R.string.shift_night))
@@ -604,20 +701,28 @@ fun ShiftLegendDynamic(shiftColors: ShiftColors, pattern: ShiftPatternMode, allo
                 LegendItem(shiftColors.morning, stringResource(R.string.shift_day))
                 LegendItem(shiftColors.night, stringResource(R.string.shift_night))
             }
-            LegendItem(shiftColors.saliente, stringResource(R.string.shift_saliente))
+            if (pattern != ShiftPatternMode.CUSTOM_SHIFTS) {
+                LegendItem(shiftColors.saliente, stringResource(R.string.shift_saliente))
+            }
         }
 
-        if (allowHalfDays || pattern == ShiftPatternMode.THREE_SHIFTS) {
+        if (pattern != ShiftPatternMode.CUSTOM_SHIFTS && (allowHalfDays || pattern == ShiftPatternMode.THREE_SHIFTS)) {
             Spacer(modifier = Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                 if (allowHalfDays) {
                     if (pattern == ShiftPatternMode.THREE_SHIFTS) {
-                        LegendItem(shiftColors.morningHalf, "Med. Mañana")
+                        LegendItem(shiftColors.morningHalf, "Med. Manana")
                         LegendItem(shiftColors.afternoonHalf, "Med. Tarde")
                     } else {
-                        LegendItem(shiftColors.morningHalf, "Medio Día")
+                        LegendItem(shiftColors.morningHalf, "Medio Dia")
                     }
                 }
+                LegendItem(shiftColors.holiday, stringResource(R.string.shift_holiday))
+            }
+        }
+        if (pattern == ShiftPatternMode.CUSTOM_SHIFTS) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                 LegendItem(shiftColors.holiday, stringResource(R.string.shift_holiday))
             }
         }
@@ -630,5 +735,175 @@ fun LegendItem(color: Color, text: String) {
         Box(modifier = Modifier.size(10.dp).background(color = color, shape = CircleShape))
         Spacer(modifier = Modifier.width(6.dp))
         Text(text = text, style = MaterialTheme.typography.labelSmall, color = Color.White)
+    }
+}
+
+@Composable
+private fun CustomShiftEditor(
+    customShiftTypes: List<CustomShiftType>,
+    onCustomShiftTypesChange: (List<CustomShiftType>) -> Unit
+) {
+    var newShiftName by remember { mutableStateOf("") }
+    var editingShiftName by remember { mutableStateOf<String?>(null) }
+    var isEditorOpen by remember { mutableStateOf(false) }
+    val availableColors = remember {
+        listOf(
+            Color(0xFF22C55E),
+            Color(0xFFF97316),
+            Color(0xFF38BDF8),
+            Color(0xFFF43F5E),
+            Color(0xFFFACC15),
+            Color(0xFF8B5CF6),
+            Color(0xFF14B8A6),
+            Color(0xFFA3E635)
+        )
+    }
+    var selectedColor by remember { mutableStateOf(availableColors.first()) }
+
+    Text("Turnos personalizados:", fontWeight = FontWeight.Bold, color = Color(0xFF54C7EC))
+    Spacer(Modifier.height(8.dp))
+
+    if (!isEditorOpen) {
+        Button(
+            onClick = {
+                isEditorOpen = true
+                editingShiftName = null
+                newShiftName = ""
+                selectedColor = availableColors.first()
+            },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF334155), contentColor = Color.White)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text("Agregar turno")
+        }
+    } else {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF0F172A)),
+            shape = RoundedCornerShape(12.dp),
+            border = BorderStroke(1.dp, Color(0x33475563))
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                OutlinedTextField(
+                    value = newShiftName,
+                    onValueChange = { newShiftName = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("Nombre del turno", color = Color.Gray) },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        cursorColor = Color(0xFF54C7EC),
+                        focusedBorderColor = Color(0xFF54C7EC),
+                        unfocusedBorderColor = Color.Gray
+                    )
+                )
+
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    availableColors.forEach { colorOption ->
+                        Box(
+                            modifier = Modifier
+                                .size(28.dp)
+                                .background(colorOption, CircleShape)
+                                .border(
+                                    width = if (colorOption == selectedColor) 2.dp else 0.dp,
+                                    color = if (colorOption == selectedColor) Color.White else Color.Transparent,
+                                    shape = CircleShape
+                                )
+                                .clickable { selectedColor = colorOption }
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(8.dp))
+                Button(
+                    onClick = {
+                        val name = newShiftName.trim()
+                        if (name.isBlank()) {
+                            return@Button
+                        }
+                        val editing = editingShiftName
+                        if (editing == null) {
+                            if (customShiftTypes.none { it.name.equals(name, ignoreCase = true) }) {
+                                val updated = customShiftTypes + CustomShiftType(name, selectedColor.value.toLong())
+                                onCustomShiftTypesChange(updated)
+                                newShiftName = ""
+                                selectedColor = availableColors.first()
+                                isEditorOpen = false
+                            }
+                        } else {
+                            val nameTaken = customShiftTypes.any {
+                                it.name.equals(name, ignoreCase = true) && !it.name.equals(editing, ignoreCase = true)
+                            }
+                            if (!nameTaken) {
+                                val updated = customShiftTypes.map { shift ->
+                                    if (shift.name.equals(editing, ignoreCase = true)) {
+                                        CustomShiftType(name, selectedColor.value.toLong())
+                                    } else {
+                                        shift
+                                    }
+                                }
+                                onCustomShiftTypesChange(updated)
+                                newShiftName = ""
+                                editingShiftName = null
+                                selectedColor = availableColors.first()
+                                isEditorOpen = false
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF334155), contentColor = Color.White)
+                ) {
+                    Text(if (editingShiftName == null) "Guardar turno" else "Guardar cambios")
+                }
+
+                Spacer(Modifier.height(6.dp))
+                TextButton(
+                    onClick = {
+                        newShiftName = ""
+                        editingShiftName = null
+                        selectedColor = availableColors.first()
+                        isEditorOpen = false
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Cancelar edición", color = Color(0xFF54C7EC))
+                }
+            }
+        }
+    }
+
+    if (customShiftTypes.isNotEmpty()) {
+        Spacer(Modifier.height(12.dp))
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            customShiftTypes.forEach { customShift ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFF334155), RoundedCornerShape(8.dp))
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(modifier = Modifier.size(12.dp).background(Color(customShift.colorArgb.toULong()), CircleShape))
+                    Spacer(Modifier.width(8.dp))
+                    Text(text = customShift.name, color = Color.White, modifier = Modifier.weight(1f))
+                    IconButton(onClick = {
+                        editingShiftName = customShift.name
+                        newShiftName = customShift.name
+                        selectedColor = Color(customShift.colorArgb.toULong())
+                        isEditorOpen = true
+                    }) {
+                        Icon(Icons.Default.Edit, contentDescription = null, tint = Color(0xFF54C7EC))
+                    }
+                    IconButton(onClick = {
+                        onCustomShiftTypesChange(customShiftTypes.filterNot { it.name == customShift.name })
+                    }) {
+                        Icon(Icons.Default.Delete, contentDescription = null, tint = Color(0xFFEF5350))
+                    }
+                }
+            }
+        }
     }
 }

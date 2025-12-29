@@ -8,6 +8,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -328,15 +330,39 @@ class MainActivity : ComponentActivity() {
             return
         }
 
+        val handler = Handler(Looper.getMainLooper())
+        var resolved = false
+        val timeoutRunnable = Runnable {
+            if (!resolved) {
+                resolved = true
+                authErrorMessage.value = getString(R.string.auth_network_error)
+                onResult(null)
+            }
+        }
+        handler.postDelayed(timeoutRunnable, 10_000L)
+
         realtimeDatabase.getReference("users")
             .child(user.uid)
             .get()
             .addOnSuccessListener { snapshot ->
+                if (resolved) return@addOnSuccessListener
+                resolved = true
+                handler.removeCallbacks(timeoutRunnable)
                 val profile = snapshot.toUserProfile(user.email.orEmpty())
                 onResult(profile)
             }
             .addOnFailureListener { databaseError ->
+                if (resolved) return@addOnFailureListener
+                resolved = true
+                handler.removeCallbacks(timeoutRunnable)
                 authErrorMessage.value = databaseError.message
+                onResult(null)
+            }
+            .addOnCanceledListener {
+                if (resolved) return@addOnCanceledListener
+                resolved = true
+                handler.removeCallbacks(timeoutRunnable)
+                authErrorMessage.value = getString(R.string.auth_network_error)
                 onResult(null)
             }
     }
