@@ -269,27 +269,35 @@ fun CustomCalendarOffline(
                 }
             }
 
-            if (!isAssignmentMode) {
+        }
+
+        if (!isAssignmentMode) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    ShiftLegendDynamic(
+                        shiftColors = shiftColors,
+                        pattern = shiftPattern,
+                        allowHalfDays = allowHalfDays,
+                        customShiftTypes = customShiftTypes
+                    )
+                }
                 FloatingActionButton(
                     onClick = { isAssignmentMode = true },
                     modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = 16.dp, bottom = 6.dp),
+                        .padding(start = 12.dp)
+                        .size(44.dp),
                     containerColor = Color(0xFF54C7EC),
                     contentColor = Color.Black
                 ) {
                     Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.edit_shifts))
                 }
             }
-        }
-
-        if (!isAssignmentMode) {
-            ShiftLegendDynamic(
-                shiftColors = shiftColors,
-                pattern = shiftPattern,
-                allowHalfDays = allowHalfDays,
-                customShiftTypes = customShiftTypes
-            )
             Spacer(modifier = Modifier.height(4.dp))
         }
 
@@ -717,12 +725,6 @@ fun ShiftLegendDynamic(
                         LegendItem(shiftColors.morningHalf, "Medio Dia")
                     }
                 }
-                LegendItem(shiftColors.holiday, stringResource(R.string.shift_holiday))
-            }
-        }
-        if (pattern == ShiftPatternMode.CUSTOM_SHIFTS) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                 LegendItem(shiftColors.holiday, stringResource(R.string.shift_holiday))
             }
         }
