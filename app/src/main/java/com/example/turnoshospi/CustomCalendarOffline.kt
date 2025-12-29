@@ -740,12 +740,28 @@ private fun InternalOfflineCalendar(
 }
 
 fun normalizeShiftType(raw: String): String {
-    return when (raw) {
-        "Manana", "Mañana", "MaÃ±ana", "Ma?Øana", "Ma?Ïana", "Ma€¤ana" -> "Manana"
-        "Media Manana", "Media Mañana", "Media MaÃ±ana", "Media Ma?Øana", "Media Ma?Ïana", "Media Ma€¤ana" -> "Media Manana"
-        "Dia", "Día", "DÃ­a", "D?Ña", "DÇða", "D?¥a" -> "Dia"
-        "Medio Dia", "Medio Día", "Medio DÃ­a", "Medio D?Ña", "Medio DÇða", "Medio D?¥a" -> "Medio Dia"
-        else -> raw
+    val trimmed = raw.trim()
+    return when (trimmed) {
+        "Manana", "Ma¤ana", "MaÇñana", "Ma?ana", "Ma?Øana", "Ma?Ïana" -> "Manana"
+        "Media Manana", "Media Ma¤ana", "Media MaÇñana", "Media Ma?ana", "Media Ma?Øana", "Media Ma?Ïana" -> "Media Manana"
+        "Dia", "D¡a", "DÇða", "D?¥a", "D€Ða", "D?¾a" -> "Dia"
+        "Medio Dia", "Medio D¡a", "Medio DÇða", "Medio D?¥a", "Medio D€Ða", "Medio D?¾a" -> "Medio Dia"
+        else -> {
+            val lower = trimmed.lowercase()
+            when {
+                lower == "morning" || lower == "am" -> "Manana"
+                lower == "afternoon" || lower == "pm" -> "Tarde"
+                lower == "night" || lower == "night shift" -> "Noche"
+                lower == "post-night" || lower == "post night" || lower == "postnight" -> "Saliente"
+                lower == "day" -> "Dia"
+                lower == "half morning" || lower == "half-morning" || lower == "morning half" -> "Media Manana"
+                lower == "half afternoon" || lower == "half-afternoon" || lower == "afternoon half" -> "Media Tarde"
+                lower == "half day" || lower == "half-day" || lower == "day half" -> "Medio Dia"
+                lower == "vacation" || lower == "holiday" -> "Vacaciones"
+                lower == "off" || lower == "free" -> "Libre"
+                else -> trimmed
+            }
+        }
     }
 }
 
@@ -801,17 +817,17 @@ fun getShiftColorForType(type: String, colors: ShiftColors, customShiftTypes: Li
     if (custom != null) {
         return Color(custom.colorArgb.toULong())
     }
-    val normalized = normalizeShiftType(type)
-    return when (normalized) {
-        "Manana" -> colors.morning
-        "Tarde" -> colors.afternoon
-        "Noche" -> colors.night
-        "Saliente" -> colors.saliente
-        "Dia" -> colors.morning
-        "Media Manana" -> colors.morningHalf
-        "Media Tarde" -> colors.afternoonHalf
-        "Medio Dia" -> colors.morningHalf
-        "Vacaciones" -> colors.holiday
+    val normalized = normalizeShiftType(type).trim()
+    val lower = normalized.lowercase()
+    return when {
+        lower.contains("vacaciones") -> colors.holiday
+        lower.contains("saliente") -> colors.saliente
+        lower.contains("noche") -> colors.night
+        (lower.contains("media") || lower.contains("medio")) && lower.contains("tarde") -> colors.afternoonHalf
+        (lower.contains("media") || lower.contains("medio")) && (lower.contains("manana") || lower.contains("dia")) -> colors.morningHalf
+        lower.contains("tarde") -> colors.afternoon
+        lower.contains("manana") || lower.contains("dia") -> colors.morning
+        lower.contains("libre") -> colors.free
         else -> colors.free
     }
 }
@@ -1070,6 +1086,8 @@ private fun CustomShiftEditor(
         }
     }
 }
+
+
 
 
 
