@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Fondo fluido oscuro (Deep Space Gradients) -->
+    <color name="liquid_bg_start">#0F0C29</color>
+    <color name="liquid_bg_center">#302B63</color>
+    <color name="liquid_bg_end">#24243E</color>
+
+    <!-- Efecto Cristal (Glassmorphism) -->
+    <color name="glass_surface">#1AFFFFFF</color> <!-- 10% Blanco -->
+    <color name="glass_border">#33FFFFFF</color>  <!-- 20% Blanco para bordes sutiles -->
+    <color name="liquid_accent">#00E5FF</color>   <!-- Acento Neón Cyan -->
+    <color name="liquid_text_primary">#FFFFFF</color>
+    <color name="liquid_text_secondary">#B3FFFFFF</color>
+
+    <!-- Colores de Turnos (Neon/Liquid) para Calendario -->
+    <color name="shift_morning_liquid">#FFD700</color>   <!-- Oro Neón (Mañana) -->
+    <color name="shift_afternoon_liquid">#00FF9D</color> <!-- Verde Menta Neón (Tarde) -->
+    <color name="shift_night_liquid">#9900FF</color>     <!-- Violeta Puro Neón (Noche) -->
+    <color name="shift_saliente_liquid">#0033CC</color>  <!-- Azul Oscuro (Saliente) -->
+    <color name="shift_holiday_liquid">#FF0055</color>   <!-- Rojo/Rosa Neón (Vacaciones) -->
+    <color name="shift_free_liquid">#00FF00</color>      <!-- Verde Neón (Libre/Off) -->
+</resources>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Títulos principales: Blanco puro con sombra suave para resaltar sobre el vidrio -->
+    <style name="Liquid.Text.Headline" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="android:textColor">@color/liquid_text_primary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:shadowColor">#40000000</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">4</item>
+        <item name="android:shadowRadius">8</item>
+    </style>
+
+    <!-- Títulos de tarjetas/secciones: Color de acento (Cyan) -->
+    <style name="Liquid.Text.Title" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textColor">@color/liquid_accent</item>
+        <item name="android:letterSpacing">0.02</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Cuerpo de texto: Blanco puro para máxima legibilidad -->
+    <style name="Liquid.Text.Body" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textColor">@color/liquid_text_primary</item>
+        <item name="android:lineSpacingExtra">4sp</item>
+    </style>
+
+    <!-- Texto secundario/Captions: Blanco con transparencia -->
+    <style name="Liquid.Text.Caption" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textColor">@color/liquid_text_secondary</item>
+    </style>
+
+    <!-- Botones: Acento Cyan con texto oscuro para alto contraste -->
+    <style name="Liquid.Button" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/liquid_accent</item>
+        <item name="android:textColor">#0F0C29</item> <!-- Color oscuro del fondo para el texto -->
+        <item name="iconTint">#0F0C29</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Tarjetas: Simulación de panel de cristal -->
+    <style name="Liquid.Card" parent="Widget.Material3.CardView.Filled">
+        <item name="cardBackgroundColor">@color/glass_surface</item>
+        <item name="strokeColor">@color/glass_border</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="cardCornerRadius">24dp</item>
+        <item name="cardElevation">0dp</item> <!-- Sin elevación para efecto plano/flotante -->
+    </style>
+
+    <!-- Texto de días en el calendario -->
+    <style name="Liquid.Text.CalendarDay" parent="Liquid.Text.Body">
+        <item name="android:textSize">14sp</item>
+        <item name="android:gravity">center</item>
+    </style>
+</resources>

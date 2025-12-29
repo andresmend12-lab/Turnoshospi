@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Turnoshospi.LiquidGlass" parent="Theme.Material3.Dark.NoActionBar">
+        <!-- Fondo global de la app -->
+        <item name="android:windowBackground">@drawable/background_liquid</item>
+        
+        <!-- Barras de sistema transparentes para inmersión total -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+
+        <!-- Colores de componentes -->
+        <item name="colorSurface">@color/glass_surface</item>
+        <item name="colorOnSurface">@color/liquid_text_primary</item>
+        <item name="colorPrimary">@color/liquid_accent</item>
+
+        <!-- Tipografía Liquid Dark -->
+        <item name="textAppearanceHeadlineMedium">@style/Liquid.Text.Headline</item>
+        <item name="textAppearanceTitleMedium">@style/Liquid.Text.Title</item>
+        <item name="textAppearanceBodyMedium">@style/Liquid.Text.Body</item>
+        <item name="textAppearanceBodySmall">@style/Liquid.Text.Caption</item>
+
+        <!-- Componentes Globales -->
+        <item name="materialButtonStyle">@style/Liquid.Button</item>
+        <item name="materialCardViewStyle">@style/Liquid.Card</item>
+
+        <!-- Colores secundarios y de contenedores -->
+        <item name="colorSecondary">@color/liquid_accent</item>
+        <item name="colorOnSecondary">#0F0C29</item>
+        <item name="colorContainer">@color/glass_surface</item>
+    </style>
+</resources>
