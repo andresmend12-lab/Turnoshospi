@@ -341,21 +341,41 @@ fun getDayColor(date: LocalDate, shifts: Map<String, UserShift>, colors: ShiftCo
     val shift = shifts[dateKey]
 
     if (shift != null) {
-        val type = shift.shiftName.lowercase()
+        val normalized = normalizeShiftType(shift.shiftName)
+        val type = normalized.lowercase()
+        val isHalf = shift.isHalfDay || type.contains("media") || type.contains("medio")
+
+        if (type.contains("vacaciones")) {
+            return colors.holiday
+        }
+        if (type.contains("saliente")) {
+            return colors.saliente
+        }
+        if (type.contains("noche")) {
+            return colors.night
+        }
+
+        if (isHalf) {
+            return when {
+                type.contains("tarde") -> colors.afternoonHalf
+                type.contains("manana") || type.contains("dia") -> colors.morningHalf
+                else -> colors.morningHalf
+            }
+        }
+
         return when {
-            type.contains("vacaciones") -> colors.holiday
-            type.contains("noche") -> colors.night
-            type.contains("media") && (type.contains("mañana") || type.contains("dia")) -> colors.morningHalf
-            type.contains("mañana") || type.contains("día") -> colors.morning
-            type.contains("media") && type.contains("tarde") -> colors.afternoonHalf
             type.contains("tarde") -> colors.afternoon
+            type.contains("manana") || type.contains("dia") -> colors.morning
+            type.contains("libre") -> colors.free
             else -> colors.morning
         }
     }
+
     val yesterdayKey = date.minusDays(1).toString()
     val yesterdayShift = shifts[yesterdayKey]
-    if (yesterdayShift != null && yesterdayShift.shiftName.lowercase().contains("noche")) {
+    if (yesterdayShift != null && normalizeShiftType(yesterdayShift.shiftName).lowercase().contains("noche")) {
         return colors.saliente
     }
     return colors.free
 }
+
