@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Shift Manager</string>
     <string-array name="days_of_week_short">
@@ -113,13 +114,13 @@
     <string name="unit_type_label">Tipo de unidade</string>
     <string name="hospital_name_label">Nome do hospital</string>
     <string name="create_plant_action">Crear planta</string>
-    <string name="shift_configuration_title">Configuración de quendas</string>
-    <string name="shift_duration_label">Duración de quendas</string>
-    <string name="shift_duration_placeholder">Selecciona unha duración</string>
+    <string name="shift_configuration_title">Configuraci&#243;n de quendas</string>
+    <string name="shift_duration_label">Duraci&#243;n de quendas</string>
+    <string name="shift_duration_placeholder">Selecciona unha duraci&#243;n</string>
     <string name="shift_duration_8h">8 horas</string>
     <string name="shift_duration_12h">12 horas</string>
     <string name="shift_timing_instruction">Define os horarios de cada quenda.</string>
-    <string name="shift_half_day_question">Pódense facer quendas de media xornada?</string>
+    <string name="shift_half_day_question">P&#243;dense facer quendas de media xornada?</string>
     <string name="shift_start_label">Inicio</string>
     <string name="shift_end_label">Fin</string>
     <string name="plant_staff_title">Personal da planta</string>
@@ -137,7 +138,7 @@
     <string name="back_to_menu">Volver ao menú principal</string>
 
     <string name="refresh_plant_action">Actualizar datos</string>
-    <string name="plant_location_label">%1$s • %2$s</string>
+    <string name="plant_location_label">%1$s &#8226; %2$s</string>
     <string name="plant_hospital_only_label">Hospital: %1$s</string>
     <string name="plant_shift_summary">Quendas de %1$s</string>
     <string name="plant_half_day_allowed">Permite media xornada</string>
