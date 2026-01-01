@@ -1,8 +1,9 @@
 # TurnosHospi - Resumen de Análisis Técnico
 
-> **Fecha**: 31 de Diciembre 2025
+> **Fecha**: 1 de Enero 2026
 > **Versión Analizada**: 2.1 (versionCode: 9)
 > **Plataforma**: Android (Kotlin + Jetpack Compose)
+> **Última Actualización**: Análisis completo del código fuente
 
 ---
 
@@ -11,17 +12,20 @@
 ### Métricas del Código
 | Métrica | Valor |
 |---------|-------|
-| Archivos Kotlin | 29 |
-| Líneas de código (aprox.) | ~12,600 |
-| Idiomas soportados | 40+ |
-| Pantallas | 16 |
-| Cloud Functions | 7 |
+| Archivos Kotlin | 31 (29 en src/main + 2 tests) |
+| Líneas de código (aprox.) | ~12,586 |
+| Idiomas soportados | 203 directorios de recursos |
+| Pantallas (AppScreen enum) | 16 |
+| Cloud Functions | 6 funciones activas |
+| Modelos de datos | 12 data classes |
 
 ### Stack Tecnológico
-- **UI**: Jetpack Compose + Material 3
+- **UI**: Jetpack Compose + Material 3 + Material Icons Extended
 - **Backend**: Firebase (Auth, Realtime Database, Cloud Messaging)
+- **Serialización**: GSON 2.10.1
 - **Build**: Gradle con Kotlin DSL
 - **Min SDK**: 26 | **Target SDK**: 36
+- **Java**: JVM Target 11
 
 ---
 
@@ -48,14 +52,38 @@ object ShiftRulesEngine {
 - Preparado para mercado global
 
 ### 2.3 Sistema de Notificaciones Completo
-- Cloud Functions para push notifications
-- Deep linking funcional
-- Canales de notificación con sonido y badge
-- Manejo de cold start y warm start
+- **6 Cloud Functions** bien estructuradas en `functions/index.js`:
+  - `sendNotification`: Motor central de push (escucha `/user_notifications`)
+  - `sendChatNotification`: Notificaciones de mensajes directos
+  - `notifySupervisorOnPending`: Alertas a supervisores
+  - `notifyUsersOnStatusChange`: Notifica aprobación/rechazo
+  - `notifyTargetOnProposal`: Propuestas de cambio de turno
+- Deep linking funcional (cold start y warm start)
+- Canal de notificación `turnoshospi_sound_v2` con sonido y badge
+- Arquitectura de fanout correcta (functions escriben en DB, motor central envía push)
 
 ### 2.4 Modelos de Datos Bien Definidos
 - `ShiftModels.kt`: Enums claros (RequestType, RequestStatus, RequestMode)
 - Estados de solicitud bien estructurados (DRAFT → SEARCHING → PENDING_PARTNER → AWAITING_SUPERVISOR → APPROVED/REJECTED)
+- Flujo de trabajo supervisado para cambios de turno
+
+### 2.5 Navegación Custom Funcional
+- Sistema de navegación basado en enum `AppScreen` (16 pantallas)
+- Manejo de backStack con `mutableStateListOf`
+- BackHandler integrado para UX nativa
+- Deep linking desde notificaciones
+
+### 2.6 Estructura de Firebase Bien Organizada
+```
+/users/{uid}                           # Perfiles de usuario + FCM tokens
+/plants/{plantId}                      # Datos de planta/unidad
+  /personal_de_planta/{staffId}        # Roster de personal
+  /turnos/turnos-{date}/{shiftName}    # Turnos por fecha
+  /shift_requests/{requestId}          # Solicitudes de cambio
+  /direct_chats/{chatId}/messages      # Mensajes directos
+/user_notifications/{userId}           # Notificaciones (trigger para push)
+/user_direct_chats/{userId}            # Metadata de chats + unread counts
+```
 
 ---
 
@@ -88,19 +116,27 @@ com.example.turnoshospi/         com.example.turnoshospi/
 **Problema**: `MainActivity.kt` tiene **1100+ líneas** con toda la lógica de Firebase.
 
 ```kotlin
-// ACTUAL: 25+ callbacks pasados a TurnoshospiApp
+// ACTUAL: 25+ callbacks pasados a TurnoshospiApp (líneas 97-182)
 TurnoshospiApp(
     onLogin = { email, password, onResult -> signInWithEmail(...) },
     onLoadProfile = { onResult -> loadUserProfile(onResult) },
     onJoinPlant = { plantId, code, profile, onResult -> joinPlantWithCode(...) },
-    // ... 22 callbacks más
+    onListenToShifts = { plantId, staffId, onResult -> listenToUserShifts(...) },
+    onSaveNotification = { userId, type, message, targetScreen, targetId, onResult -> ... },
+    // ... 20 callbacks más
 )
 ```
 
+**TurnoshospiApp.kt** recibe estos callbacks y tiene **1183 líneas** con:
+- 50+ variables de estado (`mutableStateOf`, `mutableStateListOf`)
+- Navegación manual sin Jetpack Navigation
+- Lógica de UI y negocio mezclada
+
 **Impacto**:
-- Código difícil de leer
+- Código difícil de leer y mantener
 - No sigue principios MVVM
 - Imposible reutilizar lógica
+- Tests prácticamente imposibles
 
 ### 3.3 Sin Persistencia Offline Real
 **Problema**: Solo `CustomCalendarOffline` usa SharedPreferences para persistencia local.
@@ -388,4 +424,120 @@ Con estas mejoras, la aplicación estará preparada para escalar y mantener a la
 
 ---
 
-*Documento generado automáticamente como parte del análisis técnico del proyecto.*
+## 11. Quick Wins - Mejoras Inmediatas
+
+### 11.1 Tests para ShiftRulesEngine (1-2 días)
+El motor de reglas está perfectamente aislado y listo para tests:
+
+```kotlin
+// app/src/test/java/com/example/turnoshospi/ShiftRulesEngineTest.kt
+class ShiftRulesEngineTest {
+
+    @Test
+    fun `enfermero y auxiliar no son compatibles`() {
+        assertFalse(ShiftRulesEngine.areRolesCompatible("Enfermero", "Auxiliar"))
+        assertFalse(ShiftRulesEngine.areRolesCompatible("Enfermera", "TCAE"))
+    }
+
+    @Test
+    fun `enfermeros entre sí son compatibles`() {
+        assertTrue(ShiftRulesEngine.areRolesCompatible("Enfermero", "Enfermera"))
+    }
+
+    @Test
+    fun `supervisor no puede participar en cambios`() {
+        assertFalse(ShiftRulesEngine.canUserParticipate("Supervisor"))
+    }
+
+    @Test
+    fun `turno de noche tiene dureza NIGHT`() {
+        val date = LocalDate.of(2026, 1, 15) // Miércoles
+        assertEquals(
+            ShiftRulesEngine.Hardness.NIGHT,
+            ShiftRulesEngine.calculateShiftHardness(date, "Noche")
+        )
+    }
+
+    @Test
+    fun `fin de semana tiene dureza WEEKEND`() {
+        val saturday = LocalDate.of(2026, 1, 17)
+        assertEquals(
+            ShiftRulesEngine.Hardness.WEEKEND,
+            ShiftRulesEngine.calculateShiftHardness(saturday, "Mañana")
+        )
+    }
+
+    @Test
+    fun `no se puede trabajar más de 6 días seguidos`() {
+        val schedule = (0..5).associate {
+            LocalDate.of(2026, 1, 10 + it) to "Mañana"
+        }
+        val day7 = LocalDate.of(2026, 1, 16)
+
+        val error = ShiftRulesEngine.validateWorkRules(day7, "Mañana", schedule)
+
+        assertNotNull(error)
+        assertTrue(error!!.contains("6 días"))
+    }
+
+    @Test
+    fun `después de noche hay que descansar (saliente)`() {
+        val schedule = mapOf(
+            LocalDate.of(2026, 1, 14) to "Noche"
+        )
+        val dayAfter = LocalDate.of(2026, 1, 15)
+
+        val error = ShiftRulesEngine.validateWorkRules(dayAfter, "Mañana", schedule)
+
+        assertNotNull(error)
+        assertTrue(error!!.contains("Saliente"))
+    }
+}
+```
+
+### 11.2 Extraer Constantes de Firebase URL (30 min)
+```kotlin
+// Crear: util/Constants.kt
+object FirebaseConstants {
+    const val DATABASE_URL = "https://turnoshospi-f4870-default-rtdb.firebaseio.com/"
+    const val NOTIFICATION_CHANNEL_ID = "turnoshospi_sound_v2"
+}
+```
+
+### 11.3 Añadir Crashlytics (1 hora)
+```kotlin
+// build.gradle.kts (project)
+plugins {
+    id("com.google.firebase.crashlytics") version "2.9.9" apply false
+}
+
+// build.gradle.kts (app)
+plugins {
+    id("com.google.firebase.crashlytics")
+}
+
+dependencies {
+    implementation("com.google.firebase:firebase-crashlytics-ktx")
+}
+```
+
+---
+
+## 12. Archivos Principales por Funcionalidad
+
+| Funcionalidad | Archivo Principal | Líneas |
+|--------------|-------------------|--------|
+| Entry Point | `MainActivity.kt` | 1100 |
+| Navegación/UI Root | `TurnoshospiApp.kt` | 1183 |
+| Motor de Reglas | `ShiftRulesEngine.kt` | 155 |
+| Modelos de Turno | `ShiftModels.kt` | 63 |
+| Cambio de Turnos | `ShiftChangeScreen.kt` | ~1000 |
+| Calendario Online | `CustomCalendar.kt` | ~800 |
+| Calendario Offline | `CustomCalendarOffline.kt` | ~1000 |
+| Chat Directo | `DirectChatScreen.kt` | ~500 |
+| Estadísticas | `StatisticsScreen.kt` | 463 |
+| Cloud Functions | `functions/index.js` | 292 |
+
+---
+
+*Documento generado el 1 de Enero 2026 como parte del análisis técnico del proyecto TurnosHospi.*
