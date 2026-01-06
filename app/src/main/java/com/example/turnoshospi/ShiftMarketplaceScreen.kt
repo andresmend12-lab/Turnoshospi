@@ -30,9 +30,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.turnoshospi.ui.theme.ShiftColors
+import com.example.turnoshospi.util.FirebaseConfig
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import java.time.LocalDate
 import kotlin.math.abs
@@ -48,7 +48,7 @@ fun ShiftMarketplaceScreen(
     onBack: () -> Unit,
     onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit
 ) {
-    val database = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
+    val database = FirebaseConfig.getDatabaseInstance()
     val context = LocalContext.current
 
     // --- ESTADOS DE DATOS ---

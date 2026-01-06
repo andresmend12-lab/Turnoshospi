@@ -103,10 +103,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.turnoshospi.util.FirebaseConfig
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import java.io.BufferedReader
 import java.io.File
@@ -160,9 +160,7 @@ fun PlantDetailScreen(
     var isMenuOpen by remember { mutableStateOf(false) }
     var showVacationDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val database = remember {
-        FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
-    }
+    val database = remember { FirebaseConfig.getDatabaseInstance() }
 
     var unreadNotifCount by remember { mutableIntStateOf(0) }
     val currentUserId = remember { FirebaseAuth.getInstance().currentUser?.uid ?: "" }
@@ -809,7 +807,7 @@ private fun saveVacationDaysToFirebase(
         return
     }
 
-    val database = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
+    val database = FirebaseConfig.getDatabaseInstance()
     val updates = mutableMapOf<String, Any?>()
 
     val vacationAssignment = mapOf(
@@ -1188,7 +1186,7 @@ private fun processCsvImport(
         }
 
         // 5. Guardar en Firebase
-        val database = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
+        val database = FirebaseConfig.getDatabaseInstance()
         database.reference.updateChildren(updates)
             .addOnSuccessListener { onResult(true, context.getString(R.string.msg_import_success)) }
             .addOnFailureListener { onResult(false, context.getString(R.string.error_db_save, it.message)) }

@@ -25,9 +25,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.turnoshospi.R // Asegúrate de importar tu R
+import com.example.turnoshospi.util.FirebaseConfig
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -43,7 +43,7 @@ fun DirectChatListScreen(
     onNavigateToChat: (String, String) -> Unit
 ) {
     val context = LocalContext.current // Necesario para strings dentro de lógica
-    val database = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
+    val database = FirebaseConfig.getDatabaseInstance()
 
     // Estados de datos
     val activeChats = remember { mutableStateListOf<ActiveChatSummary>() }

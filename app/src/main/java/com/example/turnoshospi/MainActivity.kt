@@ -38,6 +38,7 @@ import com.google.firebase.database.DatabaseException
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.messaging.FirebaseMessaging
+import com.example.turnoshospi.util.FirebaseConfig
 import java.util.Date
 
 class MainActivity : ComponentActivity() {
@@ -72,8 +73,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         FirebaseApp.initializeApp(this)
         auth = FirebaseAuth.getInstance()
-        // Asegúrate de que la URL sea la correcta de tu proyecto
-        realtimeDatabase = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
+        // Usa FirebaseConfig para obtener la instancia de la base de datos
+        realtimeDatabase = FirebaseConfig.getDatabaseInstance()
         currentUserState.value = auth.currentUser
 
         // Pedir permiso al arrancar si ya hay usuario logueado

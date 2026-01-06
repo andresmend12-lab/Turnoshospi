@@ -56,9 +56,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.turnoshospi.util.FirebaseConfig
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import java.util.UUID
 
@@ -72,7 +72,7 @@ fun StaffManagementScreen(
     onDeleteStaff: (String, String, (Boolean) -> Unit) -> Unit
 ) {
     val context = LocalContext.current
-    val database = remember { FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/") }
+    val database = remember { FirebaseConfig.getDatabaseInstance() }
 
     val defaultRole = stringResource(id = R.string.role_nurse_generic)
     var staff by remember(plant?.id) {
