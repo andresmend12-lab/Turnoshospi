@@ -38,6 +38,7 @@ import com.google.firebase.database.DatabaseException
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.messaging.FirebaseMessaging
+import com.example.turnoshospi.util.Constants
 import com.example.turnoshospi.util.FirebaseConfig
 import java.util.Date
 
@@ -202,12 +203,11 @@ class MainActivity : ComponentActivity() {
     // --- CONFIGURACIÓN DEL CANAL ---
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channelId = "turnoshospi_sound_v2"
             val name = getString(R.string.notif_channel_name) // "Avisos de Turnos"
             val descriptionText = getString(R.string.notif_channel_desc) // "Notificaciones con sonido y alerta visual"
             val importance = NotificationManager.IMPORTANCE_HIGH
 
-            val channel = NotificationChannel(channelId, name, importance).apply {
+            val channel = NotificationChannel(Constants.NOTIFICATION_CHANNEL_ID, name, importance).apply {
                 description = descriptionText
                 enableVibration(true)
                 setShowBadge(true)
