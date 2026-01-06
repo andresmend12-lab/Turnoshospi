@@ -39,6 +39,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.messaging.FirebaseMessaging
 import com.example.turnoshospi.util.Constants
+import com.example.turnoshospi.util.CrashReporter
 import com.example.turnoshospi.util.FirebaseConfig
 import java.util.Date
 
@@ -73,10 +74,19 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         FirebaseApp.initializeApp(this)
+
+        // Inicializar Crashlytics (deshabilitado en debug por defecto)
+        CrashReporter.initialize()
+
         auth = FirebaseAuth.getInstance()
         // Usa FirebaseConfig para obtener la instancia de la base de datos
         realtimeDatabase = FirebaseConfig.getDatabaseInstance()
         currentUserState.value = auth.currentUser
+
+        // Configurar Crashlytics con el usuario actual si existe
+        currentUserState.value?.uid?.let { userId ->
+            CrashReporter.setUserId(userId)
+        }
 
         // Pedir permiso al arrancar si ya hay usuario logueado
         if (currentUserState.value != null) {
@@ -266,12 +276,16 @@ class MainActivity : ComponentActivity() {
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     currentUserState.value = auth.currentUser
+                    // Configurar Crashlytics con el ID del usuario
+                    auth.currentUser?.uid?.let { CrashReporter.setUserId(it) }
                     fetchAndSaveFCMToken()
                     onResult(true)
                 } else {
                     val errorMessage = task.exception?.let { formatAuthError(it) }
                         ?: getString(R.string.login_error_generic) // "No se pudo iniciar sesión con ese correo"
                     authErrorMessage.value = errorMessage
+                    // Loguear error de login en Crashlytics
+                    CrashReporter.logError("Auth", "Login failed: $errorMessage", task.exception)
                     onResult(false)
                 }
             }
@@ -787,6 +801,7 @@ class MainActivity : ComponentActivity() {
 
     private fun signOut() {
         auth.signOut()
+        CrashReporter.clearUserId()
         currentUserState.value = null
     }
 
