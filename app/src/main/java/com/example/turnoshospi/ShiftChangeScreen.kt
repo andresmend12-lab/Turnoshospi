@@ -49,9 +49,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import com.example.turnoshospi.ui.theme.ShiftColors
+import com.example.turnoshospi.util.FirebaseConfig
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import java.time.LocalDate
 import java.time.YearMonth
@@ -84,7 +84,7 @@ fun ShiftChangeScreen(
     )
 
     val context = LocalContext.current
-    val database = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
+    val database = FirebaseConfig.getDatabaseInstance()
 
     // --- ESTADOS DE DATOS ---
     val myShiftsMap = remember { mutableStateMapOf<LocalDate, String>() }

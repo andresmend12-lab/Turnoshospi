@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource // Importante
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.turnoshospi.R // Importante: Tu paquete de recursos
+import com.example.turnoshospi.util.FirebaseConfig
 import com.google.firebase.database.*
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -35,7 +36,7 @@ fun DirectChatScreen(
     // Generamos el ID del chat ordenando los IDs para que sea consistente
     val chatId = if (currentUserId < otherUserId) "${currentUserId}_${otherUserId}" else "${otherUserId}_${currentUserId}"
 
-    val database = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
+    val database = FirebaseConfig.getDatabaseInstance()
     val messagesRef = database.getReference("plants/$plantId/direct_chats/$chatId/messages")
 
     val messages = remember { mutableStateListOf<DirectMessage>() }

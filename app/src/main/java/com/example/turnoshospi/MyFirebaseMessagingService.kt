@@ -9,16 +9,12 @@ import android.graphics.Color
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.example.turnoshospi.util.Constants
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import kotlin.random.Random
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
-
-    // Debe coincidir exactamente con el de index.js y AndroidManifest.xml
-    companion object {
-        const val CHANNEL_ID = "turnoshospi_sound_v2"
-    }
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
@@ -90,16 +86,12 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         // Crear el canal si es Android 8.0+ (Oreo)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // Usamos nombres hardcodeados por seguridad, idealmente usa getString(R.string...)
-            val channelName = "Notificaciones TurnosHospi"
-            val channelDesc = "Avisos de cambios de turno y chats"
-
             val channel = NotificationChannel(
-                CHANNEL_ID,
-                channelName,
+                Constants.NOTIFICATION_CHANNEL_ID,
+                Constants.NOTIFICATION_CHANNEL_NAME,
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = channelDesc
+                description = Constants.NOTIFICATION_CHANNEL_DESC
                 enableVibration(true)
                 enableLights(true)
                 lightColor = Color.CYAN
@@ -109,7 +101,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         }
 
         // Construir la notificación
-        val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
+        val notificationBuilder = NotificationCompat.Builder(this, Constants.NOTIFICATION_CHANNEL_ID)
             // IMPORTANTE: Usa un icono drawable (blanco/transparente).
             // Si usas mipmap.ic_launcher aquí, saldrá un cuadrado blanco en Android modernos.
             .setSmallIcon(R.drawable.ic_logo_hospi_round)

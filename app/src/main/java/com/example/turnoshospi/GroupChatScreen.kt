@@ -40,10 +40,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.turnoshospi.R
+import com.example.turnoshospi.util.FirebaseConfig
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -65,7 +65,7 @@ fun GroupChatScreen(
     onBack: () -> Unit,
     onSaveNotification: (String, String, String, String, String?, (Boolean) -> Unit) -> Unit
 ) {
-    val database = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
+    val database = FirebaseConfig.getDatabaseInstance()
     val chatRef = database.getReference("plants").child(plantId).child("chat")
 
     val messages = remember { mutableStateListOf<ChatMessage>() }

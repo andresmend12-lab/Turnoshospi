@@ -54,7 +54,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.google.firebase.database.FirebaseDatabase
+import com.example.turnoshospi.util.FirebaseConfig
 import java.util.UUID
 import kotlinx.coroutines.launch
 
@@ -80,9 +80,7 @@ fun PlantCreationScreen(
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current // Kept for Firebase error handling
-    val database = remember {
-        FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
-    }
+    val database = remember { FirebaseConfig.getDatabaseInstance() }
 
     var isSaving by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }

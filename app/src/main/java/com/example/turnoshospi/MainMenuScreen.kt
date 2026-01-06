@@ -61,9 +61,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.turnoshospi.ui.theme.ShiftColors
 import com.example.turnoshospi.ui.theme.TurnoshospiTheme
+import com.example.turnoshospi.util.FirebaseConfig
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import java.time.LocalDate
 
@@ -98,7 +98,7 @@ fun MainMenuScreen(
     var isLoadingColleagues by remember { mutableStateOf(false) }
 
     // Estados Supervisor
-    val database = remember { FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/") }
+    val database = remember { FirebaseConfig.getDatabaseInstance() }
     var selectedDateRoster by remember { mutableStateOf<Map<String, ShiftRoster>>(emptyMap()) }
     var isLoadingRoster by remember { mutableStateOf(false) }
     val unassignedLabel = stringResource(id = R.string.staff_unassigned_option)

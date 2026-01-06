@@ -22,9 +22,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.turnoshospi.util.FirebaseConfig
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import java.time.Duration
 import java.time.LocalDate
@@ -61,7 +61,7 @@ fun StatisticsScreen(
     // Determinar el nombre objetivo para el cálculo de estadísticas personales
     val targetNameForCalculation = selectedStaffName ?: currentUserName ?: ""
 
-    val database = FirebaseDatabase.getInstance("https://turnoshospi-f4870-default-rtdb.firebaseio.com/")
+    val database = FirebaseConfig.getDatabaseInstance()
 
     // El LaunchedEffect se ejecuta cuando cambian las variables clave
     LaunchedEffect(plant, currentMonth, targetNameForCalculation, isSupervisor, selectedStaffName) {
