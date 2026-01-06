@@ -19,6 +19,13 @@ android {
         versionName = "2.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Firebase Realtime Database URL - centralizada para evitar hardcoding
+        buildConfigField(
+            "String",
+            "FIREBASE_DATABASE_URL",
+            "\"https://turnoshospi-f4870-default-rtdb.firebaseio.com/\""
+        )
     }
 
     buildTypes {
@@ -40,6 +47,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
