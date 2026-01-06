@@ -290,3 +290,155 @@ exports.notifyTargetOnProposal = functions.database.ref('/plants/{plantId}/shift
         }
         return null;
     });
+
+// ==================================================================
+// 7. VALIDACION SERVER-SIDE: Estado de Solicitudes de Cambio
+// Verifica que solo supervisores puedan aprobar/rechazar solicitudes
+// ==================================================================
+exports.validateShiftRequestStatus = functions.database.ref('/plants/{plantId}/shift_requests/{requestId}/status')
+    .onUpdate(async (change, context) => {
+        const beforeStatus = change.before.val();
+        const afterStatus = change.after.val();
+        const plantId = context.params.plantId;
+        const requestId = context.params.requestId;
+        const authUid = context.auth ? context.auth.uid : null;
+
+        // Estados que requieren privilegios de supervisor
+        const supervisorOnlyStatuses = ['APPROVED', 'REJECTED'];
+
+        // Si el nuevo status requiere ser supervisor
+        if (supervisorOnlyStatuses.includes(afterStatus)) {
+            // Verificar que hay un usuario autenticado
+            if (!authUid) {
+                console.error(`[SECURITY] Intento de cambio sin autenticacion. Plant: ${plantId}, Request: ${requestId}, Status: ${afterStatus}`);
+                // Revertir al estado anterior
+                await change.after.ref.set(beforeStatus);
+                return null;
+            }
+
+            // Verificar rol del usuario en la planta
+            const userPlantRef = admin.database().ref(`/plants/${plantId}/userPlants/${authUid}`);
+            const userPlantSnap = await userPlantRef.once('value');
+
+            if (!userPlantSnap.exists()) {
+                console.error(`[SECURITY] Usuario ${authUid} no pertenece a planta ${plantId}. Intento de aprobar solicitud ${requestId}`);
+                await change.after.ref.set(beforeStatus);
+                await logSecurityEvent(plantId, authUid, 'UNAUTHORIZED_STATUS_CHANGE', {
+                    requestId,
+                    attemptedStatus: afterStatus,
+                    reason: 'User not in plant'
+                });
+                return null;
+            }
+
+            const staffRole = userPlantSnap.child('staffRole').val() || '';
+            const isSupervisor = staffRole.toLowerCase().includes('supervisor');
+
+            if (!isSupervisor) {
+                console.error(`[SECURITY] Usuario ${authUid} con rol "${staffRole}" intento aprobar/rechazar solicitud ${requestId}`);
+                // Revertir el cambio
+                await change.after.ref.set(beforeStatus);
+                // Loguear intento sospechoso
+                await logSecurityEvent(plantId, authUid, 'UNAUTHORIZED_APPROVAL_ATTEMPT', {
+                    requestId,
+                    attemptedStatus: afterStatus,
+                    userRole: staffRole
+                });
+                return null;
+            }
+
+            // Usuario es supervisor - permitir el cambio y loguear
+            console.log(`[AUDIT] Supervisor ${authUid} cambio solicitud ${requestId} a ${afterStatus}`);
+        }
+
+        return null;
+    });
+
+// ==================================================================
+// 8. VALIDACION SERVER-SIDE: Escrituras en Turnos
+// Verifica que solo supervisores puedan modificar turnos
+// ==================================================================
+exports.validateShiftWrite = functions.database.ref('/plants/{plantId}/turnos/{dateKey}/{shiftName}')
+    .onWrite(async (change, context) => {
+        const plantId = context.params.plantId;
+        const dateKey = context.params.dateKey;
+        const shiftName = context.params.shiftName;
+        const authUid = context.auth ? context.auth.uid : null;
+
+        // Permitir eliminaciones (cuando after no existe) solo si es supervisor
+        const isDelete = !change.after.exists();
+        const isCreate = !change.before.exists() && change.after.exists();
+        const isUpdate = change.before.exists() && change.after.exists();
+
+        // Verificar autenticacion
+        if (!authUid) {
+            console.error(`[SECURITY] Escritura en turnos sin autenticacion. Plant: ${plantId}, Date: ${dateKey}, Shift: ${shiftName}`);
+            // Revertir: restaurar datos anteriores o eliminar si era creacion
+            if (isCreate) {
+                await change.after.ref.remove();
+            } else if (isUpdate || isDelete) {
+                await change.after.ref.set(change.before.val());
+            }
+            return null;
+        }
+
+        // Verificar rol del usuario
+        const userPlantRef = admin.database().ref(`/plants/${plantId}/userPlants/${authUid}`);
+        const userPlantSnap = await userPlantRef.once('value');
+
+        if (!userPlantSnap.exists()) {
+            console.error(`[SECURITY] Usuario ${authUid} no pertenece a planta ${plantId}. Intento de modificar turno.`);
+            if (isCreate) {
+                await change.after.ref.remove();
+            } else {
+                await change.after.ref.set(change.before.val());
+            }
+            await logSecurityEvent(plantId, authUid, 'UNAUTHORIZED_SHIFT_WRITE', {
+                dateKey,
+                shiftName,
+                action: isCreate ? 'CREATE' : isDelete ? 'DELETE' : 'UPDATE',
+                reason: 'User not in plant'
+            });
+            return null;
+        }
+
+        const staffRole = userPlantSnap.child('staffRole').val() || '';
+        const isSupervisor = staffRole.toLowerCase().includes('supervisor');
+
+        if (!isSupervisor) {
+            console.error(`[SECURITY] Usuario ${authUid} (rol: ${staffRole}) intento modificar turno ${dateKey}/${shiftName}`);
+            // Revertir el cambio
+            if (isCreate) {
+                await change.after.ref.remove();
+            } else {
+                await change.after.ref.set(change.before.val());
+            }
+            await logSecurityEvent(plantId, authUid, 'UNAUTHORIZED_SHIFT_MODIFICATION', {
+                dateKey,
+                shiftName,
+                action: isCreate ? 'CREATE' : isDelete ? 'DELETE' : 'UPDATE',
+                userRole: staffRole
+            });
+            return null;
+        }
+
+        // Usuario es supervisor - permitir y loguear
+        const action = isCreate ? 'CREATE' : isDelete ? 'DELETE' : 'UPDATE';
+        console.log(`[AUDIT] Supervisor ${authUid} realizo ${action} en turno ${dateKey}/${shiftName}`);
+        return null;
+    });
+
+// ==================================================================
+// UTILIDAD: Loguear eventos de seguridad
+// ==================================================================
+async function logSecurityEvent(plantId, userId, eventType, details) {
+    const logRef = admin.database().ref('/security_logs').push();
+    return logRef.set({
+        plantId: plantId,
+        userId: userId,
+        eventType: eventType,
+        details: details,
+        timestamp: admin.database.ServerValue.TIMESTAMP,
+        serverTime: new Date().toISOString()
+    });
+}
