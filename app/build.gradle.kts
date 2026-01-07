@@ -87,6 +87,10 @@ dependencies {
     ksp(libs.hilt.compiler)
     // Navigation
     implementation(libs.androidx.navigation.compose)
+    // Room
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
     testImplementation(libs.junit)
     testImplementation(libs.junit5.api)
     testRuntimeOnly(libs.junit5.engine)
