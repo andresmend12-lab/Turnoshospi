@@ -7,14 +7,15 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
+import javax.inject.Inject
 import kotlin.coroutines.resume
 
 /**
  * Implementacion de AuthRepository usando Firebase Authentication.
  * Convierte los callbacks de Firebase a suspend functions usando coroutines.
  */
-class FirebaseAuthRepository(
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+class FirebaseAuthRepository @Inject constructor(
+    private val auth: FirebaseAuth
 ) : AuthRepository {
 
     /**

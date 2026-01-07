@@ -15,13 +15,14 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
+import javax.inject.Inject
 import kotlin.coroutines.resume
 
 /**
  * Implementacion de PlantRepository usando Firebase Realtime Database.
  */
-class FirebasePlantRepository(
-    private val database: FirebaseDatabase = FirebaseConfig.getDatabaseInstance()
+class FirebasePlantRepository @Inject constructor(
+    private val database: FirebaseDatabase
 ) : PlantRepository {
 
     // --- Operaciones de Lectura ---
