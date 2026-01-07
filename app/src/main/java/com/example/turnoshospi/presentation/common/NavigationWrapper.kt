@@ -1,18 +1,19 @@
 package com.example.turnoshospi.presentation.common
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import com.example.turnoshospi.presentation.auth.AuthState
 import com.example.turnoshospi.presentation.auth.AuthViewModel
 import com.example.turnoshospi.presentation.auth.AuthenticationState
-import com.example.turnoshospi.presentation.navigation.Route
 import com.example.turnoshospi.presentation.navigation.navigateToLogin
-import com.example.turnoshospi.presentation.navigation.navigateToMainMenu
-import com.example.turnoshospi.presentation.plant.PlantViewModel
 
 /**
  * Wrapper que maneja la autenticacion y redirige segun el estado.
@@ -48,14 +49,10 @@ fun AuthenticatedWrapper(
  */
 @Composable
 fun LoadingScreen() {
-    androidx.compose.foundation.layout.Box(
-        modifier = androidx.compose.ui.Modifier.fillMaxSize(),
-        contentAlignment = androidx.compose.ui.Alignment.Center
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
     ) {
-        androidx.compose.material3.CircularProgressIndicator()
+        CircularProgressIndicator()
     }
 }
-
-private fun androidx.compose.ui.Modifier.fillMaxSize() = this.then(
-    androidx.compose.foundation.layout.fillMaxSize()
-)
