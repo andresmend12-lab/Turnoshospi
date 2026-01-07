@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.andresmendoza.turnoshospi" />
+                  <option name="mobileSdkAppId" value="1:130974977586:android:0c100695d9f0420339f62b" />
+                  <option name="projectId" value="turnoshospi-f4870" />
+                  <option name="projectNumber" value="130974977586" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
