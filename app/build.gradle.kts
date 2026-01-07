@@ -10,16 +10,14 @@ plugins {
 
 android {
     namespace = "com.example.turnoshospi"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.andresmendoza.turnoshospi"
         minSdk = 26
         targetSdk = 36
-        versionCode = 9
-        versionName = "2.1"
+        versionCode = 11
+        versionName = "3.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -47,6 +45,10 @@ android {
     }
     kotlinOptions {
         jvmTarget = "11"
+        freeCompilerArgs += listOf(
+            "-opt-in=kotlin.RequiresOptIn",
+            "-Xcontext-receivers"
+        )
     }
     buildFeatures {
         compose = true

@@ -1,19 +1,80 @@
+# Built application files
+*.apk
+*.aar
+*.ap_
+*.aab
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+release/
+
+# Gradle files
+.gradle/
+build/
+gradle-app.setting
+!gradle-wrapper.jar
+.gradletasknamecache
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# IntelliJ IDEA
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
+*.ipr
+*.iws
+.idea/
+.idea/caches
+.idea/libraries
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+.idea/dictionaries
+.idea/gradle.xml
+.idea/jarRepositories.xml
+.idea/compiler.xml
+.idea/misc.xml
+
+# OS-specific files
 .DS_Store
-/build
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Android Studio
 /captures
 .externalNativeBuild
 .cxx
-local.properties
+*.jks
+*.keystore
 
 # Google Services (contains API keys)
 app/google-services.json
 app/src/google-services.json
+
+# NDK
+obj/
+
+# Signing files
+.signing/
+
+# User-specific configurations
+firebase-debug.log
+firebase-debug.*.log
+
+# Version control
+vcs.xml
+
+# Kotlin
+*.kotlin_module
