@@ -41,8 +41,10 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.example.turnoshospi.util.Constants
 import com.example.turnoshospi.util.CrashReporter
 import com.example.turnoshospi.util.FirebaseConfig
+import dagger.hilt.android.AndroidEntryPoint
 import java.util.Date
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var realtimeDatabase: FirebaseDatabase
