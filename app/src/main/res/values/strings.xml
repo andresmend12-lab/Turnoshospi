@@ -482,6 +482,19 @@
     <string name="notif_title_supervisor_action">Request for Supervisor</string>
     <string name="notif_title_generic">Notification</string>
 
+    <!-- Legal / About -->
+    <string name="legal_info_title">Legal Information</string>
+    <string name="legal_documents_title">Legal Documents</string>
+    <string name="legal_privacy_policy">Privacy Policy</string>
+    <string name="legal_privacy_policy_desc">How we collect, use, and protect your data</string>
+    <string name="legal_terms_of_service">Terms of Service</string>
+    <string name="legal_terms_of_service_desc">Rules and conditions for using the app</string>
+    <string name="legal_version_format">Version %1$s</string>
+    <string name="legal_contact_title">Contact</string>
+    <string name="legal_contact_email">turnoshospi@gmail.com</string>
+    <string name="legal_developer_name">Developed by Andres Mendoza</string>
+    <string name="menu_legal_info">Legal Information</string>
+    <string name="menu_legal_info_desc">Privacy policy and terms of use</string>
 
 </resources>
 

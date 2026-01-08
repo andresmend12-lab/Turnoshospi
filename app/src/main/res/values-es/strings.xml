@@ -484,6 +484,20 @@
     <string name="notif_title_supervisor_action">Solicitud para Supervisor</string>
     <string name="notif_title_generic">Notificación</string>
 
+    <!-- Legal / About -->
+    <string name="legal_info_title">Información Legal</string>
+    <string name="legal_documents_title">Documentos Legales</string>
+    <string name="legal_privacy_policy">Política de Privacidad</string>
+    <string name="legal_privacy_policy_desc">Cómo recopilamos, usamos y protegemos tus datos</string>
+    <string name="legal_terms_of_service">Términos y Condiciones</string>
+    <string name="legal_terms_of_service_desc">Reglas y condiciones de uso de la aplicación</string>
+    <string name="legal_version_format">Versión %1$s</string>
+    <string name="legal_contact_title">Contacto</string>
+    <string name="legal_contact_email">turnoshospi@gmail.com</string>
+    <string name="legal_developer_name">Desarrollado por Andrés Mendoza</string>
+    <string name="menu_legal_info">Información Legal</string>
+    <string name="menu_legal_info_desc">Política de privacidad y términos de uso</string>
+
 </resources>
 
 

@@ -23,6 +23,7 @@ sealed class Route(val route: String) {
     data object ShiftMarketplace : Route("shift_marketplace")
     data object DirectChatList : Route("direct_chat_list")
     data object Notifications : Route("notifications")
+    data object LegalInfo : Route("legal_info")
 
     // --- Pantallas con argumentos ---
 
