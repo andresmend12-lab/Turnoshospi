@@ -40,7 +40,8 @@ fun AppNavHost(
     statisticsContent: @Composable (plantId: String) -> Unit = { /* TODO */ },
     directChatListContent: @Composable () -> Unit = { /* TODO */ },
     directChatContent: @Composable (chatId: String, otherUserId: String, otherUserName: String) -> Unit = { _, _, _ -> /* TODO */ },
-    notificationsContent: @Composable () -> Unit = { /* TODO */ }
+    notificationsContent: @Composable () -> Unit = { /* TODO */ },
+    legalInfoContent: @Composable () -> Unit = { /* TODO */ }
 ) {
     NavHost(
         navController = navController,
@@ -104,6 +105,10 @@ fun AppNavHost(
             )
         ) {
             notificationsContent()
+        }
+
+        composable(Route.LegalInfo.route) {
+            legalInfoContent()
         }
 
         // --- Pantallas con argumentos ---
@@ -234,4 +239,8 @@ fun NavHostController.navigateToImportShifts() {
 
 fun NavHostController.navigateToShiftMarketplace() {
     navigate(Route.ShiftMarketplace.route)
+}
+
+fun NavHostController.navigateToLegalInfo() {
+    navigate(Route.LegalInfo.route)
 }

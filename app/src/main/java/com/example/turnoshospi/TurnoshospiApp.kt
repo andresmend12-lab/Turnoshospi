@@ -90,7 +90,8 @@ enum class AppScreen {
     Statistics,
     DirectChatList,
     DirectChat,
-    Notifications
+    Notifications,
+    LegalInfo
 }
 
 data class Colleague(
@@ -603,7 +604,8 @@ fun TurnoshospiApp(
                     currentColors = shiftColors,
                     onColorsChanged = { newColors -> shiftColors = newColors },
                     onBack = { navigateBack() },
-                    onDeleteAccount = onDeleteAccount
+                    onDeleteAccount = onDeleteAccount,
+                    onOpenLegalInfo = { navigateTo(AppScreen.LegalInfo) }
                 )
 
                 AppScreen.PlantSettings -> PlantSettingsScreen(
@@ -728,6 +730,10 @@ fun TurnoshospiApp(
                         }
                     }
                 )
+
+                AppScreen.LegalInfo -> LegalScreen(
+                    onNavigateBack = { navigateBack() }
+                )
             }
         }
     }
@@ -827,7 +833,8 @@ fun SettingsScreen(
     currentColors: ShiftColors = ShiftColors(),
     onColorsChanged: (ShiftColors) -> Unit = {},
     onBack: () -> Unit,
-    onDeleteAccount: () -> Unit
+    onDeleteAccount: () -> Unit,
+    onOpenLegalInfo: () -> Unit = {}
 ) {
     var showConfirmDialog by remember { mutableStateOf(false) }
     var showColorPickerDialog by remember { mutableStateOf(false) }
@@ -885,6 +892,43 @@ fun SettingsScreen(
                     ) {
                         Text(stringResource(R.string.btn_restore_colors), color = Color(0xFF54C7EC))
                     }
+                }
+            }
+
+            // Legal Information Card
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onOpenLegalInfo() },
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0x22FFFFFF)),
+                border = BorderStroke(1.dp, Color(0x33FFFFFF))
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            stringResource(R.string.menu_legal_info),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.White
+                        )
+                        Text(
+                            stringResource(R.string.menu_legal_info_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.Gray
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = null,
+                        tint = Color.White.copy(0.5f),
+                        modifier = Modifier.graphicsLayer(rotationZ = 180f)
+                    )
                 }
             }
 

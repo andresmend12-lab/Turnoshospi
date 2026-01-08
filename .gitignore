@@ -68,6 +68,7 @@ obj/
 
 # Signing files
 .signing/
+keystore.properties
 
 # User-specific configurations
 firebase-debug.log
